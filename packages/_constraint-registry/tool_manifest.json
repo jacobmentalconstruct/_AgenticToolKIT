@@ -1,0 +1,25 @@
+{
+  "package_name": "_constraint-registry",
+  "version": "1.0.0",
+  "portable_project": true,
+  "preferred_mode": "whole_folder",
+  "description": "Atomic constraint registry for the Builder Constraint Contract. Decomposes the full BCC into queryable, tagged, severity-ranked constraint units with pre-built task profiles for surgical injection into agent prompts.",
+  "tools": [
+    {
+      "tool_name": "registry_build",
+      "entrypoint": "tools/registry_build.py",
+      "category": "bootstrap",
+      "summary": "Build or rebuild the constraint registry SQLite database from seed data.",
+      "mcp_name": "registry_build"
+    },
+    {
+      "tool_name": "constraint_query",
+      "entrypoint": "tools/constraint_query.py",
+      "category": "query",
+      "summary": "Query the constraint registry for task-relevant constraint packets.",
+      "mcp_name": "constraint_query"
+    }
+  ],
+  "mcp_entrypoint": "mcp_server.py",
+  "smoke_test": "smoke_test.py"
+}

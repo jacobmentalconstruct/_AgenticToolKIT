@@ -1,0 +1,229 @@
+{
+  "manifest_version": "2.0",
+  "name": "project-authority-kit",
+  "description": "DB-packed source project for vendoring the builder regiment, shared journal, and standard project layout into fresh projects.",
+  "portable_project": true,
+  "isolated_folder": true,
+  "status": "active",
+  "schema_version": "2.0.0",
+  "recommended_folders": [
+    "src/tools",
+    "src/lib",
+    "src/ui",
+    "src/jobs",
+    "assets"
+  ],
+  "mechanical_contract": {
+    "cli_commands": [
+      "metadata",
+      "run --input-json '{...}'",
+      "run --input-file path/to/input.json"
+    ],
+    "mcp_transport": "stdio",
+    "result_envelope_keys": [
+      "status",
+      "tool",
+      "input",
+      "result"
+    ]
+  },
+  "vendoring": {
+    "mode": "thin_shim_plus_packed_db",
+    "shim_dir": ".dev-tools/_project-authority",
+    "shim_files": ["common.py", "bootstrap.py", "launch_ui.py", "mcp_server.py", "tool_manifest.json", "authority.sqlite3"],
+    "packed_db": "authority.sqlite3",
+    "consumer_rule": "Install the thin shim into a target project, then use bootstrap.py or mcp_server.py from the shim.",
+    "verification": "python src/smoke_test.py"
+  },
+  "mcp_entrypoint": "src/mcp_server.py",
+  "ui_entrypoint": "src/launch_ui.py",
+  "self_test_entrypoint": "src/smoke_test.py",
+  "tools": [
+    {
+      "tool_name": "journal_init",
+      "script": "src/tools/journal_init.py",
+      "mcp_name": "journal_init",
+      "category": "bootstrap"
+    },
+    {
+      "tool_name": "journal_manifest",
+      "script": "src/tools/journal_manifest.py",
+      "mcp_name": "journal_manifest",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "journal_write",
+      "script": "src/tools/journal_write.py",
+      "mcp_name": "journal_write",
+      "category": "write"
+    },
+    {
+      "tool_name": "journal_query",
+      "script": "src/tools/journal_query.py",
+      "mcp_name": "journal_query",
+      "category": "query"
+    },
+    {
+      "tool_name": "journal_export",
+      "script": "src/tools/journal_export.py",
+      "mcp_name": "journal_export",
+      "category": "export"
+    },
+    {
+      "tool_name": "journal_acknowledge",
+      "script": "src/tools/journal_acknowledge.py",
+      "mcp_name": "journal_acknowledge",
+      "category": "contract"
+    },
+    {
+      "tool_name": "journal_actions",
+      "script": "src/tools/journal_actions.py",
+      "mcp_name": "journal_actions",
+      "category": "ledger"
+    },
+    {
+      "tool_name": "journal_scaffold",
+      "script": "src/tools/journal_scaffold.py",
+      "mcp_name": "journal_scaffold",
+      "category": "scaffold"
+    },
+    {
+      "tool_name": "journal_pack",
+      "script": "src/tools/journal_pack.py",
+      "mcp_name": "journal_pack",
+      "category": "packing"
+    },
+    {
+      "tool_name": "journal_snapshot",
+      "script": "src/tools/journal_snapshot.py",
+      "mcp_name": "journal_snapshot",
+      "category": "snapshot"
+    },
+    {
+      "tool_name": "authority_build",
+      "script": "src/tools/authority_build.py",
+      "mcp_name": "authority_build",
+      "category": "packaging"
+    },
+    {
+      "tool_name": "authority_install",
+      "script": "src/tools/authority_install.py",
+      "mcp_name": "authority_install",
+      "category": "install"
+    },
+    {
+      "tool_name": "module_decomp_planner",
+      "script": "src/tools/module_decomp_planner.py",
+      "mcp_name": "module_decomp_planner",
+      "category": "architecture"
+    },
+    {
+      "tool_name": "tokenizing_patcher",
+      "script": "src/tools/tokenizing_patcher.py",
+      "mcp_name": "tokenizing_patcher",
+      "category": "editing"
+    },
+    {
+      "tool_name": "domain_boundary_audit",
+      "script": "src/tools/domain_boundary_audit.py",
+      "mcp_name": "domain_boundary_audit",
+      "category": "analysis"
+    },
+    {
+      "tool_name": "scan_blocking_calls",
+      "script": "src/tools/scan_blocking_calls.py",
+      "mcp_name": "scan_blocking_calls",
+      "category": "analysis"
+    },
+    {
+      "tool_name": "sqlite_schema_inspector",
+      "script": "src/tools/sqlite_schema_inspector.py",
+      "mcp_name": "sqlite_schema_inspector",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "import_graph_mapper",
+      "script": "src/tools/import_graph_mapper.py",
+      "mcp_name": "import_graph_mapper",
+      "category": "analysis"
+    },
+    {
+      "tool_name": "tkinter_widget_tree",
+      "script": "src/tools/tkinter_widget_tree.py",
+      "mcp_name": "tkinter_widget_tree",
+      "category": "analysis"
+    },
+    {
+      "tool_name": "file_tree_snapshot",
+      "script": "src/tools/file_tree_snapshot.py",
+      "mcp_name": "file_tree_snapshot",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "smoke_test_runner",
+      "script": "src/tools/smoke_test_runner.py",
+      "mcp_name": "smoke_test_runner",
+      "category": "testing"
+    },
+    {
+      "tool_name": "python_complexity_scorer",
+      "script": "src/tools/python_complexity_scorer.py",
+      "mcp_name": "python_complexity_scorer",
+      "category": "analysis"
+    },
+    {
+      "tool_name": "dead_code_finder",
+      "script": "src/tools/dead_code_finder.py",
+      "mcp_name": "dead_code_finder",
+      "category": "analysis"
+    },
+    {
+      "tool_name": "test_scaffold_generator",
+      "script": "src/tools/test_scaffold_generator.py",
+      "mcp_name": "test_scaffold_generator",
+      "category": "scaffold"
+    },
+    {
+      "tool_name": "schema_diff_tool",
+      "script": "src/tools/schema_diff_tool.py",
+      "mcp_name": "schema_diff_tool",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "builderset_authority_build",
+      "script": "src/tools/builderset_authority_build.py",
+      "mcp_name": "builderset_authority_build",
+      "category": "packaging"
+    },
+    {
+      "tool_name": "builderset_authority_manifest",
+      "script": "src/tools/builderset_authority_manifest.py",
+      "mcp_name": "builderset_authority_manifest",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "builderset_authority_query",
+      "script": "src/tools/builderset_authority_query.py",
+      "mcp_name": "builderset_authority_query",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "builderset_authority_prepare_runtime",
+      "script": "src/tools/builderset_authority_prepare_runtime.py",
+      "mcp_name": "builderset_authority_prepare_runtime",
+      "category": "runtime"
+    },
+    {
+      "tool_name": "builderset_authority_export",
+      "script": "src/tools/builderset_authority_export.py",
+      "mcp_name": "builderset_authority_export",
+      "category": "export"
+    },
+    {
+      "tool_name": "builderset_authority_launch",
+      "script": "src/tools/builderset_authority_launch.py",
+      "mcp_name": "builderset_authority_launch",
+      "category": "runtime"
+    }
+  ]
+}

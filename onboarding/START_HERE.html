@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>.dev-tools</title>
+  <link rel="stylesheet" href="assets/toolbox.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">Offline Toolbox Walkthrough</div>
+      <h1>.dev-tools</h1>
+      <p class="muted">
+        A copyable walkthrough for the universal toolbox. It gives humans and
+        agents one clean way to understand the system, its trust boundaries,
+        and the lived workflow before they start building, vendoring, or
+        hydrating packed authorities.
+      </p>
+      <div>
+        <span class="pill">Open this file first</span>
+        <span class="pill">Works offline</span>
+        <span class="pill">Experiential workflow centered</span>
+        <span class="pill">Maps the real repo</span>
+        <span class="pill">Human and agent entry included</span>
+      </div>
+      <div class="hero-grid">
+        <div class="card">
+          <h3>The intended entry flow</h3>
+          <div class="flow">
+            <div class="step">
+              <strong>Learn:</strong> start with this walkthrough, then move
+              into the doctrine surfaces that explain how the toolbox really
+              works.
+            </div>
+            <div class="step">
+              <strong>Work inside boundaries:</strong> use the manifests,
+              contract, guide, and experiential workflow to choose the right
+              surface before touching code.
+            </div>
+            <div class="step">
+              <strong>Inspect deeper:</strong> use the raw docs, manifests, MCP
+              entrypoints, UI, and package surfaces when you want proof or
+              operational detail.
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Inside the toolbox</h3>
+          <ul>
+            <li><code>src/tools/</code> builder tools that stay in the toolbox</li>
+            <li><code>authorities/</code> packed SQLite codices with managed runtime</li>
+            <li><code>packages/</code> vendable subprojects copied into target apps</li>
+            <li><code>templates/</code> vendable documents and starter surfaces</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>The System in One Pass</h2>
+      <div class="grid cards">
+        <div class="card">
+          <h3>1. Orient Cleanly</h3>
+          <p>
+            A good session starts from the manifests and doctrine surfaces, not
+            from random file wandering. Humans get the walkthrough and README;
+            agents get <code>toolbox_manifest.json</code>,
+            <code>tool_manifest.json</code>, and the agent guide.
+          </p>
+        </div>
+        <div class="card">
+          <h3>2. Work Inside Boundaries</h3>
+          <p>
+            Builder tools stay in the toolbox, vendable packages move into
+            projects, and packed authorities keep reference/runtime material
+            queryable without blurring trust boundaries.
+          </p>
+        </div>
+        <div class="card">
+          <h3>3. Preserve Continuity</h3>
+          <p>
+            The experiential workflow, dev log, manifests, and journal-oriented
+            doctrine keep work legible across pauses, handoffs, and different
+            agents.
+          </p>
+        </div>
+        <div class="card">
+          <h3>4. Vend Without Drift</h3>
+          <p>
+            When a target project needs a capability, vend a package or install
+            the thin authority shim. The target project gets what it needs
+            without turning this repo into an undeclared runtime dependency.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>How To Enter The Workflow</h2>
+      <div class="flow">
+        <div class="step"><strong>Start here:</strong> use this walkthrough as the human-readable front door into the toolbox.</div>
+        <div class="step"><strong>Read the core doctrine:</strong> move into <code>README.md</code>, <code>CONTRACT.md</code>, <code>VENDORING.md</code>, and <code>_docs/EXPERIENTIAL_WORKFLOW.md</code>.</div>
+        <div class="step"><strong>Choose the right surface:</strong> decide whether the task belongs in a builder tool, packed authority, vendable package, or vendable document.</div>
+        <div class="step"><strong>Go operational only after orientation:</strong> use <code>run.bat</code>, <code>run-ui.bat</code>, <code>python src/mcp_server.py</code>, or package-level smoke tests once the intent is clear.</div>
+      </div>
+      <div class="callout">
+        The point of this microsite is not to replace the raw docs. It is to
+        make the system understandable enough that the raw docs feel welcoming
+        instead of overwhelming.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>How The Human Fits Into The Loop</h2>
+      <p class="small">
+        The best version of this toolbox is not “agent runs alone.” It is a
+        tight human-builder loop where the person provides intent and judgment,
+        and the doctrine keeps the work legible and resumable.
+      </p>
+      <div class="flow">
+        <div class="step"><strong>1. Human names the need:</strong> what matters now, what success looks like, and what should stay out of scope.</div>
+        <div class="step"><strong>2. Builder names the method:</strong> which surface fits, what will change, and how it will be verified.</div>
+        <div class="step"><strong>3. Human reviews the evidence:</strong> smoke tests, doc updates, outputs, or architecture movement.</div>
+        <div class="step"><strong>4. Builder leaves a clean return path:</strong> update the dev log and relevant doctrine so the next session can resume without guesswork.</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>The Continuity Packet</h2>
+      <p class="small">
+        These are the core surfaces that explain the lived method and stop the
+        toolbox from drifting across sessions and handoffs.
+      </p>
+      <div class="grid cards">
+        <div class="card">
+          <h3>Experiential Workflow</h3>
+          <span class="doc-id">_docs/EXPERIENTIAL_WORKFLOW.md</span>
+          <p>The lived-practice note that explains how humans, agents, docs, and toolbox surfaces stay in the same loop.</p>
+        </div>
+        <div class="card">
+          <h3>Toolbox README</h3>
+          <span class="doc-id">README.md</span>
+          <p>The architecture overview and the clearest map of the four-surface toolbox.</p>
+        </div>
+        <div class="card">
+          <h3>Toolbox Contract</h3>
+          <span class="doc-id">CONTRACT.md</span>
+          <p>The toolbox’s own build laws: tool shape, store shape, UI path, and journal invariants.</p>
+        </div>
+        <div class="card">
+          <h3>Vendoring Guide</h3>
+          <span class="doc-id">VENDORING.md</span>
+          <p>How tools stay here while packages and templates move into target projects.</p>
+        </div>
+        <div class="card">
+          <h3>Agent Guide</h3>
+          <span class="doc-id">_docs/AGENT_GUIDE.md</span>
+          <p>The session loops, tool-selection logic, and verification rhythm for builders.</p>
+        </div>
+        <div class="card">
+          <h3>Dev Log</h3>
+          <span class="doc-id">_docs/DEV_LOG.md</span>
+          <p>The human-readable story of what changed in the toolbox and why.</p>
+        </div>
+        <div class="card">
+          <h3>Toolbox Manifest</h3>
+          <span class="doc-id">toolbox_manifest.json</span>
+          <p>The zero-context map of tiers, packages, authorities, and inactive zones.</p>
+        </div>
+        <div class="card">
+          <h3>Tool Manifest</h3>
+          <span class="doc-id">tool_manifest.json</span>
+          <p>The machine-readable index of the builder tool surface and its categories.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>The Parking Loop</h2>
+      <p>
+        The toolbox stays teachable when meaningful work ends with a clean
+        return path. Before leaving, the builder should:
+      </p>
+      <div class="flow">
+        <div class="step">record the architectural truth in the docs that future sessions will actually read</div>
+        <div class="step">update <code>_docs/DEV_LOG.md</code> when the toolbox itself changed in a meaningful way</div>
+        <div class="step">keep manifests and onboarding surfaces aligned with the real repo shape</div>
+        <div class="step">leave the next human or agent a state they can inspect without reconstructing intent from diffs alone</div>
+      </div>
+      <p class="small">
+        In short: <strong>orient -&gt; choose -&gt; act -&gt; verify -&gt; resync</strong>.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Showcase Pages</h2>
+      <p class="small">
+        These pages are the guided tour version. Each one points back toward the
+        deeper docs and manifests when you are ready to keep going.
+      </p>
+      <div class="guide-grid">
+        <div class="card guide-card">
+          <h3>Why The Toolbox Matters</h3>
+          <p>Explains why this repo is more than a pile of scripts and why the trust boundaries matter.</p>
+          <a class="guide-link" href="pages/why-the-toolbox-matters.html">Open guide</a>
+        </div>
+        <div class="card guide-card">
+          <h3>How A New Session Starts</h3>
+          <p>Shows the actual zero-context pickup order for humans and agents entering cold.</p>
+          <a class="guide-link" href="pages/how-a-new-session-starts.html">Open guide</a>
+        </div>
+        <div class="card guide-card">
+          <h3>How The Workflow Feels In Practice</h3>
+          <p>Translates the raw doctrine into the lived rhythm of orientation, verification, and handoff.</p>
+          <a class="guide-link" href="pages/how-the-workflow-feels-in-practice.html">Open guide</a>
+        </div>
+        <div class="card guide-card">
+          <h3>How Humans And Agents Share The Loop</h3>
+          <p>Shows how intent, evidence, journaling, and bounded scope stay collaborative instead of chaotic.</p>
+          <a class="guide-link" href="pages/how-humans-and-agents-share-the-loop.html">Open guide</a>
+        </div>
+        <div class="card guide-card">
+          <h3>How Tools, Packages, And Templates Fit Together</h3>
+          <p>Maps the four-surface architecture so people pick the right surface before they start.</p>
+          <a class="guide-link" href="pages/how-tools-packages-and-templates-fit-together.html">Open guide</a>
+        </div>
+        <div class="card guide-card">
+          <h3>How To Vend This Toolbox</h3>
+          <p>Walks through the clean install/copy paths into a target project.</p>
+          <a class="guide-link" href="pages/how-to-vend-this-toolbox.html">Open guide</a>
+        </div>
+        <div class="card guide-card">
+          <h3>Toolbox Atlas</h3>
+          <p>Provides a broad map of the repo for people who want the whole landscape after the intro.</p>
+          <a class="guide-link" href="pages/toolbox-atlas.html">Open guide</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Deeper Inspection</h2>
+      <p>
+        When you want to move from the walkthrough into live operation, these
+        are the practical next moves:
+      </p>
+      <pre>Windows: OPEN_ME_FIRST.bat
+Windows: run-ui.bat
+Python:  python src/mcp_server.py
+Python:  python src/smoke_test.py
+Python:  python src/tools/authority_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"</pre>
+      <p class="small">
+        The microsite is the friendly front door. The actual tool use still
+        happens through the existing CLI, MCP, UI, and package surfaces.
+      </p>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{
+  "manifest_version": "1.0",
+  "name": "ollama-prompt-lab",
+  "description": "Isolated local prompt-evaluation and agent-behavior workbench for Ollama models.",
+  "portable_project": true,
+  "isolated_folder": true,
+  "status": "active",
+  "recommended_folders": [
+    "tools",
+    "jobs",
+    "artifacts",
+    "templates",
+    "sessions",
+    "drop-bin"
+  ],
+  "mechanical_contract": {
+    "cli_commands": [
+      "metadata",
+      "run --input-json '{...}'",
+      "run --input-file path/to/input.json"
+    ],
+    "mcp_transport": "stdio",
+    "result_envelope_keys": [
+      "status",
+      "tool",
+      "input",
+      "result"
+    ]
+  },
+  "mcp_entrypoint": "mcp_server.py",
+  "self_test_entrypoint": "smoke_test.py",
+  "reference_assets": [
+    {
+      "name": "prompt-eval-reference-pack",
+      "path": "artifacts/reference/prompt_eval_reference.sqlite3",
+      "manifest": "artifacts/reference/prompt_eval_reference_manifest.json",
+      "readme": "artifacts/reference/README.md",
+      "purpose": "Curated SQLite reference pack containing canonical prompt-eval jobs and non-dry-run historical runs for agent onboarding."
+    }
+  ],
+  "tools": [
+    {
+      "tool_name": "ollama_prompt_lab",
+      "script": "tools/ollama_prompt_lab.py",
+      "mcp_name": "ollama_prompt_lab",
+      "category": "evaluation"
+    },
+    {
+      "tool_name": "prompt_case_builder",
+      "script": "tools/prompt_case_builder.py",
+      "mcp_name": "prompt_case_builder",
+      "category": "evaluation"
+    },
+    {
+      "tool_name": "prompt_rubric_judge",
+      "script": "tools/prompt_rubric_judge.py",
+      "mcp_name": "prompt_rubric_judge",
+      "category": "evaluation"
+    },
+    {
+      "tool_name": "prompt_diff_report",
+      "script": "tools/prompt_diff_report.py",
+      "mcp_name": "prompt_diff_report",
+      "category": "reporting"
+    },
+    {
+      "tool_name": "agent_interview",
+      "script": "tools/agent_interview.py",
+      "mcp_name": "agent_interview",
+      "category": "evaluation"
+    }
+  ]
+}

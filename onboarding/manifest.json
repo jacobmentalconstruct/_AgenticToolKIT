@@ -1,0 +1,89 @@
+{
+  "name": "dev-tools-onboarding-site",
+  "version": "1.0.0",
+  "description": "Offline microsite for learning the universal .dev-tools toolbox before deeper local use.",
+  "entrypoints": {
+    "top_level_html": "START_HERE.html",
+    "walkthrough_html": "onboarding/START_HERE.html",
+    "windows_launcher": "OPEN_ME_FIRST.bat",
+    "mac_launcher": "OPEN_ME_FIRST.command",
+    "python_launcher": "launch_explorer.py"
+  },
+  "docs": [
+    {
+      "path": "README.md",
+      "label": "Toolbox README",
+      "role": "High-level architecture and first-stop overview."
+    },
+    {
+      "path": "CONTRACT.md",
+      "label": "Toolbox Contract",
+      "role": "Mechanical contract for the toolbox itself."
+    },
+    {
+      "path": "VENDORING.md",
+      "label": "Vendoring Guide",
+      "role": "How tools, packages, and templates move into target projects."
+    },
+    {
+      "path": "_docs/AGENT_GUIDE.md",
+      "label": "Agent Guide",
+      "role": "Operational playbook for orienting, building, verifying, and journaling."
+    },
+    {
+      "path": "_docs/EXPERIENTIAL_WORKFLOW.md",
+      "label": "Experiential Workflow",
+      "role": "Lived-practice explanation of how humans, agents, docs, and packages stay in sync."
+    },
+    {
+      "path": "_docs/DEV_LOG.md",
+      "label": "Dev Log",
+      "role": "Human-readable change trail for the toolbox."
+    },
+    {
+      "path": "_docs/BLUEPRINT.md",
+      "label": "Blueprint",
+      "role": "Reference architecture for the journal-oriented surfaces."
+    },
+    {
+      "path": "toolbox_manifest.json",
+      "label": "Toolbox Manifest",
+      "role": "Machine-readable zero-context index of tiers and packages."
+    },
+    {
+      "path": "tool_manifest.json",
+      "label": "Tool Manifest",
+      "role": "Machine-readable index of builder tools."
+    }
+  ],
+  "pages": [
+    {
+      "path": "onboarding/pages/why-the-toolbox-matters.html",
+      "label": "Why The Toolbox Matters"
+    },
+    {
+      "path": "onboarding/pages/how-a-new-session-starts.html",
+      "label": "How A New Session Starts"
+    },
+    {
+      "path": "onboarding/pages/how-the-workflow-feels-in-practice.html",
+      "label": "How The Workflow Feels In Practice"
+    },
+    {
+      "path": "onboarding/pages/how-humans-and-agents-share-the-loop.html",
+      "label": "How Humans And Agents Share The Loop"
+    },
+    {
+      "path": "onboarding/pages/how-tools-packages-and-templates-fit-together.html",
+      "label": "How Tools, Packages, And Templates Fit Together"
+    },
+    {
+      "path": "onboarding/pages/how-to-vend-this-toolbox.html",
+      "label": "How To Vend This Toolbox"
+    },
+    {
+      "path": "onboarding/pages/toolbox-atlas.html",
+      "label": "Toolbox Atlas"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Why The Toolbox Matters</title>
+  <link rel="stylesheet" href="../assets/toolbox.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="hero compact">
+      <div class="eyebrow">Guide</div>
+      <h1>Why The Toolbox Matters</h1>
+      <p class="muted">
+        `.dev-tools` is not just a place to stash scripts. It is a governed
+        build surface with explicit boundaries between what stays in the
+        toolbox, what gets copied into target projects, and what remains
+        queryable as packed authority.
+      </p>
+      <div class="tag-row">
+        <span class="pill">Portable</span>
+        <span class="pill">Agent-first</span>
+        <span class="pill">Project-agnostic</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>The Problem It Solves</h2>
+      <div class="flow">
+        <div class="step">Without a stable toolbox, each new project improvises its own helper scripts, docs, and onboarding rituals.</div>
+        <div class="step">Without explicit boundaries, helper tooling quietly leaks into runtime dependencies or drags project-specific assumptions along with it.</div>
+        <div class="step">Without shared doctrine, humans and agents end up solving the same orientation problems over and over.</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What This Repo Establishes Instead</h2>
+      <div class="grid cards">
+        <div class="card">
+          <h3>One Toolbox, Many Projects</h3>
+          <p>The builder tools stay here and can work on many projects without being rewritten each time.</p>
+        </div>
+        <div class="card">
+          <h3>Vendable Capability</h3>
+          <p>Packages and templates are copied into target projects only when they are actually needed.</p>
+        </div>
+        <div class="card">
+          <h3>Packed Authority</h3>
+          <p>SQLite authority artifacts let the toolbox carry codex material in a stable, queryable form.</p>
+        </div>
+        <div class="card">
+          <h3>Shared Build Language</h3>
+          <p>The README, contract, manifests, and workflow docs give humans and agents the same orientation surfaces.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Read Next</h2>
+      <div class="doc-list">
+        <a href="../../README.md">README.md</a>
+        <a href="../../CONTRACT.md">CONTRACT.md</a>
+        <a href="../../toolbox_manifest.json">toolbox_manifest.json</a>
+      </div>
+      <div class="back-row">
+        <a class="back-link" href="../START_HERE.html">Back to walkthrough</a>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

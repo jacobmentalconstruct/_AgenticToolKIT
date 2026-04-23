@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+runtime/
+
+_docs/_AppJOURNAL/journal_config.json
+_docs/_AppJOURNAL/db_manifest.json
+_docs/_AppJOURNAL/exports/*
+!_docs/_AppJOURNAL/exports/.gitkeep
+
+_docs/_journalDB/app_journal.sqlite3

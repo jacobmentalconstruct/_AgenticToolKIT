@@ -1,0 +1,87 @@
+{
+  "manifest_version": "2.0",
+  "name": "dev-tools-toolbox",
+  "description": "Universal agent-first toolbox with builder tools, vendable packages, and vendable document templates. Project-agnostic by design.",
+  "zero_context_protocol": [
+    "Read toolbox_manifest.json first.",
+    "Read _docs/AGENT_GUIDE.md for workflow loops, tool selection, and token efficiency patterns.",
+    "Run journal_query to pick up context from the last session.",
+    "Run constraint_query with your task profile to load relevant rules.",
+    "Choose from builder_tools, packed_authorities, or vendable_packages based on the task.",
+    "Ignore _Possible_Intake unless explicitly requested."
+  ],
+  "tiers": {
+    "builder_tools": {
+      "description": "Analysis, patching, and audit tools that stay in the toolbox. Used by agents to work ON projects.",
+      "manifest": "tool_manifest.json",
+      "mcp_entrypoint": "src/mcp_server.py",
+      "readme": "README.md"
+    },
+    "packed_authorities": {
+      "description": "Toolbox-resident packed codices that run from SQLite-backed artifacts with managed cache hydration.",
+      "path": "authorities",
+      "readme": "authorities/_builderset-authority/README.md",
+      "authorities": [
+        {
+          "name": "_builderset-authority",
+          "path": "authorities/_builderset-authority",
+          "purpose": "Packed SQLite authority for AgenticToolboxBuilderSET with runtime/reference content classes and cache-backed execution.",
+          "manifest": "authorities/_builderset-authority/artifacts/builderset_authority_manifest.json",
+          "readme": "authorities/_builderset-authority/README.md",
+          "preferred_for": ["BuilderSET runtime hydration", "packed MCP operation", "codex export without live repo dependency"]
+        }
+      ]
+    },
+    "vendable_packages": {
+      "description": "Self-contained subprojects that get installed INTO target projects.",
+      "path": "packages",
+      "readme": "packages/README.md",
+      "packages": [
+        {
+          "name": "_app-journal",
+          "path": "packages/_app-journal",
+          "purpose": "SQLite-backed shared journal for notes, dev logs, decisions, and human-agent activity.",
+          "manifest": "packages/_app-journal/tool_manifest.json",
+          "readme": "packages/_app-journal/README.md",
+          "preferred_for": ["project notes", "decision logging", "shared human-agent journal"]
+        },
+        {
+          "name": "_manifold-mcp",
+          "path": "packages/_manifold-mcp",
+          "purpose": "Reversible text-evidence-hypergraph package built around evidence bags.",
+          "manifest": "packages/_manifold-mcp/tool_manifest.json",
+          "readme": "packages/_manifold-mcp/README.md",
+          "preferred_for": ["evidence bags", "reversible retrieval", "text to graph workflows"]
+        },
+        {
+          "name": "_ollama-prompt-lab",
+          "path": "packages/_ollama-prompt-lab",
+          "purpose": "Local prompt evaluation and Ollama model comparison.",
+          "manifest": "packages/_ollama-prompt-lab/tool_manifest.json",
+          "readme": "packages/_ollama-prompt-lab/README.md",
+          "preferred_for": ["prompt eval", "rubric scoring", "Ollama comparisons"]
+        },
+        {
+          "name": "_constraint-registry",
+          "path": "packages/_constraint-registry",
+          "purpose": "Atomic constraint registry for the Builder Constraint Contract. Enables surgical injection of task-relevant rules into agent prompts.",
+          "manifest": "packages/_constraint-registry/tool_manifest.json",
+          "readme": "packages/_constraint-registry/README.md",
+          "preferred_for": ["constraint injection", "agent governance", "task-scoped rules", "BCC enforcement"]
+        }
+      ]
+    },
+    "vendable_documents": {
+      "description": "Project-agnostic templates and reference docs that can be copied into any new project.",
+      "path": "templates",
+      "readme": "templates/README.md"
+    }
+  },
+  "inactive_areas": [
+    {
+      "name": "_Possible_Intake",
+      "path": "_Possible_Intake",
+      "rule": "Staging area for incoming tools. Not a complete tool surface."
+    }
+  ]
+}
