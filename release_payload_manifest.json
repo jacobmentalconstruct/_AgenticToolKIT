@@ -160,8 +160,8 @@
     {
       "path": "authorities",
       "role": "reference_pending_harvest",
-      "install": true,
-      "notes": "Retained until authority/reference cleanup tranches finish."
+      "install": false,
+      "notes": "BuilderSET reference/provenance authority retained for harvest review only; excluded from default sidecar installs to avoid old-project dependency drift."
     },
     {
       "path": "onboarding",

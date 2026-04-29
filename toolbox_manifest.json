@@ -5,10 +5,12 @@
   "zero_context_protocol": [
     "Read toolbox_manifest.json first.",
     "Read _docs/AGENT_GUIDE.md for workflow loops, tool selection, and token efficiency patterns.",
+    "Read release_payload_manifest.json before copying or installing the sidecar payload.",
     "Run journal_query to pick up context from the last session.",
     "Run constraint_query with your task profile to load relevant rules.",
-    "Choose from builder_tools, packed_authorities, or vendable_packages based on the task.",
-    "Ignore _Possible_Intake unless explicitly requested."
+    "Choose from builder_tools, vendable_packages, or vendable_documents based on the task.",
+    "Treat packed_authorities as reference/provenance material unless explicitly requested.",
+    "Ignore .potential-intake unless explicitly requested."
   ],
   "tiers": {
     "builder_tools": {
@@ -18,17 +20,17 @@
       "readme": "README.md"
     },
     "packed_authorities": {
-      "description": "Toolbox-resident packed codices that run from SQLite-backed artifacts with managed cache hydration.",
+      "description": "Reference/provenance packed codices retained for harvest review. Excluded from the default sidecar release payload unless explicitly opted in.",
       "path": "authorities",
       "readme": "authorities/_builderset-authority/README.md",
       "authorities": [
         {
           "name": "_builderset-authority",
           "path": "authorities/_builderset-authority",
-          "purpose": "Packed SQLite authority for AgenticToolboxBuilderSET with runtime/reference content classes and cache-backed execution.",
+          "purpose": "Packed SQLite authority for the old AgenticToolboxBuilderSET codex. Useful for harvest/provenance and cache-backed inspection, not a default installed sidecar dependency.",
           "manifest": "authorities/_builderset-authority/artifacts/builderset_authority_manifest.json",
           "readme": "authorities/_builderset-authority/README.md",
-          "preferred_for": ["BuilderSET runtime hydration", "packed MCP operation", "codex export without live repo dependency"]
+          "preferred_for": ["reference harvest", "provenance inspection", "codex export without live repo dependency"]
         }
       ]
     },
@@ -79,8 +81,8 @@
   },
   "inactive_areas": [
     {
-      "name": "_Possible_Intake",
-      "path": "_Possible_Intake",
+      "name": ".potential-intake",
+      "path": ".potential-intake",
       "rule": "Staging area for incoming tools. Not a complete tool surface."
     }
   ]

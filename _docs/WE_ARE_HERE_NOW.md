@@ -18,11 +18,13 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Project root:
   - `.dev-tools`
 - Current phase or tranche:
-  - release-spine implementation for the sidecar install, setup, and microsite verification flow
+  - reference-harvest classification for the sidecar release payload
 - Current runtime truth:
   - full sidecar install, setup orchestration, and onboarding-site verification
     are now present as live builder-tool surfaces and have passed the fresh
     temporary-project verification loop
+  - the old BuilderSET packed authority is now classified as harvest/reference
+    material and excluded from default sidecar installs
 - Current collaboration truth:
   - the toolbox is shifting from doctrine-only planning toward a testable
     project-local install and onboarding path
@@ -37,22 +39,26 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Project setup can now be audited, applied, and verified with `project_setup`.
 - Microsite integrity can now be checked with `onboarding_site_check`.
 - The temporary-project install/apply/verify/microsite trial is now passing.
+- The release payload manifest now excludes `authorities/`, `runtime/`, `_logs/`,
+  `.potential-intake/`, and caches from default sidecar installs.
 
 ## Current bottleneck
 
-- The release spine now exists, but it still needs fresh-project verification,
-  reference harvest classification, and final cleanup discipline before it is a
-  true release candidate.
+- The release spine now exists and old reference material is excluded from
+  default installs, but final archive/delete cleanup should wait until harvest
+  review is complete.
 
 ## Next best move
 
-- Classify remaining authority/reference material for keep, archive, or harvest.
+- Decide whether to archive or delete the excluded reference/cache surfaces
+  after confirming all useful code and doctrine have been harvested.
 - Build the Windows-safe search fallback tool as the next capability-hardening move.
 
 ## Current warnings
 
 - The backlog is still young and not yet a fully mature continuation surface.
-- The new release path still ships some harvest-pending authority material.
+- Root `authority.sqlite3` still ships as a transitional artifact until the
+  final release-candidate authority boundary is decided.
 - Not all compliance checklist surfaces exist yet in final form.
 
 ## Read in this order if resuming cold

@@ -343,6 +343,25 @@ classification work.
 
 ---
 
+## 2026-04-29 — Reference harvest boundary set for sidecar installs
+
+- Added `_docs/REFERENCE_HARVEST.md` as the release-harvest map for root
+  surfaces, old reference material, generated caches, and protected ship
+  surfaces.
+- Updated `release_payload_manifest.json` so `authorities/` is retained for
+  harvest/provenance review but no longer copied by default sidecar installs.
+- Updated `toolbox_manifest.json` so agents treat packed authorities as
+  reference/provenance material and use `.potential-intake` as the real intake
+  path name.
+- Updated continuity docs so the next cleanup step is archive/delete only after
+  useful code, setup doctrine, and microsite UX have been harvested.
+
+Current read: the default installed sidecar should now carry the live toolbox,
+microsite, docs, packages, templates, and active tools without dragging the old
+BuilderSET authority folder into every target project.
+
+---
+
 ## Template for future entries
 
 Journal entry: pending mirror
