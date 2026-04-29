@@ -69,7 +69,15 @@ these to work ON target projects without modifying the toolbox itself.
 | `sqlite_schema_inspector` | introspection | Inspect SQLite schema, tables, indexes, sample rows |
 | `import_graph_mapper` | analysis | Map Python import dependency graph with cycle detection |
 | `tkinter_widget_tree` | analysis | Map Tkinter widget hierarchy, geometry, and bindings |
-Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+| `file_tree_snapshot` | introspection | Walk a project into structured JSON tree with sizes, line counts, and docstrings |
+| `smoke_test_runner` | testing | Discover and execute all `smoke_test.py` files across the toolbox and packages |
+| `python_complexity_scorer` | analysis | Score Python functions by cyclomatic complexity, nesting, and length |
+| `dead_code_finder` | analysis | AST cross-reference of definitions vs usages to surface unused code |
+| `test_scaffold_generator` | scaffold | Generate pytest/unittest stubs for every public function in a source file |
+| `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
+
+The single source of truth for the active tool set is `tool_manifest.json`
+(currently 27 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
@@ -118,9 +126,15 @@ If you are an agent arriving with no prior context:
 
 ## Human Entry
 
+Double-click `run.bat` (Windows) or run `./run.sh` (Linux/macOS) to launch the
+`.dev-tools` installer GUI. Pick the target project folder, then click Install.
+If a `.dev-tools/` sidecar already exists at that target, the installer will ask
+you to confirm a clean remove-and-reinstall, or cancel.
+
 ```powershell
-run.bat          # Windows
-./run.sh         # Linux/macOS
+run.bat          # Windows — launches the installer GUI
+./run.sh         # Linux/macOS — launches the installer GUI
+python install.py  # equivalent direct invocation
 ```
 
 ## MCP Server

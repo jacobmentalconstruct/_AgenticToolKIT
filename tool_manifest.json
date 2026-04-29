@@ -34,7 +34,7 @@
     "verification": "python src/smoke_test.py"
   },
   "mcp_entrypoint": "src/mcp_server.py",
-  "ui_entrypoint": "src/launch_ui.py",
+  "installer_entrypoint": "install.py",
   "self_test_entrypoint": "src/smoke_test.py",
   "tools": [
     {

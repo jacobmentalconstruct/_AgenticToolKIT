@@ -68,28 +68,16 @@
       "notes": "Top-level Python dependency surface."
     },
     {
-      "path": "run-ui.bat",
-      "role": "ship",
-      "install": true,
-      "notes": "Windows UI launcher."
-    },
-    {
-      "path": "run-ui.sh",
-      "role": "ship",
-      "install": true,
-      "notes": "Unix UI launcher."
-    },
-    {
       "path": "run.bat",
       "role": "ship",
       "install": true,
-      "notes": "Windows launcher."
+      "notes": "Windows installer launcher (double-click to install the sidecar into a project)."
     },
     {
       "path": "run.sh",
       "role": "ship",
       "install": true,
-      "notes": "Unix launcher."
+      "notes": "Unix installer launcher (run to install the sidecar into a project)."
     },
     {
       "path": "setup_env.bat",

@@ -380,7 +380,7 @@ def initialize_store(project_root: str | Path | None = None, db_path: str | Path
             "project_root": paths["project_root"],
             "db_path": paths["db_path"],
             "schema_version": SCHEMA_VERSION,
-            "ui_hint": "python src/launch_ui.py --project-root <project>",
+            "installer_hint": "python install.py",
             "mcp_hint": "python src/mcp_server.py",
         },
     )

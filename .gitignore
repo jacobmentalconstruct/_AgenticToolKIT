@@ -1,11 +1,42 @@
+# Python build / runtime
 __pycache__/
 *.pyc
+*.pyo
 .venv/
+venv/
 runtime/
 
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code harness local state (contains absolute user paths and permissions)
+.claude/
+
+# Secrets / credentials — never commit
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.p12
+credentials.json
+secrets.json
+
+# Logs
+*.log
+_logs/
+
+# Runtime journal state (generated on demand by journal_init)
 _docs/_AppJOURNAL/journal_config.json
 _docs/_AppJOURNAL/db_manifest.json
 _docs/_AppJOURNAL/exports/*
 !_docs/_AppJOURNAL/exports/.gitkeep
-
 _docs/_journalDB/app_journal.sqlite3

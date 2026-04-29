@@ -68,5 +68,4 @@ Name the current bounded work slice and list only the tasks that belong in it.
 - [x] `_docs/WE_ARE_HERE_NOW.md` is current
 - [x] `_docs/builder_constraint_contract.md` exists
 - [x] `_docs/DEV_LOG.md` is being appended meaningfully
-- [x] `_docs/_journalDB/app_journal.sqlite3` exists
-- [x] `_docs/_AppJOURNAL/` is exportable/queryable
+- [x] `_docs/_journalDB/` and `_docs/_AppJOURNAL/` exist as gitignored runtime surfaces (generated on demand by `journal_init`; not part of the shipped source state)

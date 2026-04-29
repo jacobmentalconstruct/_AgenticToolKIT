@@ -1,7 +1,8 @@
 # Dev Log
 
-_Last updated: 2026-04-11. Journal mirror lives in
-`_docs/_journalDB/app_journal.sqlite3`._
+_Last updated: 2026-04-29. This file is the authoritative human-readable
+project log. The runtime SQLite at `_docs/_journalDB/app_journal.sqlite3`
+is gitignored and not maintained as a mirror._
 
 ---
 
@@ -398,9 +399,57 @@ agent through setup/contract doctrine, then build from project-local tools.
 
 ---
 
-## Template for future entries
+## 2026-04-29 — Strangler finalized: root identity is the installer, not the journal
 
-Journal entry: pending mirror
+- Removed strangler residue at the toolbox root that still treated this repo as
+  the original `_app-journal` package:
+  - Deleted `src/launch_ui.py` and `src/ui/app_journal_ui.py` (the journal UI
+    belongs only to `packages/_app-journal/`, not the toolbox root).
+  - Deleted `run-ui.bat` and `run-ui.sh` (byte-identical duplicates of the
+    `run.*` scripts; both pointed at the deleted journal UI).
+- Repointed the root entrypoint surface:
+  - `run.bat` / `run.sh` now launch `install.py` (the sidecar installer GUI).
+  - `tool_manifest.json` replaces `ui_entrypoint` with `installer_entrypoint`.
+  - `release_payload_manifest.json` ships only `run.bat` / `run.sh` now.
+- Hardened the installer (`install.py`):
+  - Detects an existing `.dev-tools/` at the chosen target.
+  - Prompts for clean remove-and-reinstall, or cancel. No partial-overwrite
+    path — keeps prototype install behavior unambiguous.
+  - Dropped the "Overwrite existing files" checkbox in favor of the explicit
+    remove/cancel dialog.
+- Cleaned remaining old-identity references:
+  - `setup_env.bat` / `setup_env.sh` no longer echo `_app-journal`.
+  - `requirements.txt` header now reads `.dev-tools dependencies`.
+  - `src/lib/journal_store.py` config writer now emits `installer_hint`
+    instead of a stale `ui_hint` to the deleted root UI.
+  - `onboarding/pages/toolbox-atlas.html` "Operational Entry" card now lists
+    `install.py`, `mcp_server.py`, `smoke_test.py`.
+  - `_docs/AGENT_GUIDE.md` reference updated.
+- Sweep of stale doc claims:
+  - `DEV_LOG.md` header date refreshed; the SQLite-mirror claim is removed
+    (the runtime SQLite is gitignored; this file is the authoritative log).
+  - "Template for future entries" no longer carries the `pending mirror` tag.
+  - `_docs/_journalDB/README.md` no longer references the deleted
+    `authority.sqlite3`.
+  - `_docs/TODO.md` compliance line corrected: the journal DB and exports
+    are gitignored runtime surfaces, not part of shipped source state.
+- Privacy / leak hardening:
+  - `.gitignore` extended: `.claude/`, `.env*`, `*.key`/`*.pem`/`*.pfx`/`*.p12`,
+    `credentials.json`, `secrets.json`, `*.log`, `_logs/`, IDE/OS junk.
+    `.claude/settings.local.json` (which carries absolute user paths) is now
+    ignored to prevent accidental commit.
+  - Audit confirmed no API keys, passwords, tokens, or third-party app names
+    appear in tracked content. Author attribution in `LICENSE.md` and the
+    BCC template is intentional copyright marking and was left untouched.
+
+Current read: the root toolbox is now a single-purpose installer surface plus
+agent/MCP/smoke-test surfaces. The journal UI lives only inside its vendable
+package, and the strangler pattern is complete — no part of the active root
+repo still pretends to be the original `_app-journal` package.
+
+---
+
+## Template for future entries
 
 - Files changed:
   - list important files or subsystems

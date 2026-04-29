@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-04-29
+- 2026-04-29 (strangler finalization tranche parked)
 
 ## Fresh-thread start
 
@@ -18,16 +18,20 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Project root:
   - `.dev-tools`
 - Current phase or tranche:
-  - prototype closure and release-candidate cleanup
+  - parked release-candidate prototype (strangler finalization complete)
 - Current runtime truth:
-  - full sidecar install, setup orchestration, and onboarding-site verification
-    are now present as live builder-tool surfaces and have passed the fresh
-    temporary-project verification loop
-  - old reference/authority material has been retired from the active product
-    shape
+  - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
+    `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
+  - the journal UI lives only inside the vendable `_app-journal` package; the
+    toolbox root no longer pretends to be the original journal package
+  - sidecar install, setup orchestration, and onboarding-site verification are
+    live builder-tool surfaces, all 39 smoke tests pass on the cleaned shape
+  - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
+    logs, and runtime journal state
 - Current collaboration truth:
-  - the toolbox is shifting from doctrine-only planning toward a testable
-    project-local install and onboarding path
+  - the prototype is parkable: human installs via the GUI, agent takes over
+    inside the target project from `project_setup` onward; next step is
+    container packaging for Kubernetes reuse
 
 ## What works right now
 
@@ -45,12 +49,16 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Current bottleneck
 
-- The release spine exists and reference-era surfaces have been removed from the
-  active prototype. The remaining gate is final release-candidate verification.
+- None internal to the prototype. The release-candidate is parkable.
+  Outstanding work is packaging-shaped (Dockerfile, Kubernetes pod), not
+  source-shaped.
 
 ## Next best move
 
-- Run final release-candidate verification and park the cleaned prototype.
+- Wrap the cleaned `.dev-tools/` in a minimal Dockerfile (Python 3.11 slim,
+  `COPY . /opt/dev-tools/`, headless `install.py` entrypoint against a
+  mounted `/workspace`) so the same artifact serves local desktop install
+  and Kubernetes pod reuse.
 
 ## Current warnings
 

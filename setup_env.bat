@@ -1,5 +1,5 @@
 @echo off
-echo === _app-journal environment setup ===
+echo === .dev-tools environment setup ===
 
 where python >nul 2>&1
 if errorlevel 1 (

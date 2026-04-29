@@ -12,10 +12,11 @@ HOW TO USE:
 
 from __future__ import annotations
 
+import shutil
 import sys
 import threading
 import tkinter as tk
-from tkinter import filedialog, ttk
+from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
 
 # Ensure src/ is importable
@@ -98,8 +99,10 @@ class InstallerApp:
         ttk.Label(main, text=".dev-tools Installer", style="Heading.TLabel").pack(anchor=tk.W)
         ttk.Label(
             main,
-            text="Install the full .dev-tools sidecar into a new or existing project.",
+            text="Install the full .dev-tools sidecar into a project. If a sidecar already exists, you will be asked to remove and reinstall, or cancel.",
             style="Muted.TLabel",
+            wraplength=620,
+            justify=tk.LEFT,
         ).pack(anchor=tk.W, pady=(2, 16))
 
         # ── Separator ──
@@ -122,18 +125,9 @@ class InstallerApp:
         browse_btn = ttk.Button(row, text="Browse…", command=self._browse)
         browse_btn.pack(side=tk.RIGHT)
 
-        # ── Options ──
-        opts_frame = ttk.Frame(main)
-        opts_frame.pack(fill=tk.X, pady=(8, 12))
-
-        self.overwrite_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(
-            opts_frame, text="Overwrite existing files", variable=self.overwrite_var
-        ).pack(anchor=tk.W)
-
         # ── Action buttons ──
         btn_frame = ttk.Frame(main)
-        btn_frame.pack(fill=tk.X, pady=(0, 12))
+        btn_frame.pack(fill=tk.X, pady=(12, 12))
 
         self.preview_btn = ttk.Button(btn_frame, text="Preview", command=self._preview)
         self.preview_btn.pack(side=tk.LEFT, padx=(0, 8))
@@ -233,7 +227,7 @@ class InstallerApp:
         try:
             from lib.sidecar_release import install_sidecar
             result = install_sidecar(
-                str(target), overwrite=self.overwrite_var.get(), preview=True
+                str(target), overwrite=True, preview=True
             )
             self.root.after(0, self._show_preview_result, result)
         except Exception as exc:
@@ -263,19 +257,40 @@ class InstallerApp:
         target = self._validate_path()
         if not target:
             return
+
+        sidecar_dir = target / ".dev-tools"
+        if sidecar_dir.exists():
+            proceed = messagebox.askokcancel(
+                "Existing .dev-tools detected",
+                f"A .dev-tools sidecar already exists at:\n\n{sidecar_dir}\n\n"
+                "Press OK to remove it and reinstall a clean copy.\n"
+                "Press Cancel to abort.",
+                icon="warning",
+            )
+            if not proceed:
+                self._clear_log()
+                self._log("Install cancelled. Existing .dev-tools left untouched.", "warning")
+                return
+
         self._clear_log()
         self._log("Installing .dev-tools sidecar…", "heading")
         self._log(f"  Target: {target}", "muted")
+        if sidecar_dir.exists():
+            self._log(f"  Removing existing: {sidecar_dir}", "warning")
         self._log("")
 
         self._set_busy(True)
-        threading.Thread(target=self._run_install, args=(target,), daemon=True).start()
+        threading.Thread(
+            target=self._run_install, args=(target, sidecar_dir), daemon=True
+        ).start()
 
-    def _run_install(self, target: Path) -> None:
+    def _run_install(self, target: Path, sidecar_dir: Path) -> None:
         try:
+            if sidecar_dir.exists():
+                shutil.rmtree(sidecar_dir)
             from lib.sidecar_release import install_sidecar
             result = install_sidecar(
-                str(target), overwrite=self.overwrite_var.get(), preview=False
+                str(target), overwrite=True, preview=False
             )
             self.root.after(0, self._show_install_result, result, target)
         except Exception as exc:

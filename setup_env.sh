@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-echo "=== _app-journal environment setup ==="
+echo "=== .dev-tools environment setup ==="
 
 if ! command -v python3 &>/dev/null; then
     echo "ERROR: python3 not found on PATH."
