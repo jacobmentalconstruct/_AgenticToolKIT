@@ -18,20 +18,20 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Project root:
   - `.dev-tools`
 - Current phase or tranche:
-  - reference-harvest classification for the sidecar release payload
+  - prototype closure and release-candidate cleanup
 - Current runtime truth:
   - full sidecar install, setup orchestration, and onboarding-site verification
     are now present as live builder-tool surfaces and have passed the fresh
     temporary-project verification loop
-  - the old BuilderSET packed authority is now classified as harvest/reference
-    material and excluded from default sidecar installs
+  - old reference/authority material has been retired from the active product
+    shape
 - Current collaboration truth:
   - the toolbox is shifting from doctrine-only planning toward a testable
     project-local install and onboarding path
 
 ## What works right now
 
-- Four-surface toolbox architecture is established.
+- Three-surface sidecar architecture is established.
 - Vendable packages are present and recently drift-cleaned.
 - Offline onboarding microsite is in place.
 - Backlog and northstars now exist as explicit surfaces.
@@ -39,29 +39,24 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Project setup can now be audited, applied, and verified with `project_setup`.
 - Microsite integrity can now be checked with `onboarding_site_check`.
 - The temporary-project install/apply/verify/microsite trial is now passing.
-- The release payload manifest now excludes `authorities/`, `runtime/`, `_logs/`,
-  `.potential-intake/`, and caches from default sidecar installs.
+- The release payload manifest now lists only active release-candidate surfaces.
 - `repo_search` now gives agents a Windows-safe search surface with an `rg`
   fast path and native fallback.
 
 ## Current bottleneck
 
-- The release spine now exists and old reference material is excluded from
-  default installs, but final archive/delete cleanup should wait until harvest
-  review is complete.
+- The release spine exists and reference-era surfaces have been removed from the
+  active prototype. The remaining gate is final release-candidate verification.
 
 ## Next best move
 
-- Decide whether to archive or delete the excluded reference/cache surfaces
-  after confirming all useful code and doctrine have been harvested.
-- Run the release checks and then decide whether the next move is richer
-  `repo_search` filtering or reference archive/delete cleanup.
+- Run final release-candidate verification and park the cleaned prototype.
 
 ## Current warnings
 
 - The backlog is still young and not yet a fully mature continuation surface.
-- Root `authority.sqlite3` still ships as a transitional artifact until the
-  final release-candidate authority boundary is decided.
+- Deferred expansion capabilities remain intentionally out of scope for this
+  release candidate.
 - Not all compliance checklist surfaces exist yet in final form.
 
 ## Read in this order if resuming cold

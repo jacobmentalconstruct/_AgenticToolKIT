@@ -41,9 +41,9 @@
       "role": "Human-readable change trail for the toolbox."
     },
     {
-      "path": "_docs/BLUEPRINT.md",
-      "label": "Blueprint",
-      "role": "Reference architecture for the journal-oriented surfaces."
+      "path": "_docs/ARCHITECTURE.md",
+      "label": "Architecture",
+      "role": "Current architecture for the sidecar toolbox surfaces."
     },
     {
       "path": "toolbox_manifest.json",

@@ -1,6 +1,6 @@
 {
   "manifest_version": "2.0",
-  "name": "project-authority-kit",
+  "name": "dev-tools-toolbox",
   "description": "Universal builder toolbox for installing a project-local .dev-tools sidecar, scaffolding setup-first doctrine, and carrying builder tools, packages, and onboarding surfaces into fresh projects.",
   "portable_project": true,
   "isolated_folder": true,
@@ -28,11 +28,9 @@
     ]
   },
   "vendoring": {
-    "mode": "full_sidecar_plus_legacy_shim",
-    "shim_dir": ".dev-tools/_project-authority",
-    "shim_files": ["common.py", "bootstrap.py", "launch_ui.py", "mcp_server.py", "tool_manifest.json", "authority.sqlite3"],
-    "packed_db": "authority.sqlite3",
-    "consumer_rule": "Preferred path: install the full sidecar .dev-tools payload into a target project. Legacy thin-shim install remains available for packed-authority workflows.",
+    "mode": "full_sidecar",
+    "sidecar_dir": ".dev-tools",
+    "consumer_rule": "Install the full sidecar .dev-tools payload into a target project, then run project_setup from inside that project.",
     "verification": "python src/smoke_test.py"
   },
   "mcp_entrypoint": "src/mcp_server.py",
@@ -98,18 +96,6 @@
       "script": "src/tools/journal_snapshot.py",
       "mcp_name": "journal_snapshot",
       "category": "snapshot"
-    },
-    {
-      "tool_name": "authority_build",
-      "script": "src/tools/authority_build.py",
-      "mcp_name": "authority_build",
-      "category": "packaging"
-    },
-    {
-      "tool_name": "authority_install",
-      "script": "src/tools/authority_install.py",
-      "mcp_name": "authority_install",
-      "category": "install"
     },
     {
       "tool_name": "sidecar_install",
@@ -212,42 +198,6 @@
       "script": "src/tools/schema_diff_tool.py",
       "mcp_name": "schema_diff_tool",
       "category": "introspection"
-    },
-    {
-      "tool_name": "builderset_authority_build",
-      "script": "src/tools/builderset_authority_build.py",
-      "mcp_name": "builderset_authority_build",
-      "category": "packaging"
-    },
-    {
-      "tool_name": "builderset_authority_manifest",
-      "script": "src/tools/builderset_authority_manifest.py",
-      "mcp_name": "builderset_authority_manifest",
-      "category": "introspection"
-    },
-    {
-      "tool_name": "builderset_authority_query",
-      "script": "src/tools/builderset_authority_query.py",
-      "mcp_name": "builderset_authority_query",
-      "category": "introspection"
-    },
-    {
-      "tool_name": "builderset_authority_prepare_runtime",
-      "script": "src/tools/builderset_authority_prepare_runtime.py",
-      "mcp_name": "builderset_authority_prepare_runtime",
-      "category": "runtime"
-    },
-    {
-      "tool_name": "builderset_authority_export",
-      "script": "src/tools/builderset_authority_export.py",
-      "mcp_name": "builderset_authority_export",
-      "category": "export"
-    },
-    {
-      "tool_name": "builderset_authority_launch",
-      "script": "src/tools/builderset_authority_launch.py",
-      "mcp_name": "builderset_authority_launch",
-      "category": "runtime"
     }
   ]
 }

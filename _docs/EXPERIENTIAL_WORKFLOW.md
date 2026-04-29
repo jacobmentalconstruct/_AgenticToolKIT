@@ -13,7 +13,7 @@ projects.
 ## One-Sentence Summary
 
 We do not use this toolbox as a grab bag of scripts. We use it as a governed
-four-surface system where manifests provide orientation, builder tools support
+sidecar system where manifests provide orientation, builder tools support
 inspection and patching, packages and templates move cleanly into projects, and
 documentation keeps the work resumable.
 
@@ -35,8 +35,8 @@ This workflow exists to stop that.
 
 Role:
 
-- names the four-surface architecture
-- shows builder tools, packed authorities, vendable packages, and templates
+- names the sidecar architecture
+- shows builder tools, vendable packages, and templates
 - provides the primary human overview
 
 Experientially, this is where the toolbox stops looking like a directory tree
@@ -83,7 +83,7 @@ Role:
 
 - explains what stays in the toolbox
 - explains what moves into target projects
-- explains the thin authority shim install path
+- explains the full sidecar install path
 
 Experientially, this is one of the most important anti-drift surfaces in the
 whole repo. It prevents the “just copy the whole thing over” mistake.
@@ -98,11 +98,11 @@ Role:
 
 Experientially, this is the fast “what happened here recently?” document.
 
-### 7. Package and authority readmes: the local deep dives
+### 7. Package and template readmes: the local deep dives
 
 Role:
 
-- explain a specific vendable package or packed authority
+- explain a specific vendable package or template
 - provide local install, launch, and smoke-test details
 
 Experientially, these are the surfaces you read after you have already decided
@@ -140,7 +140,6 @@ established.
 Before writing or copying anything, decide which surface fits the task:
 
 - builder tool
-- packed authority
 - vendable package
 - vendable document
 
@@ -197,7 +196,7 @@ experience matters.
 If someone can open one file and understand:
 
 1. what this toolbox is
-2. how the four surfaces differ
+2. how the active surfaces differ
 3. what to read next
 4. how humans and agents stay in sync
 5. how vendoring avoids hidden dependency drift

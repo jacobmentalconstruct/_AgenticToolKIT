@@ -18,15 +18,11 @@
     </section>
 
     <section class="section">
-      <h2>The Four Surfaces</h2>
+      <h2>The Three Surfaces</h2>
       <div class="grid cards">
         <div class="card">
           <h3>Builder Tools</h3>
           <p><code>src/tools/</code> stays in the toolbox. Use these to inspect, patch, test, and package work on other projects.</p>
-        </div>
-        <div class="card">
-          <h3>Packed Authorities</h3>
-          <p><code>authorities/</code> holds packed codices whose content can be queried or hydrated from SQLite-backed artifacts.</p>
         </div>
         <div class="card">
           <h3>Vendable Packages</h3>
@@ -43,7 +39,7 @@
       <h2>Decision Rule</h2>
       <div class="flow">
         <div class="step">If the capability should stay central and work on many projects, it belongs in a builder tool.</div>
-        <div class="step">If the capability must live inside a target project, it belongs in a vendable package or installed authority shim.</div>
+        <div class="step">If the capability must live inside a target project, it belongs in a vendable package.</div>
         <div class="step">If the need is primarily doctrine or starter guidance, it belongs in a vendable document template.</div>
       </div>
       <div class="doc-list">

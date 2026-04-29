@@ -3,7 +3,7 @@
   "sidecar_dir_name": ".dev-tools",
   "inventory_notes": [
     "This manifest defines the current candidate release payload for the sidecar .dev-tools install flow.",
-    "Reference-only and harvest-pending material is kept visible here even when it is not copied by sidecar_install.",
+    "Only active release-candidate surfaces are listed here.",
     "Cleanup tranches should change this file deliberately instead of silently drifting install behavior."
   ],
   "top_level_entries": [
@@ -12,12 +12,6 @@
       "role": "ship",
       "install": true,
       "notes": "Useful when the toolbox is inspected or copied further inside a project."
-    },
-    {
-      "path": "authority.sqlite3",
-      "role": "ship",
-      "install": true,
-      "notes": "Retained while the broader authority/build surfaces are still part of the active toolbox."
     },
     {
       "path": "CONTRACT.md",
@@ -140,28 +134,10 @@
       "notes": "Doctrine, continuity, and onboarding documentation."
     },
     {
-      "path": "_logs",
-      "role": "test_only",
-      "install": false,
-      "notes": "Local exports and machine-generated artifacts."
-    },
-    {
-      "path": ".potential-intake",
-      "role": "exclude",
-      "install": false,
-      "notes": "Staging area, not part of the release payload."
-    },
-    {
       "path": "assets",
       "role": "ship",
       "install": true,
       "notes": "README screenshots and shared supporting assets."
-    },
-    {
-      "path": "authorities",
-      "role": "reference_pending_harvest",
-      "install": false,
-      "notes": "BuilderSET reference/provenance authority retained for harvest review only; excluded from default sidecar installs to avoid old-project dependency drift."
     },
     {
       "path": "onboarding",
@@ -176,12 +152,6 @@
       "notes": "Vendable subprojects."
     },
     {
-      "path": "runtime",
-      "role": "exclude",
-      "install": false,
-      "notes": "Hydrated cache material; should be recreated, not shipped."
-    },
-    {
       "path": "src",
       "role": "ship",
       "install": true,
@@ -192,12 +162,6 @@
       "role": "ship",
       "install": true,
       "notes": "Vendable document templates."
-    },
-    {
-      "path": "__pycache__",
-      "role": "exclude",
-      "install": false,
-      "notes": "Interpreter cache."
     }
   ]
 }

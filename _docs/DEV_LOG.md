@@ -380,6 +380,24 @@ inspection friction instead of improvising around `rg` permission failures.
 
 ---
 
+## 2026-04-29 — Prototype northstars collapsed and reference shape retired
+
+- Collapsed `_docs/NORTHSTARS.md` from an open-ended parity wishlist into the
+  release-scope current truth for the sidecar prototype.
+- Retired legacy thin-shim authority install and old BuilderSET packed-authority
+  surfaces from the active manifests, MCP registry, README, vendoring guide,
+  microsite copy, and smoke tests.
+- Removed root authority/reference/cache artifacts from the active repo shape.
+- Added `_docs/ARCHITECTURE.md` and `_docs/builder_constraint_contract.md` so
+  the continuity packet has stable current-truth architecture and contract
+  entrypoints.
+
+Current read: the toolbox is now shaped around one product path: install the
+self-contained sidecar, onboard the human through the microsite, onboard the
+agent through setup/contract doctrine, then build from project-local tools.
+
+---
+
 ## Template for future entries
 
 Journal entry: pending mirror

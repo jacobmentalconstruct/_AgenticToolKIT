@@ -55,16 +55,6 @@ except ImportError:
     SNAPSHOT_METADATA, run_journal_snapshot = None, None
 
 try:
-    from tools.authority_build import FILE_METADATA as AUTHORITY_BUILD_METADATA, run as run_authority_build
-except ImportError:
-    AUTHORITY_BUILD_METADATA, run_authority_build = None, None
-
-try:
-    from tools.authority_install import FILE_METADATA as AUTHORITY_INSTALL_METADATA, run as run_authority_install
-except ImportError:
-    AUTHORITY_INSTALL_METADATA, run_authority_install = None, None
-
-try:
     from tools.sidecar_install import FILE_METADATA as SIDECAR_INSTALL_METADATA, run as run_sidecar_install
 except ImportError:
     SIDECAR_INSTALL_METADATA, run_sidecar_install = None, None
@@ -149,38 +139,7 @@ try:
 except ImportError:
     SCHEMA_DIFF_METADATA, run_schema_diff_tool = None, None
 
-try:
-    from tools.builderset_authority_build import FILE_METADATA as BUILDERSET_BUILD_METADATA, run as run_builderset_authority_build
-except ImportError:
-    BUILDERSET_BUILD_METADATA, run_builderset_authority_build = None, None
-
-try:
-    from tools.builderset_authority_manifest import FILE_METADATA as BUILDERSET_MANIFEST_METADATA, run as run_builderset_authority_manifest
-except ImportError:
-    BUILDERSET_MANIFEST_METADATA, run_builderset_authority_manifest = None, None
-
-try:
-    from tools.builderset_authority_query import FILE_METADATA as BUILDERSET_QUERY_METADATA, run as run_builderset_authority_query
-except ImportError:
-    BUILDERSET_QUERY_METADATA, run_builderset_authority_query = None, None
-
-try:
-    from tools.builderset_authority_prepare_runtime import FILE_METADATA as BUILDERSET_RUNTIME_METADATA, run as run_builderset_authority_prepare_runtime
-except ImportError:
-    BUILDERSET_RUNTIME_METADATA, run_builderset_authority_prepare_runtime = None, None
-
-try:
-    from tools.builderset_authority_export import FILE_METADATA as BUILDERSET_EXPORT_METADATA, run as run_builderset_authority_export
-except ImportError:
-    BUILDERSET_EXPORT_METADATA, run_builderset_authority_export = None, None
-
-try:
-    from tools.builderset_authority_launch import FILE_METADATA as BUILDERSET_LAUNCH_METADATA, run as run_builderset_authority_launch
-except ImportError:
-    BUILDERSET_LAUNCH_METADATA, run_builderset_authority_launch = None, None
-
-
-SERVER_INFO = {"name": "project-authority-kit", "version": "2.0.0"}
+SERVER_INFO = {"name": "dev-tools-toolbox", "version": "2.0.0"}
 
 # Build registry from available tools
 TOOL_REGISTRY: dict[str, tuple[dict, callable]] = {}
@@ -195,8 +154,6 @@ for meta, runner in [
     (SCAFFOLD_METADATA, run_journal_scaffold),
     (PACK_METADATA, run_journal_pack),
     (SNAPSHOT_METADATA, run_journal_snapshot),
-    (AUTHORITY_BUILD_METADATA, run_authority_build),
-    (AUTHORITY_INSTALL_METADATA, run_authority_install),
     (SIDECAR_INSTALL_METADATA, run_sidecar_install),
     (PROJECT_SETUP_METADATA, run_project_setup),
     (ONBOARDING_SITE_CHECK_METADATA, run_onboarding_site_check),
@@ -214,12 +171,6 @@ for meta, runner in [
     (DEAD_CODE_METADATA, run_dead_code_finder),
     (TEST_SCAFFOLD_METADATA, run_test_scaffold_generator),
     (SCHEMA_DIFF_METADATA, run_schema_diff_tool),
-    (BUILDERSET_BUILD_METADATA, run_builderset_authority_build),
-    (BUILDERSET_MANIFEST_METADATA, run_builderset_authority_manifest),
-    (BUILDERSET_QUERY_METADATA, run_builderset_authority_query),
-    (BUILDERSET_RUNTIME_METADATA, run_builderset_authority_prepare_runtime),
-    (BUILDERSET_EXPORT_METADATA, run_builderset_authority_export),
-    (BUILDERSET_LAUNCH_METADATA, run_builderset_authority_launch),
 ]:
     if meta is not None and runner is not None:
         TOOL_REGISTRY[meta["mcp_name"]] = (meta, runner)

@@ -71,57 +71,19 @@ cd <target>/.dev-tools/_app-journal && python smoke_test.py
 Every package discovers its own location at runtime via `Path(__file__).resolve()`.
 No hardcoded paths. No project-specific assumptions.
 
-### Legacy Thin Authority Install
-
-The `authority_install` tool remains available as an alternative path that deploys
-a thin shim plus packed SQLite DB:
-
-```powershell
-python src/tools/authority_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
-```
-
-This creates:
-
-```text
-target/.dev-tools/_project-authority/
-├── common.py
-├── bootstrap.py
-├── launch_ui.py
-├── mcp_server.py
-├── tool_manifest.json
-└── authority.sqlite3
-```
-
-Default install is **non-destructive additive** — never overwrites existing files.
-Use this path when you specifically want the packed-authority workflow rather
-than the full sidecar experience.
-
 ## Tier 3: Vendable Documents
 
 The `templates/` folder holds project-agnostic reference documents, boilerplate,
 and starter templates. Copy what you need into new projects.
 
-## Two SQLite Files (After Install)
+## SQLite State After Setup
 
-- `.dev-tools/_project-authority/authority.sqlite3` — packed authority DB
 - `_docs/_journalDB/app_journal.sqlite3` — the target project's working journal
 
 ## Source-Project Commands
-
-Build the packed authority DB:
-
-```powershell
-python src/tools/authority_build.py run --input-json "{}"
-```
 
 Install the full sidecar into a target project:
 
 ```powershell
 python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
-```
-
-Install the legacy thin shim into a target project:
-
-```powershell
-python src/tools/authority_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
 ```

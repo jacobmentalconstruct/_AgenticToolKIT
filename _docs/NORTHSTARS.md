@@ -2,55 +2,58 @@
 
 _Last updated: 2026-04-29._
 
-This file records the higher-level capability direction for `.dev-tools`.
+This file records the release-scope northstar for `.dev-tools`.
 
-It is not the active task list. Use [`TODO.md`](C:/Users/jacob/Documents/_AppDesign/_LivePROJECTS/.dev-tools/_docs/TODO.md) for bounded backlog work.
+## Current Truth
 
----
+The prototype northstar is now satisfied by a self-contained sidecar toolbox:
 
-## Northstar Direction
+- A human can install `.dev-tools` into a project with `install.py` or
+  `sidecar_install`.
+- A human can onboard through the offline microsite without old project folders.
+- A builder agent can orient from `toolbox_manifest.json`, `tool_manifest.json`,
+  `_docs/AGENT_GUIDE.md`, `_docs/SETUP_DOCTRINE.md`, and `CONTRACT.md`.
+- A target project can be audited, scaffolded, and verified with
+  `project_setup`.
+- The release payload is controlled by `release_payload_manifest.json`.
+- Active tools, packages, templates, docs, and onboarding assets ship together.
+- Old BuilderSET authority/reference material is no longer part of the current
+  product shape.
 
-- Keep `.dev-tools` legible, vendable, and project-agnostic.
-- Give human developers and agents a shared toolbox with explicit trust boundaries.
-- Reduce reliance on external host-only agent powers by growing more of the needed capabilities into toolbox-usable surfaces.
+## Release-Scope Capability Closure
 
----
+| Capability direction | Prototype status | Current surface |
+|---|---:|---|
+| Sidecar install | complete | `install.py`, `sidecar_install` |
+| Agent first-contact setup | complete | `_docs/AGENT_GUIDE.md`, `_docs/SETUP_DOCTRINE.md`, `project_setup` |
+| Builder contract alignment | complete | `CONTRACT.md`, `_constraint-registry` |
+| Human onboarding | complete | `START_HERE.html`, `onboarding/`, `_docs/EXPERIENTIAL_WORKFLOW.md` |
+| File patching parity | satisfied | `tokenizing_patcher` |
+| Repo search / Windows fallback | satisfied | `repo_search` |
+| Local inspection and analysis | satisfied | `file_tree_snapshot`, `import_graph_mapper`, `dead_code_finder`, related analysis tools |
+| Planning and parking | satisfied | `_docs/TODO.md`, `_docs/PARKING_WORKFLOW.md`, `_docs/WE_ARE_HERE_NOW.md` |
+| MCP-visible tool surface | satisfied | `src/mcp_server.py`, `tool_manifest.json` |
+| Vendable building material | satisfied | `packages/`, `templates/` |
 
-## Needed Capability Parity
+## Deferred Expansion
 
-These are notable capabilities currently available through Codex-hosted tooling that we should progressively mirror with toolbox tools or packages that agents can use more directly inside `.dev-tools` and vendored project contexts.
+These capabilities are valuable, but they are not required for this prototype to
+be release-ready:
 
-- Shell / terminal execution parity
-  Goal: agent-usable tools for safe command execution, output capture, and environment-aware fallback behavior.
-- File patching parity
-  Goal: toolbox-native patch/apply flows for reliable structured edits.
-- Parallel local tool use parity
-  Goal: orchestration helpers that let agents run multiple safe local inspections in one pass.
-- Web browsing / search / open parity
-  Goal: research and fetch tools that can retrieve and inspect web resources when appropriate.
-- Image generation / editing parity
-  Goal: visual asset generation and transformation surfaces agents can invoke deliberately.
-- Local image viewing parity
-  Goal: tooling for reading or inspecting local screenshots and visual artifacts.
-- Terminal output inspection parity
-  Goal: agent-readable access to recent terminal state and command output.
-- Planning tracker parity
-  Goal: a structured planning/update surface for long-running work.
-- Automation / recurring task parity
-  Goal: tooling for scheduled checks, follow-ups, and recurring agent work.
-- MCP resource discovery / read parity
-  Goal: toolbox-visible discovery and reading of MCP resource surfaces.
-- Sub-agent / delegation parity
-  Goal: bounded delegation or worker-orchestration surfaces for agent teamwork.
-- Node REPL / JavaScript execution parity
-  Goal: an agent-usable JavaScript execution surface parallel to the Python-oriented tooling already present.
+- Web browsing/search/open.
+- Image generation/editing.
+- Local image viewing.
+- Automations/recurring tasks.
+- Sub-agents/delegation.
+- Node REPL/JavaScript execution.
+- Full terminal execution parity.
 
----
+They belong in later expansion tranches after the release candidate is clean.
 
-## Notes
+## Release Gate
 
-- Not every Codex-hosted capability should be cloned literally.
-- The northstar is capability coverage, not perfect interface mimicry.
-- New parity tools should remain portable, explicit, and safe within the toolbox trust model.
-- First parity win: `repo_search` now gives agents a project-local search surface
-  with an `rg` fast path and native fallback for Windows-safe inspection.
+The remaining northstar is not another feature. It is cleanliness:
+
+- Remove old reference/provenance material from the active repo shape.
+- Verify the sidecar installs from the cleaned source only.
+- Keep docs, manifests, microsite, and smoke tests aligned to the final shape.

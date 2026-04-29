@@ -416,49 +416,6 @@ def test_snapshot(project_root: Path, db_path: str) -> None:
         _fail("Snapshot verify", str(verified))
 
 
-def test_authority_build_and_install() -> None:
-    """Build authority.sqlite3 and install the thin shim into a temp project."""
-    print("\n── Authority Build / Install ──")
-
-    build_result = _tool("authority_build", {})
-    authority_db = Path(build_result["result"]["authority_db_path"])
-    if authority_db.exists():
-        _ok("authority.sqlite3 built")
-    else:
-        _fail("authority build", f"missing {authority_db}")
-
-    target_root = Path(tempfile.mkdtemp(prefix="authority_install_")) / "fresh_project"
-    target_root.mkdir(parents=True, exist_ok=True)
-
-    preview = _tool("authority_install", {
-        "target_project_root": str(target_root),
-        "preview": True,
-    })
-    preview_files = preview["result"]["files"]
-    if any(item["status"] == "would_create" for item in preview_files):
-        _ok("authority install preview works")
-    else:
-        _fail("authority install preview", str(preview["result"]))
-
-    applied = _tool("authority_install", {
-        "target_project_root": str(target_root),
-    })
-    shim_dir = Path(applied["result"]["shim_dir"])
-    expected = {
-        shim_dir / "common.py",
-        shim_dir / "bootstrap.py",
-        shim_dir / "launch_ui.py",
-        shim_dir / "mcp_server.py",
-        shim_dir / "tool_manifest.json",
-        shim_dir / "authority.sqlite3",
-    }
-    if all(path.exists() for path in expected):
-        _ok("thin shim installed")
-    else:
-        missing = [str(path) for path in expected if not path.exists()]
-        _fail("thin shim install", ", ".join(missing))
-
-
 def test_sidecar_install_and_setup() -> None:
     """Install the full sidecar payload, then apply and verify project setup."""
     print("\n── Sidecar Install / Setup / Microsite ──")
@@ -585,7 +542,7 @@ def test_mcp(project_root: Path) -> None:
         init_response = _mcp_read(proc.stdout)
         server_name = init_response.get("result", {}).get("serverInfo", {}).get("name")
         server_version = init_response.get("result", {}).get("serverInfo", {}).get("version")
-        if server_name == "project-authority-kit":
+        if server_name == "dev-tools-toolbox":
             _ok(f"MCP initialize: {server_name} v{server_version}")
         else:
             _fail("MCP initialize", f"unexpected server name: {server_name}")
@@ -600,8 +557,8 @@ def test_mcp(project_root: Path) -> None:
             "journal_init", "journal_write", "journal_query", "journal_export",
             "journal_manifest", "journal_acknowledge", "journal_actions",
             "journal_scaffold", "journal_pack", "journal_snapshot",
-            "authority_build", "authority_install", "sidecar_install",
-            "project_setup", "onboarding_site_check", "repo_search",
+            "sidecar_install", "project_setup", "onboarding_site_check",
+            "repo_search",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):
@@ -631,147 +588,12 @@ def test_mcp(project_root: Path) -> None:
         proc.wait(timeout=5)
 
 
-def _create_synthetic_project() -> Path:
-    """Create a small synthetic project with the folder layout the authority builder expects."""
-    root = Path(tempfile.mkdtemp(prefix="builderset_source_"))
-    # runtime_executable content (src/, assets/)
-    (root / "src" / "mcp").mkdir(parents=True)
-    (root / "src" / "mcp" / "server.py").write_text('"""Stub MCP server."""\n', encoding="utf-8")
-    (root / "src" / "app.py").write_text('"""Stub app."""\n', encoding="utf-8")
-    (root / "assets").mkdir()
-    (root / "assets" / "icon.txt").write_text("placeholder\n", encoding="utf-8")
-    (root / "requirements.txt").write_text("# none\n", encoding="utf-8")
-    # reference_only content (_docs/)
-    (root / "_docs").mkdir()
-    (root / "_docs" / "DEV_LOG.md").write_text("# Dev Log\nSynthetic.\n", encoding="utf-8")
-    (root / "_docs" / "README.md").write_text("# Docs\n", encoding="utf-8")
-    return root
-
-
-def test_builderset_authority() -> None:
-    """Build, inspect, hydrate, probe, and export the packed BuilderSET authority."""
-    print("\n── BuilderSET Packed Authority ──")
-
-    synthetic_root = _create_synthetic_project()
-    authority_output_dir = Path(tempfile.mkdtemp(prefix="builderset_authority_"))
-    authority_db_out = str(authority_output_dir / "builderset_authority.sqlite3")
-    authority_manifest_out = str(authority_output_dir / "builderset_authority_manifest.json")
-
-    build_result = _tool("builderset_authority_build", {
-        "source_project_root": str(synthetic_root),
-        "output_db": authority_db_out,
-        "output_manifest": authority_manifest_out,
-    })
-    payload = build_result["result"]
-    authority_db = Path(payload["authority_db_path"])
-    authority_manifest = Path(payload["authority_manifest_path"])
-    if authority_db.exists() and authority_manifest.exists():
-        _ok("builderset authority artifacts built")
-    else:
-        _fail("builderset authority build", f"{authority_db} / {authority_manifest}")
-        return
-
-    manifest_result = _tool("builderset_authority_manifest", {"db_path": str(authority_db)})
-    counts = manifest_result["result"]["manifest"]["counts"]
-    first_blob_count = manifest_result["result"]["db_summary"]["blob_count"]
-    if counts["runtime_files"] >= 1 and counts["reference_files"] >= 1:
-        _ok(f"builderset authority manifest reports runtime/reference split ({counts['runtime_files']}/{counts['reference_files']})")
-    else:
-        _fail("builderset manifest split", str(counts))
-
-    rebuild_result = _tool("builderset_authority_build", {
-        "source_project_root": str(synthetic_root),
-        "output_db": authority_db_out,
-        "output_manifest": authority_manifest_out,
-    })
-    rebuild_manifest = _tool("builderset_authority_manifest", {"db_path": str(rebuild_result["result"]["authority_db_path"])})
-    second_blob_count = rebuild_manifest["result"]["db_summary"]["blob_count"]
-    if second_blob_count == first_blob_count:
-        _ok("builderset authority rebuild does not accumulate stale blobs")
-    else:
-        _fail("builderset blob pruning", f"before={first_blob_count} after={second_blob_count}")
-
-    query_result = _tool("builderset_authority_query", {
-        "db_path": str(authority_db),
-        "content_class": "reference_only",
-        "top_level": "_docs",
-        "limit": 5,
-    })
-    matches = query_result["result"]["matches"]
-    if matches:
-        _ok("builderset authority query returns reference content without hydration")
-    else:
-        _fail("builderset authority query", str(query_result["result"]))
-
-    authority_cache_root = Path(tempfile.mkdtemp(prefix="builderset_cache_"))
-    hydrate_first = _tool("builderset_authority_prepare_runtime", {
-        "db_path": str(authority_db),
-        "cache_root": str(authority_cache_root),
-    })
-    hydrate_second = _tool("builderset_authority_prepare_runtime", {
-        "db_path": str(authority_db),
-        "cache_root": str(authority_cache_root),
-    })
-    first_runtime = hydrate_first["result"]
-    second_runtime = hydrate_second["result"]
-    runtime_dir = Path(first_runtime["cache_dir"])
-    if runtime_dir.exists() and not first_runtime["reused"]:
-        _ok("builderset runtime hydrates into managed cache")
-    else:
-        _fail("builderset runtime hydrate", str(first_runtime))
-    if second_runtime["reused"]:
-        _ok("builderset runtime cache reuse works")
-    else:
-        _fail("builderset runtime reuse", str(second_runtime))
-
-    force_runtime = _tool("builderset_authority_prepare_runtime", {
-        "db_path": str(authority_db),
-        "cache_root": str(authority_cache_root),
-        "force": True,
-    })
-    forced = force_runtime["result"]
-    if not forced["reused"]:
-        _ok(f"builderset force refresh produces a fresh cache ({forced['cache_strategy']})")
-    else:
-        _fail("builderset force refresh", str(forced))
-
-    post_force_runtime = _tool("builderset_authority_prepare_runtime", {
-        "db_path": str(authority_db),
-        "cache_root": str(authority_cache_root),
-    })
-    if post_force_runtime["result"]["cache_dir"] == forced["cache_dir"] and post_force_runtime["result"]["reused"]:
-        _ok("builderset runtime pointer follows the latest forced refresh")
-    else:
-        _fail("builderset runtime pointer", str(post_force_runtime["result"]))
-
-    # Verify the hydrated runtime contains expected files
-    runtime_dir = Path(first_runtime["cache_dir"])
-    hydrated_server = runtime_dir / "src" / "mcp" / "server.py"
-    hydrated_app = runtime_dir / "src" / "app.py"
-    if hydrated_server.exists() and hydrated_app.exists():
-        _ok("hydrated runtime contains expected entrypoint files")
-    else:
-        _fail("hydrated runtime files", f"server={hydrated_server.exists()} app={hydrated_app.exists()}")
-
-    export_root = Path(tempfile.mkdtemp(prefix="builderset_export_"))
-    export_result = _tool("builderset_authority_export", {
-        "db_path": str(authority_db),
-        "destination_root": str(export_root),
-        "relative_paths": ["_docs/DEV_LOG.md"],
-    })
-    exported = export_root / "_docs" / "DEV_LOG.md"
-    if exported.exists():
-        _ok("builderset authority exports selected reference files on demand")
-    else:
-        _fail("builderset authority export", str(export_result["result"]))
-
-
 # ═══════════════════════════════════════════════════════════════════
 # Main
 # ═══════════════════════════════════════════════════════════════════
 
 def main() -> int:
-    print("═══ Project Authority Kit Smoke Test ═══")
+    print("═══ .dev-tools Toolbox Smoke Test ═══")
 
     project_root = Path(tempfile.mkdtemp(prefix="app_journal_smoke_")) / "test-project"
     project_root.mkdir(parents=True, exist_ok=True)
@@ -785,11 +607,9 @@ def main() -> int:
     test_scaffold(project_root, db_path)
     test_pack(project_root, db_path)
     test_snapshot(project_root, db_path)
-    test_authority_build_and_install()
     test_sidecar_install_and_setup()
     test_repo_search()
     test_mcp(project_root)
-    test_builderset_authority()
 
     print(f"\n═══ Results: {PASS} passed, {FAIL} failed ═══")
     return 1 if FAIL > 0 else 0

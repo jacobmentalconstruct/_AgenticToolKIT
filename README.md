@@ -23,7 +23,7 @@ If you want the friendliest onboarding path from a copied folder, open:
 | An agent entering for the first time | `toolbox_manifest.json` → then `_docs/AGENT_GUIDE.md` |
 | A human wanting the full picture | This file, then `CONTRACT.md` and `VENDORING.md` |
 | An agent about to build a project | `_docs/AGENT_GUIDE.md` — workflow loops and tool selection |
-| Looking to vend tools into a project | `VENDORING.md` — vendoring guide for all three tiers |
+| Looking to vend tools into a project | `VENDORING.md` — vendoring guide for the sidecar, packages, and templates |
 | Wanting the lived workflow behind the mechanics | `_docs/EXPERIENTIAL_WORKFLOW.md` |
 | Wanting the setup-first doctrine for new projects | `_docs/SETUP_DOCTRINE.md` |
 | Wanting the tranche closeout and handoff regimen | `_docs/PARKING_WORKFLOW.md` |
@@ -39,7 +39,7 @@ If you want the friendliest onboarding path from a copied folder, open:
 
 ---
 
-## Four-Surface Architecture
+## Three-Surface Architecture
 
 ### Tier 1: Builder Tools (`src/tools/`)
 
@@ -58,8 +58,6 @@ these to work ON target projects without modifying the toolbox itself.
 | `journal_scaffold` | scaffold | Scaffold project layouts |
 | `journal_pack` | packing | Pack journal into DB |
 | `journal_snapshot` | snapshot | Snapshot journal state |
-| `authority_build` | packaging | Build packed authority DB |
-| `authority_install` | install | Install shim into target project |
 | `sidecar_install` | install | Install the full sidecar payload into a target project |
 | `project_setup` | bootstrap | Audit, apply, and verify setup doctrine inside a target project |
 | `onboarding_site_check` | testing | Verify the offline onboarding microsite and launch surfaces |
@@ -71,31 +69,11 @@ these to work ON target projects without modifying the toolbox itself.
 | `sqlite_schema_inspector` | introspection | Inspect SQLite schema, tables, indexes, sample rows |
 | `import_graph_mapper` | analysis | Map Python import dependency graph with cycle detection |
 | `tkinter_widget_tree` | analysis | Map Tkinter widget hierarchy, geometry, and bindings |
-| `builderset_authority_build` | packaging | Build the packed BuilderSET authority DB from the live repo |
-| `builderset_authority_manifest` | introspection | Inspect the packed BuilderSET authority manifest and schema |
-| `builderset_authority_query` | introspection | Query packed BuilderSET files without hydrating them |
-| `builderset_authority_prepare_runtime` | runtime | Hydrate or reuse the packed BuilderSET runtime cache |
-| `builderset_authority_export` | export | Export selected packed BuilderSET files on demand |
-| `builderset_authority_launch` | runtime | Describe or probe packed BuilderSET launch surfaces |
-
 Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
-### Tier 2: Packed Authorities (`authorities/`)
-
-Toolbox-resident codices that are preserved as SQLite artifacts and run from a
-managed runtime cache.
-
-| Authority | Purpose |
-|-----------|---------|
-| `_builderset-authority/` | Packed SQLite authority for BuilderSET with runtime/reference classes and cache-backed execution |
-
-See [`authorities/README.md`](authorities/README.md) for the overview and
-[`authorities/_builderset-authority/README.md`](authorities/_builderset-authority/README.md)
-for the BuilderSET-specific surface.
-
-### Tier 3: Vendable Packages (`packages/`)
+### Tier 2: Vendable Packages (`packages/`)
 
 Self-contained subprojects that get **installed into** target projects. Each
 package has its own MCP server, CLI tools, smoke test, and documentation.
@@ -109,7 +87,7 @@ package has its own MCP server, CLI tools, smoke test, and documentation.
 
 See [`packages/README.md`](packages/README.md) for vendoring instructions.
 
-### Tier 4: Vendable Documents (`templates/`)
+### Tier 3: Vendable Documents (`templates/`)
 
 Project-agnostic templates and reference docs that can be copied into any new
 project as starting points.
@@ -126,7 +104,7 @@ See [`templates/README.md`](templates/README.md) for details.
 
 If you are an agent arriving with no prior context:
 
-1. **Read `toolbox_manifest.json`** — it indexes all three tiers and tells you
+1. **Read `toolbox_manifest.json`** — it indexes the active surfaces and tells you
    what is available.
 2. **Read `CONTRACT.md`** if you are about to build or modify a project — it
    defines the rules you operate under.
@@ -184,32 +162,12 @@ python src/smoke_test.py
    python .dev-tools/src/tools/onboarding_site_check.py run --input-json "{\"toolbox_root\": \".dev-tools\"}"
    ```
 
-5. **Build** the packed authority DB:
-   ```
-   python src/tools/authority_build.py run --input-json "{}"
-   ```
-
-6. **Build** the packed BuilderSET authority:
-   ```
-   python src/tools/builderset_authority_build.py run --input-json "{}"
-   ```
-
-7. **Hydrate** the BuilderSET runtime cache:
-   ```
-   python src/tools/builderset_authority_prepare_runtime.py run --input-json "{}"
-   ```
-
-8. **Install** the thin shim into a target project when you specifically want the legacy packed-authority path:
-   ```
-   python src/tools/authority_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
-   ```
-
-9. **Vend a package** by copying from `packages/` into the target project:
+5. **Vend a package** by copying from `packages/` into the target project:
    ```
    cp -r packages/_app-journal <target>/.dev-tools/_app-journal
    ```
 
-10. **Vend templates** by copying from `templates/` as needed.
+6. **Vend templates** by copying from `templates/` as needed.
 
 ---
 
@@ -226,7 +184,7 @@ python src/smoke_test.py
 | `_docs/SETUP_DOCTRINE.md` | Project setup-first doctrine for freshly armed agents |
 | `_docs/PARKING_WORKFLOW.md` | Practical tranche parking and handoff workflow |
 | `_docs/DEV_LOG.md` | Development history and change log |
-| `_docs/BLUEPRINT.md` | App-journal architecture blueprint |
+| `_docs/ARCHITECTURE.md` | Current sidecar architecture |
 | `LICENSE.md` | Source-available reference license |
 
 ---

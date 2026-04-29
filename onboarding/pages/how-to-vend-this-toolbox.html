@@ -22,13 +22,11 @@
       <h2>Main Vend Paths</h2>
       <div class="flow">
         <div class="step"><strong>Full sidecar install:</strong> use <code>install.py</code> or <code>sidecar_install</code> when the target project should receive the complete `.dev-tools` working surface.</div>
-        <div class="step"><strong>Thin shim install:</strong> use <code>authority_install</code> only when the legacy packed-authority path is the actual need.</div>
         <div class="step"><strong>Package copy:</strong> copy a package from <code>packages/</code> into the target project when the whole subproject is the intended deliverable.</div>
         <div class="step"><strong>Template copy:</strong> copy from <code>templates/</code> when the target only needs a document or starter reference surface.</div>
       </div>
       <pre>python install.py
 python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
-python src/tools/authority_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
 cp -r packages/_app-journal &lt;target&gt;/.dev-tools/_app-journal</pre>
     </section>
 
