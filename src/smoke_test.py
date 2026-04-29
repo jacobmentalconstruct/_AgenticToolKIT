@@ -530,6 +530,41 @@ def test_sidecar_install_and_setup() -> None:
         _fail("installed sidecar microsite", str(site_check["result"]))
 
 
+def test_repo_search() -> None:
+    """Repo search with native fallback."""
+    print("\n── Repo Search ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="repo_search_"))
+    (target_root / "src").mkdir()
+    (target_root / "src" / "app.py").write_text(
+        "def main():\n    return 'needle-value'\n",
+        encoding="utf-8",
+    )
+    (target_root / "notes.md").write_text("No match here.\n", encoding="utf-8")
+
+    result = _tool("repo_search", {
+        "project_root": str(target_root),
+        "query": "needle-value",
+        "extensions": [".py"],
+        "force_fallback": True,
+    })
+    payload = result["result"]
+    if payload["fallback_used"] and payload["match_count"] == 1:
+        _ok("repo_search native fallback finds text without shell bypass")
+    else:
+        _fail("repo_search fallback", str(payload))
+
+    bad_regex = _tool("repo_search", {
+        "project_root": str(target_root),
+        "query": "[",
+        "regex": True,
+    })
+    if bad_regex["status"] == "error":
+        _ok("repo_search reports invalid regex cleanly")
+    else:
+        _fail("repo_search invalid regex", str(bad_regex))
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -566,7 +601,7 @@ def test_mcp(project_root: Path) -> None:
             "journal_manifest", "journal_acknowledge", "journal_actions",
             "journal_scaffold", "journal_pack", "journal_snapshot",
             "authority_build", "authority_install", "sidecar_install",
-            "project_setup", "onboarding_site_check",
+            "project_setup", "onboarding_site_check", "repo_search",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):
@@ -752,6 +787,7 @@ def main() -> int:
     test_snapshot(project_root, db_path)
     test_authority_build_and_install()
     test_sidecar_install_and_setup()
+    test_repo_search()
     test_mcp(project_root)
     test_builderset_authority()
 

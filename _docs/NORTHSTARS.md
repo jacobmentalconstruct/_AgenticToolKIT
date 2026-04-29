@@ -52,3 +52,5 @@ These are notable capabilities currently available through Codex-hosted tooling 
 - Not every Codex-hosted capability should be cloned literally.
 - The northstar is capability coverage, not perfect interface mimicry.
 - New parity tools should remain portable, explicit, and safe within the toolbox trust model.
+- First parity win: `repo_search` now gives agents a project-local search surface
+  with an `rg` fast path and native fallback for Windows-safe inspection.

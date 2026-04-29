@@ -63,6 +63,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `sidecar_install` | install | Install the full sidecar payload into a target project |
 | `project_setup` | bootstrap | Audit, apply, and verify setup doctrine inside a target project |
 | `onboarding_site_check` | testing | Verify the offline onboarding microsite and launch surfaces |
+| `repo_search` | introspection | Search project text with an `rg` fast path and safe native fallback |
 | `module_decomp_planner` | architecture | AST-based module decomposition planning |
 | `tokenizing_patcher` | editing | Whitespace-immune hunk-based patching |
 | `domain_boundary_audit` | analysis | Detect domain boundary violations |

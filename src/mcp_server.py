@@ -80,6 +80,11 @@ except ImportError:
     ONBOARDING_SITE_CHECK_METADATA, run_onboarding_site_check = None, None
 
 try:
+    from tools.repo_search import FILE_METADATA as REPO_SEARCH_METADATA, run as run_repo_search
+except ImportError:
+    REPO_SEARCH_METADATA, run_repo_search = None, None
+
+try:
     from tools.module_decomp_planner import FILE_METADATA as MODULE_DECOMP_METADATA, run as run_module_decomp_planner
 except ImportError:
     MODULE_DECOMP_METADATA, run_module_decomp_planner = None, None
@@ -195,6 +200,7 @@ for meta, runner in [
     (SIDECAR_INSTALL_METADATA, run_sidecar_install),
     (PROJECT_SETUP_METADATA, run_project_setup),
     (ONBOARDING_SITE_CHECK_METADATA, run_onboarding_site_check),
+    (REPO_SEARCH_METADATA, run_repo_search),
     (MODULE_DECOMP_METADATA, run_module_decomp_planner),
     (TOKENIZING_PATCHER_METADATA, run_tokenizing_patcher),
     (DOMAIN_BOUNDARY_METADATA, run_domain_boundary_audit),

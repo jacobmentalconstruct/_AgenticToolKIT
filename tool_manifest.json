@@ -130,6 +130,12 @@
       "category": "testing"
     },
     {
+      "tool_name": "repo_search",
+      "script": "src/tools/repo_search.py",
+      "mcp_name": "repo_search",
+      "category": "introspection"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

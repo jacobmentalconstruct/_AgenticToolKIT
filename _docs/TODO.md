@@ -27,7 +27,7 @@ Name the current bounded work slice and list only the tasks that belong in it.
 - [x] Run and tighten the fresh-project trial from an installed sidecar only.
 - [x] Classify `authorities/` and remaining reference/cache material for release payload handling.
 - [ ] Formalize how toolbox-level backlog items should be mirrored into the app journal.
-- [ ] Scope and build the Windows-safe search fallback tool as the first concrete capability-hardening surface.
+- [x] Scope and build the Windows-safe search fallback tool as the first concrete capability-hardening surface.
 
 ### Explicit non-goals
 
@@ -44,12 +44,13 @@ Name the current bounded work slice and list only the tasks that belong in it.
 - [ ] Decide whether more of the setup-doctrine packet should be promoted into builtin scaffold files by default.
 - [ ] Decide whether `authorities/` should be archived outside the release payload or deleted after harvest completion.
 - [ ] Review whether root `authority.sqlite3` remains a transitional ship item or should become reference-only before release candidate.
+- [ ] Add richer include/exclude glob support to `repo_search` if early use shows agents need it.
 
 ---
 
 ## Longer-horizon work
 
-- [ ] Build a repo-safe search fallback tool for Windows environments that detects `rg` permission/app-bundle failures and cleanly falls back to native PowerShell search instead of triggering awkward security-bypass behavior or brittle manual recovery.
+- [x] Build a repo-safe search fallback tool for Windows environments that detects `rg` permission/app-bundle failures and cleanly falls back to native search instead of triggering awkward security-bypass behavior or brittle manual recovery.
 
 ---
 

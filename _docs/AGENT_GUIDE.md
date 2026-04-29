@@ -188,6 +188,7 @@ _"I need to…" → use this tool._
 | I need to… | Tool |
 |---|---|
 | Understand the project file layout | `file_tree_snapshot` |
+| Search project text safely when `rg` or shell search is unreliable | `repo_search` |
 | See how Python modules depend on each other | `import_graph_mapper` |
 | Inspect a SQLite database structure | `sqlite_schema_inspector` |
 | Compare two database versions | `schema_diff_tool` |

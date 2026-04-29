@@ -362,6 +362,24 @@ BuilderSET authority folder into every target project.
 
 ---
 
+## 2026-04-29 — Windows-safe repo search tool added
+
+- Added `repo_search`, a project-local search tool that tries `rg` first when
+  available and falls back to a native Python text search when `rg` is missing
+  or fails.
+- The fallback path avoids shell invocation and avoids PowerShell/security
+  bypass attempts while still returning structured matches, source engine,
+  fallback reason, and warnings.
+- Registered the tool in `tool_manifest.json`, `src/mcp_server.py`, and the
+  smoke-test MCP expectation.
+- Updated continuity docs so this capability-hardening item is now marked
+  complete and future refinement is tracked separately.
+
+Current read: agents now have a safe first-party search surface for Windows
+inspection friction instead of improvising around `rg` permission failures.
+
+---
+
 ## Template for future entries
 
 Journal entry: pending mirror

@@ -41,6 +41,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - The temporary-project install/apply/verify/microsite trial is now passing.
 - The release payload manifest now excludes `authorities/`, `runtime/`, `_logs/`,
   `.potential-intake/`, and caches from default sidecar installs.
+- `repo_search` now gives agents a Windows-safe search surface with an `rg`
+  fast path and native fallback.
 
 ## Current bottleneck
 
@@ -52,7 +54,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 - Decide whether to archive or delete the excluded reference/cache surfaces
   after confirming all useful code and doctrine have been harvested.
-- Build the Windows-safe search fallback tool as the next capability-hardening move.
+- Run the release checks and then decide whether the next move is richer
+  `repo_search` filtering or reference archive/delete cleanup.
 
 ## Current warnings
 
