@@ -84,15 +84,41 @@ def _call_tool(name: str, arguments: dict) -> dict:
         })
 
 
+def _read_content_length_message(first_line: bytes) -> dict | None:
+    headers: dict[str, str] = {}
+    line = first_line
+    while True:
+        if not line:
+            return None
+        if line in {b"\r\n", b"\n"}:
+            break
+        key, _, value = line.decode("utf-8").partition(":")
+        headers[key.strip().lower()] = value.strip()
+        line = sys.stdin.buffer.readline()
+
+    content_length = int(headers.get("content-length", "0"))
+    if content_length <= 0:
+        return None
+    body = sys.stdin.buffer.read(content_length)
+    if not body:
+        return None
+    return json.loads(body.decode("utf-8"))
+
+
 def _read_message() -> dict | None:
-    """Read one NDJSON message from stdin (newline-delimited JSON)."""
-    line = sys.stdin.buffer.readline()
-    if not line:
-        return None
-    line = line.strip()
-    if not line:
-        return None
-    return json.loads(line.decode("utf-8"))
+    """Read one stdin message. Supports Content-Length framing and NDJSON fallback."""
+    while True:
+        line = sys.stdin.buffer.readline()
+        if not line:
+            return None
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith(b"{"):
+            return json.loads(stripped.decode("utf-8"))
+        if b"content-length" in stripped.lower():
+            return _read_content_length_message(line)
+        continue
 
 
 def _write_message(payload: dict) -> None:

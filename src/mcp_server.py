@@ -65,6 +65,21 @@ except ImportError:
     AUTHORITY_INSTALL_METADATA, run_authority_install = None, None
 
 try:
+    from tools.sidecar_install import FILE_METADATA as SIDECAR_INSTALL_METADATA, run as run_sidecar_install
+except ImportError:
+    SIDECAR_INSTALL_METADATA, run_sidecar_install = None, None
+
+try:
+    from tools.project_setup import FILE_METADATA as PROJECT_SETUP_METADATA, run as run_project_setup
+except ImportError:
+    PROJECT_SETUP_METADATA, run_project_setup = None, None
+
+try:
+    from tools.onboarding_site_check import FILE_METADATA as ONBOARDING_SITE_CHECK_METADATA, run as run_onboarding_site_check
+except ImportError:
+    ONBOARDING_SITE_CHECK_METADATA, run_onboarding_site_check = None, None
+
+try:
     from tools.module_decomp_planner import FILE_METADATA as MODULE_DECOMP_METADATA, run as run_module_decomp_planner
 except ImportError:
     MODULE_DECOMP_METADATA, run_module_decomp_planner = None, None
@@ -177,6 +192,9 @@ for meta, runner in [
     (SNAPSHOT_METADATA, run_journal_snapshot),
     (AUTHORITY_BUILD_METADATA, run_authority_build),
     (AUTHORITY_INSTALL_METADATA, run_authority_install),
+    (SIDECAR_INSTALL_METADATA, run_sidecar_install),
+    (PROJECT_SETUP_METADATA, run_project_setup),
+    (ONBOARDING_SITE_CHECK_METADATA, run_onboarding_site_check),
     (MODULE_DECOMP_METADATA, run_module_decomp_planner),
     (TOKENIZING_PATCHER_METADATA, run_tokenizing_patcher),
     (DOMAIN_BOUNDARY_METADATA, run_domain_boundary_audit),

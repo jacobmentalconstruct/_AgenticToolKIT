@@ -23,14 +23,21 @@ spend tokens on building, not fumbling.
 When you arrive at a project with `.dev-tools` installed, do this first:
 
 ```
-1. Read toolbox_manifest.json          → know what is available
-2. Read tool_manifest.json             → know the builder tools by name
-3. journal_query (last 5 entries)      → pick up where the last session left off
-4. constraint_query (your task profile)→ load only the rules that apply to your task
+1. Confirm project root + write boundary       → know where the app actually lives
+2. Confirm `.dev-tools` is present             → know the sidecar is really installed
+3. Run project_setup audit if needed           → finish setup before feature work
+4. Read toolbox_manifest.json                  → know what is available
+5. Read tool_manifest.json                     → know the builder tools by name
+6. journal_query (last 5 entries)              → pick up where the last session left off
+7. constraint_query (your task profile)        → load only the rules that apply to your task
 ```
 
 This costs almost nothing and prevents the two most expensive mistakes: building
 something that already exists, and violating a constraint you did not know about.
+
+If the project is not yet properly scaffolded, setup doctrine comes first.
+Read `_docs/SETUP_DOCTRINE.md` in the target project, establish the continuity
+packet, then read the contract and proceed from there.
 
 ---
 
@@ -129,19 +136,47 @@ _The project setup cycle. Use when starting a new project or installing tools._
 
 ```
 ONBOARD
-  (use install.py or authority_install to vend .dev-tools into the project)
-  journal_init              → create the project journal database
+  install.py or sidecar_install → vend the full .dev-tools sidecar into the project
+  project_setup audit       → inspect missing setup surfaces
+  project_setup apply       → create the project journal and scaffold
   journal_acknowledge       → accept the builder constraint contract
   constraint_query (profile: scaffolding) → load setup-phase rules
 
 CONFIGURE
-  journal_scaffold          → generate project directory layout
+  project_setup verify      → confirm the setup doctrine is satisfied
+  onboarding_site_check     → verify the local walkthrough and launch surfaces
   (set up dependencies, entry points, config files)
 
 VALIDATE
   file_tree_snapshot        → confirm the project structure is correct
   smoke_test_runner         → run all available smoke tests
   journal_write             → record the project bootstrap decisions
+```
+
+### Loop 5: Inspect → Verify → Park → Handoff
+
+_The tranche closeout cycle. Use when ending meaningful work and leaving the
+repo for the next session._
+
+```
+INSPECT
+  git status --short --branch → see current repo state
+  (identify tranche-owned files) → separate your work from unrelated changes
+
+VERIFY
+  smoke_test_runner            → broad toolbox/package verification
+  (focused package tests)      → verify the exact touched surface
+  (compile / launch checks)    → when entrypoints or source changed
+
+PARK
+  update _docs/WE_ARE_HERE_NOW.md
+  update _docs/TODO.md
+  update _docs/DEV_LOG.md
+  update other affected docs/readmes as needed
+
+HANDOFF
+  journal_write               → append meaningful session record
+  report changed files, verification, next tranche, and risks
 ```
 
 ---
@@ -165,10 +200,13 @@ _"I need to…" → use this tool._
 | Apply a patch that survives whitespace changes | `tokenizing_patcher` |
 | Generate test stubs for new code | `test_scaffold_generator` |
 | Run all smoke tests at once | `smoke_test_runner` |
+| Install the full sidecar into a project | `sidecar_install` or `install.py` |
+| Audit or apply setup doctrine | `project_setup` |
+| Verify the offline onboarding microsite | `onboarding_site_check` |
 | Read what happened last session | `journal_query` |
 | Record a decision or finding | `journal_write` |
 | Load rules for my current task | `constraint_query` |
-| Install tools into a new project | `authority_install` or `install.py` |
+| Install tools into a new project | `sidecar_install`, `project_setup`, or `install.py` |
 
 ---
 
@@ -319,13 +357,18 @@ violations, complete context for the next session.**
 
 When you are ending a session or running low on context:
 
-1. **Write a journal entry** summarizing what you accomplished and what remains.
-2. **Be specific** about next steps — file names, function names, decisions pending.
-3. **Record any discoveries** that are not obvious from the code itself.
-4. **Note any constraints** you bumped into or intentionally deferred.
+1. **Inspect repo state** before narrating the outcome.
+2. **Run the right verification** for the exact touched surface.
+3. **Update continuity docs** like `_docs/WE_ARE_HERE_NOW.md` and `_docs/TODO.md`.
+4. **Write a journal entry** summarizing what you accomplished and what remains.
+5. **Be specific** about next steps — file names, function names, decisions pending.
+6. **Record any discoveries** that are not obvious from the code itself.
+7. **Note any constraints, risks, or deferred work** explicitly.
 
 The next agent starts from `journal_query` and picks up where you left off. If
 your handoff entry is good, they skip the entire orientation phase.
+
+See `_docs/PARKING_WORKFLOW.md` for the fuller closeout regimen.
 
 ---
 

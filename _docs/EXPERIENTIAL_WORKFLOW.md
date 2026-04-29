@@ -72,6 +72,7 @@ Role:
 - gives the working loops
 - explains tool selection
 - explains token economy and verification habits
+- reinforces setup-first discipline before feature work
 
 Experientially, this is where a new builder learns how to move with the
 toolbox, not just what files exist inside it.
@@ -121,12 +122,18 @@ For a human:
 
 For an agent:
 
+- if setup is incomplete, finish setup first
 - read `toolbox_manifest.json`
 - read `tool_manifest.json`
 - read `_docs/AGENT_GUIDE.md`
 
 This keeps a new session from spending time rediscovering what the repo already
 states clearly.
+
+For fresh project births, the setup doctrine comes before meaningful feature
+work. The contract is not something the agent skims after improvising a system;
+it is the discipline the agent binds itself to after the project is correctly
+established.
 
 ### Step 2: Choose the right surface
 
@@ -170,12 +177,17 @@ leverage spreads confusion quickly.
 
 When meaningful work lands:
 
+- update `_docs/WE_ARE_HERE_NOW.md` with the fast current truth
+- update `_docs/TODO.md` with the actual next bounded move
 - update `README.md` if the architecture or entry story changed
 - update `VENDORING.md` if the install story changed
 - update `_docs/DEV_LOG.md` with the why behind the change
 - add or refresh guide surfaces when the onboarding story changes
 
 That is how the toolbox stays teachable over time.
+
+The practical closeout regimen is now captured in `_docs/PARKING_WORKFLOW.md`
+so tranche parking is part of the suite itself rather than external habit.
 
 ## Why The Microsite Matters
 

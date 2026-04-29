@@ -83,7 +83,7 @@ def run(arguments: dict) -> dict:
         title=str(arguments.get("title", "")),
         body=str(arguments.get("body", "")),
         append_text=str(arguments.get("append_text", "")),
-        kind=str(arguments.get("kind", "note")),
+        kind=arguments.get("kind"),
         source=arguments.get("source"),
         author=arguments.get("author"),
         tags=parse_tags(arguments.get("tags")),

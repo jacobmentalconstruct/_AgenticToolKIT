@@ -278,6 +278,71 @@ manifests, UI, and live tool surfaces.
 
 ---
 
+## 2026-04-29 — Parking doctrine integrated into the toolbox docs
+
+- Added `_docs/PARKING_WORKFLOW.md` as the toolbox-native tranche closeout and
+  handoff regimen.
+- Added `_docs/WE_ARE_HERE_NOW.md` as the fast pickup surface for current
+  toolbox truth.
+- Updated `_docs/AGENT_GUIDE.md` to include an explicit inspect/verify/park/
+  handoff loop.
+- Updated `_docs/EXPERIENTIAL_WORKFLOW.md` so parking is part of the suite's
+  lived doctrine rather than external convention.
+- Updated `_docs/TODO.md` so the active tranche now reflects doctrine
+  hardening, journal-mirroring decisions, and scoping the Windows-safe search
+  fallback tool.
+- Updated `README.md` so the parking regimen is discoverable from the main
+  entry surface.
+
+Current state: the toolbox now carries a clearer internal doctrine for how
+meaningful tranches should be parked, documented, and handed off.
+
+---
+
+## 2026-04-29 — Setup doctrine codified for fresh project births
+
+- Added `_docs/SETUP_DOCTRINE.md` to record the setup-first doctrine for new
+  projects armed with `.dev-tools`.
+- Added builtin scaffold template support for `_docs/SETUP_DOCTRINE.md` so
+  freshly scaffolded projects inherit the doctrine automatically.
+- Updated the builtin `ANY_NEW_CONVO_READ_THIS_FIRST.md` template so fresh
+  agents are told to finish setup first, then read the builder constraint
+  contract, then proceed in loyalty to the project and app rather than to
+  convenience.
+- Updated `README.md`, `_docs/AGENT_GUIDE.md`,
+  `_docs/EXPERIENTIAL_WORKFLOW.md`, `_docs/WE_ARE_HERE_NOW.md`, and
+  `_docs/TODO.md` so the setup-first regimen is discoverable from the live
+  toolbox surfaces too.
+
+Current state: the dev-suite now carries a clearer codified doctrine for how a
+newly armed agent should establish a project before beginning meaningful app
+implementation.
+
+---
+
+## 2026-04-29 — Sidecar release spine implemented
+
+- Added `release_payload_manifest.json` as the machine-readable inventory for
+  the current sidecar release candidate.
+- Added `sidecar_install` to copy the full shipped `.dev-tools` payload into a
+  target project root instead of requiring an agent to reach back to the source
+  toolbox.
+- Added `project_setup` so installed sidecars can audit, apply, and verify the
+  setup doctrine using the existing journal, scaffold, and contract surfaces.
+- Added `onboarding_site_check` so the offline walkthrough and its launch
+  surfaces become a verifiable protected capability.
+- Updated `install.py` so the human-facing installer now uses the full sidecar
+  install path instead of the old thin-shim path.
+- Updated the README, vendoring guide, microsite, and agent guide so the new
+  install and setup flow is the visible default.
+
+Current state: `.dev-tools` now has a live release spine for manual sidecar
+install, project-local setup, and microsite verification. The next real proof
+point is the fresh-project trial and the remaining harvest/cleanup
+classification work.
+
+---
+
 ## Template for future entries
 
 Journal entry: pending mirror

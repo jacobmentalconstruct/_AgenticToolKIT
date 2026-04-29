@@ -1,7 +1,7 @@
 {
   "manifest_version": "2.0",
   "name": "project-authority-kit",
-  "description": "DB-packed source project for vendoring the builder regiment, shared journal, and standard project layout into fresh projects.",
+  "description": "Universal builder toolbox for installing a project-local .dev-tools sidecar, scaffolding setup-first doctrine, and carrying builder tools, packages, and onboarding surfaces into fresh projects.",
   "portable_project": true,
   "isolated_folder": true,
   "status": "active",
@@ -28,11 +28,11 @@
     ]
   },
   "vendoring": {
-    "mode": "thin_shim_plus_packed_db",
+    "mode": "full_sidecar_plus_legacy_shim",
     "shim_dir": ".dev-tools/_project-authority",
     "shim_files": ["common.py", "bootstrap.py", "launch_ui.py", "mcp_server.py", "tool_manifest.json", "authority.sqlite3"],
     "packed_db": "authority.sqlite3",
-    "consumer_rule": "Install the thin shim into a target project, then use bootstrap.py or mcp_server.py from the shim.",
+    "consumer_rule": "Preferred path: install the full sidecar .dev-tools payload into a target project. Legacy thin-shim install remains available for packed-authority workflows.",
     "verification": "python src/smoke_test.py"
   },
   "mcp_entrypoint": "src/mcp_server.py",
@@ -110,6 +110,24 @@
       "script": "src/tools/authority_install.py",
       "mcp_name": "authority_install",
       "category": "install"
+    },
+    {
+      "tool_name": "sidecar_install",
+      "script": "src/tools/sidecar_install.py",
+      "mcp_name": "sidecar_install",
+      "category": "install"
+    },
+    {
+      "tool_name": "project_setup",
+      "script": "src/tools/project_setup.py",
+      "mcp_name": "project_setup",
+      "category": "bootstrap"
+    },
+    {
+      "tool_name": "onboarding_site_check",
+      "script": "src/tools/onboarding_site_check.py",
+      "mcp_name": "onboarding_site_check",
+      "category": "testing"
     },
     {
       "tool_name": "module_decomp_planner",

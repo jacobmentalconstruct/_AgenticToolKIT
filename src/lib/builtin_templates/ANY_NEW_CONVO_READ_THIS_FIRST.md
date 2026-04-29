@@ -17,16 +17,20 @@ This file is the fastest way to orient a new session to that regimen.
 
 ## Fresh-Session Pickup Loop
 
-1. Read `_docs/builder_constraint_contract.md`.
-2. Read `_docs/WE_ARE_HERE_NOW.md`.
-3. Read `_docs/TODO.md`.
-4. Read `_docs/DEV_LOG.md`.
-5. Read `_docs/ARCHITECTURE.md`.
-6. If a shared registry or sidecar viewer exists, sync to it before acting.
+1. If project setup is incomplete, read `_docs/SETUP_DOCTRINE.md` first and finish setup before feature work.
+2. Read `_docs/builder_constraint_contract.md`.
+3. Read `_docs/WE_ARE_HERE_NOW.md`.
+4. Read `_docs/TODO.md`.
+5. Read `_docs/DEV_LOG.md`.
+6. Read `_docs/ARCHITECTURE.md`.
+7. If a shared registry or sidecar viewer exists, sync to it before acting.
 
 ## Core Working Doctrine
 
+- Setup comes before substantial implementation.
 - The builder contract is the governing discipline, not a suggestion list.
+- The builder's loyalty is to the project and the application being built under
+  the contract, not to short-term convenience or drift.
 - The app journal is the durable builder-memory surface.
 - The preferred collaboration loop is:
   - `sync -> think -> act -> resync`
@@ -41,6 +45,8 @@ This file is the fastest way to orient a new session to that regimen.
 
 Before substantial work continues, make sure these are real and current:
 
+- project root and trust boundary
+- required scaffold and setup surfaces
 - project mission and scope
 - current phase or tranche
 - explicit non-goals

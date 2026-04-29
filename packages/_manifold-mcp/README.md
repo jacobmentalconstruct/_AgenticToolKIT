@@ -54,6 +54,8 @@ Use this project to:
 - `manifold_ingest`
 - `manifold_query`
 - `manifold_extract`
+- `bag_inspect`
+- `bag_navigate`
 
 ## SDK Surface
 

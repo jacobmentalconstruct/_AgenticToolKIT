@@ -18,6 +18,32 @@ scaffolding tools that agents invoke to examine or modify a target project.
 
 Entrypoint: `src/mcp_server.py` (MCP) or individual tool CLI.
 
+### Preferred Sidecar Install
+
+The preferred install path is now the **full sidecar**:
+
+```powershell
+python install.py
+```
+
+Or from the CLI:
+
+```powershell
+python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
+```
+
+This copies the current shipped `.dev-tools` payload into
+`<target>/.dev-tools/` using `release_payload_manifest.json` as the source of
+truth.
+
+After install, start inside the target project and use:
+
+```powershell
+python .dev-tools/src/tools/project_setup.py run --input-json "{\"action\": \"audit\", \"project_root\": \".\"}"
+python .dev-tools/src/tools/project_setup.py run --input-json "{\"action\": \"apply\", \"project_root\": \".\", \"actor_id\": \"builder_agent\"}"
+python .dev-tools/src/tools/onboarding_site_check.py run --input-json "{\"toolbox_root\": \".dev-tools\"}"
+```
+
 ## Tier 2: Vendable Packages
 
 Each package in `packages/` is a complete, portable subproject:
@@ -45,9 +71,9 @@ cd <target>/.dev-tools/_app-journal && python smoke_test.py
 Every package discovers its own location at runtime via `Path(__file__).resolve()`.
 No hardcoded paths. No project-specific assumptions.
 
-### Authority Install (Thin Shim)
+### Legacy Thin Authority Install
 
-The `authority_install` tool provides an alternative install path that deploys
+The `authority_install` tool remains available as an alternative path that deploys
 a thin shim plus packed SQLite DB:
 
 ```powershell
@@ -67,6 +93,8 @@ target/.dev-tools/_project-authority/
 ```
 
 Default install is **non-destructive additive** — never overwrites existing files.
+Use this path when you specifically want the packed-authority workflow rather
+than the full sidecar experience.
 
 ## Tier 3: Vendable Documents
 
@@ -86,7 +114,13 @@ Build the packed authority DB:
 python src/tools/authority_build.py run --input-json "{}"
 ```
 
-Install into a target project:
+Install the full sidecar into a target project:
+
+```powershell
+python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
+```
+
+Install the legacy thin shim into a target project:
 
 ```powershell
 python src/tools/authority_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"

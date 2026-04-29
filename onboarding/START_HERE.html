@@ -88,9 +88,10 @@
         <div class="card">
           <h3>4. Vend Without Drift</h3>
           <p>
-            When a target project needs a capability, vend a package or install
-            the thin authority shim. The target project gets what it needs
-            without turning this repo into an undeclared runtime dependency.
+            When a target project needs the toolbox, install the full sidecar
+            or vend the specific package or template it actually needs. The
+            target project gets what it needs without turning this repo into an
+            undeclared runtime dependency.
           </p>
         </div>
       </div>
@@ -102,7 +103,7 @@
         <div class="step"><strong>Start here:</strong> use this walkthrough as the human-readable front door into the toolbox.</div>
         <div class="step"><strong>Read the core doctrine:</strong> move into <code>README.md</code>, <code>CONTRACT.md</code>, <code>VENDORING.md</code>, and <code>_docs/EXPERIENTIAL_WORKFLOW.md</code>.</div>
         <div class="step"><strong>Choose the right surface:</strong> decide whether the task belongs in a builder tool, packed authority, vendable package, or vendable document.</div>
-        <div class="step"><strong>Go operational only after orientation:</strong> use <code>run.bat</code>, <code>run-ui.bat</code>, <code>python src/mcp_server.py</code>, or package-level smoke tests once the intent is clear.</div>
+        <div class="step"><strong>Go operational only after orientation:</strong> use <code>install.py</code>, <code>python src/tools/sidecar_install.py</code>, <code>python src/mcp_server.py</code>, or package-level smoke tests once the intent is clear.</div>
       </div>
       <div class="callout">
         The point of this microsite is not to replace the raw docs. It is to
@@ -248,7 +249,8 @@
 Windows: run-ui.bat
 Python:  python src/mcp_server.py
 Python:  python src/smoke_test.py
-Python:  python src/tools/authority_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"</pre>
+Python:  python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
+Python:  python src/tools/project_setup.py run --input-json "{\"action\": \"audit\", \"project_root\": \".\"}"</pre>
       <p class="small">
         The microsite is the friendly front door. The actual tool use still
         happens through the existing CLI, MCP, UI, and package surfaces.

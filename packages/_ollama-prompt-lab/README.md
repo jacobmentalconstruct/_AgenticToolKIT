@@ -2,7 +2,7 @@
 
 This folder is an isolated subproject inside `.dev-tools` for local prompt evaluation, prompt iteration, and agent-behavior scoring with Ollama-hosted models.
 
-It is intentionally separated from the main `.final-tools` suite because it has heavier runtime assumptions:
+It is intentionally separated from the main `.dev-tools` builder-tool surface because it has heavier runtime assumptions:
 
 - local model pulls
 - longer-running eval jobs

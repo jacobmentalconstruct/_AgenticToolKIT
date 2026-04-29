@@ -4,7 +4,7 @@ ROLE: Tkinter installer UI for vendoring .dev-tools into a target project.
 WHAT IT DOES:
   - Presents a simple dark-themed UI to pick a target project folder
   - Shows a preview of what will be installed
-  - Installs the thin _project-authority shim + packed DB into the target
+  - Installs the full .dev-tools sidecar payload into the target
   - Reports success/failure with a log of installed files
 HOW TO USE:
   - python install.py
@@ -98,7 +98,7 @@ class InstallerApp:
         ttk.Label(main, text=".dev-tools Installer", style="Heading.TLabel").pack(anchor=tk.W)
         ttk.Label(
             main,
-            text="Install the project authority toolkit into a new or existing project.",
+            text="Install the full .dev-tools sidecar into a new or existing project.",
             style="Muted.TLabel",
         ).pack(anchor=tk.W, pady=(2, 16))
 
@@ -223,7 +223,7 @@ class InstallerApp:
         self._clear_log()
         self._log("Preview — what will be installed:", "heading")
         self._log(f"  Target: {target}", "muted")
-        self._log(f"  Shim:   {target / '.dev-tools' / '_project-authority'}", "muted")
+        self._log(f"  Sidecar: {target / '.dev-tools'}", "muted")
         self._log("")
 
         self._set_busy(True)
@@ -231,8 +231,8 @@ class InstallerApp:
 
     def _run_preview(self, target: Path) -> None:
         try:
-            from lib.authority_package import install_authority_shim
-            result = install_authority_shim(
+            from lib.sidecar_release import install_sidecar
+            result = install_sidecar(
                 str(target), overwrite=self.overwrite_var.get(), preview=True
             )
             self.root.after(0, self._show_preview_result, result)
@@ -246,15 +246,15 @@ class InstallerApp:
             path = f["path"]
             if status == "would_create":
                 self._log(f"  + {path}", "success")
+            elif status == "would_overwrite":
+                self._log(f"  ! {path} (would overwrite)", "warning")
             elif status == "skipped":
                 self._log(f"  ~ {path} (exists, would skip)", "warning")
             else:
                 self._log(f"  ? {path} ({status})", "muted")
-
-        build = result.get("build_summary", {})
         self._log("")
-        self._log(f"Packed tools: {build.get('packed_count', '?')}", "muted")
-        self._log(f"Templates: {build.get('templates_available', '?')}", "muted")
+        self._log(f"Manifest: {result.get('manifest_path', '')}", "muted")
+        self._log(f"Excluded top-level entries: {len(result.get('excluded_top_level_entries', []))}", "muted")
         self._log("")
         self._log("Ready to install. Press Install to proceed.", "success")
         self._set_busy(False)
@@ -264,7 +264,7 @@ class InstallerApp:
         if not target:
             return
         self._clear_log()
-        self._log("Installing .dev-tools…", "heading")
+        self._log("Installing .dev-tools sidecar…", "heading")
         self._log(f"  Target: {target}", "muted")
         self._log("")
 
@@ -273,8 +273,8 @@ class InstallerApp:
 
     def _run_install(self, target: Path) -> None:
         try:
-            from lib.authority_package import install_authority_shim
-            result = install_authority_shim(
+            from lib.sidecar_release import install_sidecar
+            result = install_sidecar(
                 str(target), overwrite=self.overwrite_var.get(), preview=False
             )
             self.root.after(0, self._show_install_result, result, target)
@@ -299,12 +299,13 @@ class InstallerApp:
         self._log("")
         self._log(f"Done! {created} files installed, {skipped} skipped.", "success")
         self._log("")
-        self._log("Installed shim location:", "heading")
-        self._log(f"  {result['shim_dir']}", "muted")
+        self._log("Installed sidecar location:", "heading")
+        self._log(f"  {result['sidecar_dir']}", "muted")
         self._log("")
         self._log("Next steps:", "heading")
         self._log(f"  cd \"{target}\"")
-        self._log(f"  python .dev-tools/_project-authority/bootstrap.py")
+        self._log("  open .dev-tools/START_HERE.html")
+        self._log("  python .dev-tools/src/tools/project_setup.py run --input-json \"{\\\"action\\\": \\\"audit\\\", \\\"project_root\\\": \\\".\\\"}\"")
         self._log("")
         self.status_label.configure(text="Installed ✓", style="Success.TLabel")
         self.preview_btn.configure(state="normal")

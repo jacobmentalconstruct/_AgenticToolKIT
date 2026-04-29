@@ -31,6 +31,7 @@ BUILTIN_TEMPLATES = [
     {"template_id": "ANY_NEW_CONVO_READ_THIS_FIRST.md", "path_pattern": "ANY_NEW_CONVO_READ_THIS_FIRST.md", "file_type": "markdown", "description": "Fresh-session onboarding surface"},
     {"template_id": "_docs/ARCHITECTURE.md", "path_pattern": "_docs/ARCHITECTURE.md", "file_type": "markdown", "description": "Architecture overview"},
     {"template_id": "_docs/builder_constraint_contract.md", "path_pattern": "_docs/builder_constraint_contract.md", "file_type": "markdown", "description": "Exported builder constraint contract"},
+    {"template_id": "_docs/SETUP_DOCTRINE.md", "path_pattern": "_docs/SETUP_DOCTRINE.md", "file_type": "markdown", "description": "Project setup doctrine"},
     {"template_id": "_docs/SHARED_REGISTRY_WORKFLOW.md", "path_pattern": "_docs/SHARED_REGISTRY_WORKFLOW.md", "file_type": "markdown", "description": "Shared-registry workflow doctrine"},
     {"template_id": "_docs/WE_ARE_HERE_NOW.md", "path_pattern": "_docs/WE_ARE_HERE_NOW.md", "file_type": "markdown", "description": "Current state surface"},
     {"template_id": "_docs/TODO.md", "path_pattern": "_docs/TODO.md", "file_type": "markdown", "description": "Active work ledger"},

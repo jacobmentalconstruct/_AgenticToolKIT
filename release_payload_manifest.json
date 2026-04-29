@@ -1,0 +1,203 @@
+{
+  "manifest_version": "1.0.0",
+  "sidecar_dir_name": ".dev-tools",
+  "inventory_notes": [
+    "This manifest defines the current candidate release payload for the sidecar .dev-tools install flow.",
+    "Reference-only and harvest-pending material is kept visible here even when it is not copied by sidecar_install.",
+    "Cleanup tranches should change this file deliberately instead of silently drifting install behavior."
+  ],
+  "top_level_entries": [
+    {
+      "path": ".gitignore",
+      "role": "ship",
+      "install": true,
+      "notes": "Useful when the toolbox is inspected or copied further inside a project."
+    },
+    {
+      "path": "authority.sqlite3",
+      "role": "ship",
+      "install": true,
+      "notes": "Retained while the broader authority/build surfaces are still part of the active toolbox."
+    },
+    {
+      "path": "CONTRACT.md",
+      "role": "ship",
+      "install": true,
+      "notes": "Core toolbox contract."
+    },
+    {
+      "path": "install.py",
+      "role": "ship",
+      "install": true,
+      "notes": "Human-friendly manual installer."
+    },
+    {
+      "path": "launch_explorer.py",
+      "role": "ship",
+      "install": true,
+      "notes": "Convenience launcher for the walkthrough."
+    },
+    {
+      "path": "LICENSE.md",
+      "role": "ship",
+      "install": true,
+      "notes": "License and usage terms."
+    },
+    {
+      "path": "OPEN_ME_FIRST.bat",
+      "role": "ship",
+      "install": true,
+      "notes": "Windows launch helper for the walkthrough."
+    },
+    {
+      "path": "OPEN_ME_FIRST.command",
+      "role": "ship",
+      "install": true,
+      "notes": "macOS launch helper for the walkthrough."
+    },
+    {
+      "path": "README.md",
+      "role": "ship",
+      "install": true,
+      "notes": "Primary human-facing architecture overview."
+    },
+    {
+      "path": "release_payload_manifest.json",
+      "role": "ship",
+      "install": true,
+      "notes": "Machine-readable sidecar payload inventory."
+    },
+    {
+      "path": "requirements.txt",
+      "role": "ship",
+      "install": true,
+      "notes": "Top-level Python dependency surface."
+    },
+    {
+      "path": "run-ui.bat",
+      "role": "ship",
+      "install": true,
+      "notes": "Windows UI launcher."
+    },
+    {
+      "path": "run-ui.sh",
+      "role": "ship",
+      "install": true,
+      "notes": "Unix UI launcher."
+    },
+    {
+      "path": "run.bat",
+      "role": "ship",
+      "install": true,
+      "notes": "Windows launcher."
+    },
+    {
+      "path": "run.sh",
+      "role": "ship",
+      "install": true,
+      "notes": "Unix launcher."
+    },
+    {
+      "path": "setup_env.bat",
+      "role": "ship",
+      "install": true,
+      "notes": "Windows environment setup."
+    },
+    {
+      "path": "setup_env.sh",
+      "role": "ship",
+      "install": true,
+      "notes": "Unix environment setup."
+    },
+    {
+      "path": "START_HERE.html",
+      "role": "ship",
+      "install": true,
+      "notes": "Top-level microsite redirect."
+    },
+    {
+      "path": "tool_manifest.json",
+      "role": "ship",
+      "install": true,
+      "notes": "Machine-readable tool inventory."
+    },
+    {
+      "path": "toolbox_manifest.json",
+      "role": "ship",
+      "install": true,
+      "notes": "Machine-readable toolbox inventory."
+    },
+    {
+      "path": "VENDORING.md",
+      "role": "ship",
+      "install": true,
+      "notes": "Vendoring/install doctrine."
+    },
+    {
+      "path": "_docs",
+      "role": "ship",
+      "install": true,
+      "notes": "Doctrine, continuity, and onboarding documentation."
+    },
+    {
+      "path": "_logs",
+      "role": "test_only",
+      "install": false,
+      "notes": "Local exports and machine-generated artifacts."
+    },
+    {
+      "path": ".potential-intake",
+      "role": "exclude",
+      "install": false,
+      "notes": "Staging area, not part of the release payload."
+    },
+    {
+      "path": "assets",
+      "role": "ship",
+      "install": true,
+      "notes": "README screenshots and shared supporting assets."
+    },
+    {
+      "path": "authorities",
+      "role": "reference_pending_harvest",
+      "install": true,
+      "notes": "Retained until authority/reference cleanup tranches finish."
+    },
+    {
+      "path": "onboarding",
+      "role": "ship",
+      "install": true,
+      "notes": "Offline onboarding microsite."
+    },
+    {
+      "path": "packages",
+      "role": "ship",
+      "install": true,
+      "notes": "Vendable subprojects."
+    },
+    {
+      "path": "runtime",
+      "role": "exclude",
+      "install": false,
+      "notes": "Hydrated cache material; should be recreated, not shipped."
+    },
+    {
+      "path": "src",
+      "role": "ship",
+      "install": true,
+      "notes": "Active builder tools, libraries, and entrypoints."
+    },
+    {
+      "path": "templates",
+      "role": "ship",
+      "install": true,
+      "notes": "Vendable document templates."
+    },
+    {
+      "path": "__pycache__",
+      "role": "exclude",
+      "install": false,
+      "notes": "Interpreter cache."
+    }
+  ]
+}

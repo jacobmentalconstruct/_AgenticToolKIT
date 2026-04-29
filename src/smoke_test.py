@@ -459,6 +459,77 @@ def test_authority_build_and_install() -> None:
         _fail("thin shim install", ", ".join(missing))
 
 
+def test_sidecar_install_and_setup() -> None:
+    """Install the full sidecar payload, then apply and verify project setup."""
+    print("\n── Sidecar Install / Setup / Microsite ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="sidecar_install_")) / "fresh_project"
+    target_root.mkdir(parents=True, exist_ok=True)
+
+    preview = _tool("sidecar_install", {
+        "target_project_root": str(target_root),
+        "preview": True,
+    })
+    preview_files = preview["result"]["files"]
+    if any(item["status"] == "would_create" for item in preview_files):
+        _ok("sidecar install preview works")
+    else:
+        _fail("sidecar install preview", str(preview["result"]))
+
+    applied = _tool("sidecar_install", {
+        "target_project_root": str(target_root),
+    })
+    sidecar_dir = Path(applied["result"]["sidecar_dir"])
+    expected = {
+        sidecar_dir / "README.md",
+        sidecar_dir / "release_payload_manifest.json",
+        sidecar_dir / "src" / "mcp_server.py",
+        sidecar_dir / "onboarding" / "START_HERE.html",
+        sidecar_dir / "packages" / "_app-journal" / "README.md",
+    }
+    if all(path.exists() for path in expected):
+        _ok("full sidecar payload installed")
+    else:
+        missing = [str(path) for path in expected if not path.exists()]
+        _fail("sidecar install", ", ".join(missing))
+
+    audit_before = _tool("project_setup", {
+        "action": "audit",
+        "project_root": str(target_root),
+    })
+    if audit_before["result"]["missing_required"]:
+        _ok("project setup audit detects missing setup surfaces")
+    else:
+        _fail("project setup audit", str(audit_before["result"]))
+
+    applied_setup = _tool("project_setup", {
+        "action": "apply",
+        "project_root": str(target_root),
+        "actor_id": "smoke_setup_agent",
+    })
+    if applied_setup["result"]["files"]:
+        _ok("project setup apply writes scaffold files")
+    else:
+        _fail("project setup apply", str(applied_setup["result"]))
+
+    verified = _tool("project_setup", {
+        "action": "verify",
+        "project_root": str(target_root),
+    })
+    if verified["result"]["passed"]:
+        _ok("project setup verify passes after apply")
+    else:
+        _fail("project setup verify", str(verified["result"]))
+
+    site_check = _tool("onboarding_site_check", {
+        "toolbox_root": str(sidecar_dir),
+    })
+    if site_check["result"]["passed"]:
+        _ok("installed sidecar microsite passes integrity check")
+    else:
+        _fail("installed sidecar microsite", str(site_check["result"]))
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -494,7 +565,8 @@ def test_mcp(project_root: Path) -> None:
             "journal_init", "journal_write", "journal_query", "journal_export",
             "journal_manifest", "journal_acknowledge", "journal_actions",
             "journal_scaffold", "journal_pack", "journal_snapshot",
-            "authority_build", "authority_install",
+            "authority_build", "authority_install", "sidecar_install",
+            "project_setup", "onboarding_site_check",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):
@@ -679,6 +751,7 @@ def main() -> int:
     test_pack(project_root, db_path)
     test_snapshot(project_root, db_path)
     test_authority_build_and_install()
+    test_sidecar_install_and_setup()
     test_mcp(project_root)
     test_builderset_authority()
 
