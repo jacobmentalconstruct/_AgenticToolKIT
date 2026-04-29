@@ -21,7 +21,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - release-spine implementation for the sidecar install, setup, and microsite verification flow
 - Current runtime truth:
   - full sidecar install, setup orchestration, and onboarding-site verification
-    are now present as live builder-tool surfaces
+    are now present as live builder-tool surfaces and have passed the fresh
+    temporary-project verification loop
 - Current collaboration truth:
   - the toolbox is shifting from doctrine-only planning toward a testable
     project-local install and onboarding path
@@ -35,6 +36,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Full sidecar install path exists via `install.py` and `sidecar_install`.
 - Project setup can now be audited, applied, and verified with `project_setup`.
 - Microsite integrity can now be checked with `onboarding_site_check`.
+- The temporary-project install/apply/verify/microsite trial is now passing.
 
 ## Current bottleneck
 
@@ -44,7 +46,6 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Next best move
 
-- Run the full fresh-project trial from the new sidecar install path.
 - Classify remaining authority/reference material for keep, archive, or harvest.
 - Build the Windows-safe search fallback tool as the next capability-hardening move.
 

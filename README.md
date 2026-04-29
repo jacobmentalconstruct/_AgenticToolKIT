@@ -150,7 +150,6 @@ run.bat          # Windows
 python src/mcp_server.py
 ```
 
-Exposes all 25 builder tools over MCP stdio transport.
 Exposes all builder tools over MCP stdio transport.
 
 ## Self-Test

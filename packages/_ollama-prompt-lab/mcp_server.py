@@ -122,9 +122,10 @@ def _read_message() -> dict | None:
 
 
 def _write_message(payload: dict) -> None:
-    """Write one NDJSON message to stdout."""
+    """Write one Content-Length framed MCP message to stdout."""
     body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
-    sys.stdout.buffer.write(body + b"\n")
+    header = f"Content-Length: {len(body)}\r\n\r\n".encode("utf-8")
+    sys.stdout.buffer.write(header + body)
     sys.stdout.buffer.flush()
 
 

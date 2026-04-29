@@ -24,7 +24,7 @@ Name the current bounded work slice and list only the tasks that belong in it.
 - [x] Integrate the park-and-handoff doctrine cleanly into the dev-suite docs.
 - [x] Add a machine-readable release payload inventory for the sidecar install path.
 - [x] Add the full sidecar install path, project setup flow, and onboarding-site verification tools.
-- [ ] Run and tighten the fresh-project trial from an installed sidecar only.
+- [x] Run and tighten the fresh-project trial from an installed sidecar only.
 - [ ] Formalize how toolbox-level backlog items should be mirrored into the app journal.
 - [ ] Scope and build the Windows-safe search fallback tool as the first concrete capability-hardening surface.
 
