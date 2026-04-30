@@ -220,6 +220,12 @@ root; Docker tag/push and live Kubernetes apply require `confirm: true`.
 Preview actions are useful for planning and for hosts without a daemon or
 cluster attached.
 
+Run `secret_surface_audit` before packaging, pushing, or exporting project
+state; its findings are heuristic and values are always redacted. Use
+`runtime_artifact_cleaner` in dry-run mode first, and only clean allowlisted
+generated artifacts with `confirm: true`; tracked files stay protected by
+default.
+
 ---
 
 ## Tool Selection Cheat Sheet

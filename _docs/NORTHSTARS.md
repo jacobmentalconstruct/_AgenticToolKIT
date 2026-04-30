@@ -69,8 +69,8 @@ clear write boundaries, and boring failure modes:
 | Dependency environment check | Verify virtualenv/node_modules/lockfile state without installing blindly. | `dependency_env_check` — complete |
 | Docker ops wrapper | Build, run, inspect, and log toolbox/project containers with consistent JSON results. | `docker_ops` — complete |
 | Kubernetes ops wrapper | Check context, dry-run/apply manifests, watch readiness, fetch logs, and report attach instructions. | `k8s_ops` — complete |
-| Secret and credential audit | Detect obvious committed secrets, local `.env` exposure, and unsafe payload inclusion. | `secret_surface_audit` |
-| Runtime artifact cleaner | Identify generated smoke/build/cache artifacts and propose or perform scoped cleanup. | `runtime_artifact_cleaner` |
+| Secret and credential audit | Detect obvious committed secrets, local `.env` exposure, and unsafe payload inclusion. | `secret_surface_audit` — complete |
+| Runtime artifact cleaner | Identify generated smoke/build/cache artifacts and propose or perform scoped cleanup. | `runtime_artifact_cleaner` — complete |
 | Local agent bootstrap | Produce a launch packet for a local agent: root, commands, constraints, available tools, and safe operating envelope. | `local_agent_bootstrap` |
 
 This is the foundation for a local agent using the toolset directly. Once the

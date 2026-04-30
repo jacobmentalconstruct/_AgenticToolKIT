@@ -862,6 +862,55 @@ protection.
 
 ---
 
+## 2026-04-30 — Tranche 5 safety, secrets, and runtime cleanup
+
+- Added `secret_surface_audit`, a stdlib-only read-only scanner for obvious
+  secret-like values and risky `.env` exposure.
+- Secret findings redact detected values in `redacted_value` and `line_preview`
+  so tool output can be shared without leaking the matched value.
+- Added `runtime_artifact_cleaner`, a dry-run-first cleaner for allowlisted
+  generated artifacts such as caches, logs, journal exports, and known package
+  smoke artifacts.
+- Cleanup requires `confirm: true` when `dry_run` is false, and tracked files
+  are protected unless `allow_tracked: true` is explicitly supplied.
+- Registered both tools in `tool_manifest.json` and `src/mcp_server.py`.
+- Extended smoke coverage with fake secret fixtures and disposable runtime
+  artifacts proving redaction, `.env` exposure detection, dry-run default,
+  confirmation gating, and allowlisted cleanup.
+- Updated README, agent guide, architecture, northstars, TODO, and continuity
+  state so Tranche 6 local-agent bootstrap and northstar closeout are next.
+- Runtime journal entry written with `journal_write`:
+  `journal_2669d2d7b8fa`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Validation:
+
+- `python -m py_compile src/tools/secret_surface_audit.py
+  src/tools/runtime_artifact_cleaner.py src/mcp_server.py src/smoke_test.py`
+  -> pass.
+- `python src/tools/secret_surface_audit.py metadata` -> pass.
+- `python src/tools/runtime_artifact_cleaner.py metadata` -> pass.
+- `python src/smoke_test.py` -> 61/61 pass; MCP lists 37 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` ->
+  5/5 smoke suites pass.
+
+Classification: spiral.
+
+- Capability increased: a local agent can now inspect secret-risk surfaces and
+  clean generated runtime state through structured tools.
+- Uncertainty decreased: cleanup behavior is dry-run-first, allowlisted, and
+  backed by Git tracked-file checks.
+- Boundary clarified: the audit tool is heuristic and redacted; the cleaner
+  does not remove tracked files by default and requires confirmation to mutate.
+
+Current read: Tranche 5 is complete pending final parking verification.
+Tranche 6 should add `local_agent_bootstrap` and close the Local Agent
+Operations northstar.
+
+---
+
 ## Template for future entries
 
 - Files changed:

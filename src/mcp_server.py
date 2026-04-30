@@ -115,6 +115,16 @@ except ImportError:
     K8S_OPS_METADATA, run_k8s_ops = None, None
 
 try:
+    from tools.secret_surface_audit import FILE_METADATA as SECRET_SURFACE_METADATA, run as run_secret_surface_audit
+except ImportError:
+    SECRET_SURFACE_METADATA, run_secret_surface_audit = None, None
+
+try:
+    from tools.runtime_artifact_cleaner import FILE_METADATA as RUNTIME_CLEANER_METADATA, run as run_runtime_artifact_cleaner
+except ImportError:
+    RUNTIME_CLEANER_METADATA, run_runtime_artifact_cleaner = None, None
+
+try:
     from tools.module_decomp_planner import FILE_METADATA as MODULE_DECOMP_METADATA, run as run_module_decomp_planner
 except ImportError:
     MODULE_DECOMP_METADATA, run_module_decomp_planner = None, None
@@ -206,6 +216,8 @@ for meta, runner in [
     (DEV_SERVER_METADATA, run_dev_server_manager),
     (DOCKER_OPS_METADATA, run_docker_ops),
     (K8S_OPS_METADATA, run_k8s_ops),
+    (SECRET_SURFACE_METADATA, run_secret_surface_audit),
+    (RUNTIME_CLEANER_METADATA, run_runtime_artifact_cleaner),
     (MODULE_DECOMP_METADATA, run_module_decomp_planner),
     (TOKENIZING_PATCHER_METADATA, run_tokenizing_patcher),
     (DOMAIN_BOUNDARY_METADATA, run_domain_boundary_audit),

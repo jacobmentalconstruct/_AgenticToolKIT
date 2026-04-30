@@ -170,6 +170,18 @@
       "category": "operations"
     },
     {
+      "tool_name": "secret_surface_audit",
+      "script": "src/tools/secret_surface_audit.py",
+      "mcp_name": "secret_surface_audit",
+      "category": "security"
+    },
+    {
+      "tool_name": "runtime_artifact_cleaner",
+      "script": "src/tools/runtime_artifact_cleaner.py",
+      "mcp_name": "runtime_artifact_cleaner",
+      "category": "cleanup"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

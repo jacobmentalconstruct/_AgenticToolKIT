@@ -800,6 +800,71 @@ def test_sys_ops_introspection() -> None:
     else:
         _fail("k8s_ops attach instructions", str(attach))
 
+    (target_root / ".env").write_text(
+        "API_KEY=sk_test_1234567890abcdef\nSAFE_FLAG=true\n",
+        encoding="utf-8",
+    )
+    (target_root / "settings.py").write_text(
+        "TOKEN = 'ghp_abcdefghijklmnopqrstuvwxyz1234567890'\n",
+        encoding="utf-8",
+    )
+    secret_audit = _tool("secret_surface_audit", {
+        "project_root": str(target_root),
+        "max_findings": 10,
+    })
+    audit_text = json.dumps(secret_audit)
+    if (
+        secret_audit["status"] == "ok"
+        and secret_audit["result"]["finding_count"] >= 1
+        and secret_audit["result"]["risky_env_file_count"] >= 1
+        and "1234567890abcdef" not in audit_text
+        and "abcdefghijklmnopqrstuvwxyz1234567890" not in audit_text
+    ):
+        _ok("secret_surface_audit redacts findings and flags env exposure")
+    else:
+        _fail("secret_surface_audit", str(secret_audit))
+
+    (target_root / "__pycache__").mkdir(exist_ok=True)
+    (target_root / "__pycache__" / "sample.pyc").write_bytes(b"cache")
+    (target_root / "_logs").mkdir(exist_ok=True)
+    (target_root / "_logs" / "sample.log").write_text("log\n", encoding="utf-8")
+    cleaner_dry = _tool("runtime_artifact_cleaner", {
+        "project_root": str(target_root),
+    })
+    if (
+        cleaner_dry["status"] == "ok"
+        and cleaner_dry["result"]["dry_run"] is True
+        and cleaner_dry["result"]["candidate_count"] >= 2
+        and (target_root / "__pycache__" / "sample.pyc").exists()
+    ):
+        _ok("runtime_artifact_cleaner defaults to dry-run")
+    else:
+        _fail("runtime_artifact_cleaner dry-run", str(cleaner_dry))
+
+    cleaner_blocked = _tool("runtime_artifact_cleaner", {
+        "project_root": str(target_root),
+        "dry_run": False,
+    })
+    if cleaner_blocked["status"] == "error":
+        _ok("runtime_artifact_cleaner requires confirmation before cleanup")
+    else:
+        _fail("runtime_artifact_cleaner confirmation", str(cleaner_blocked))
+
+    cleaner_apply = _tool("runtime_artifact_cleaner", {
+        "project_root": str(target_root),
+        "dry_run": False,
+        "confirm": True,
+    })
+    if (
+        cleaner_apply["status"] == "ok"
+        and cleaner_apply["result"]["removed_count"] >= 2
+        and not (target_root / "__pycache__").exists()
+        and not (target_root / "_logs").exists()
+    ):
+        _ok("runtime_artifact_cleaner removes allowlisted generated artifacts")
+    else:
+        _fail("runtime_artifact_cleaner cleanup", str(cleaner_apply))
+
 
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
@@ -840,6 +905,7 @@ def test_mcp(project_root: Path) -> None:
             "repo_search", "host_capability_probe", "workspace_boundary_audit",
             "project_command_profile", "process_port_inspector",
             "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
+            "secret_surface_audit", "runtime_artifact_cleaner",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):

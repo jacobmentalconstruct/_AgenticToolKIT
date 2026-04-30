@@ -71,6 +71,8 @@ these to work ON target projects without modifying the toolbox itself.
 | `dev_server_manager` | operations | Start, stop, tail, status-check, and health-check declared dev/run commands with tracked runtime state |
 | `docker_ops` | operations | Run guarded Docker status/build/run-smoke/log/tag/push workflows scoped to project-root contexts |
 | `k8s_ops` | operations | Validate manifests, prepare dry-runs, apply with confirmation, read status/logs, and emit attach instructions |
+| `secret_surface_audit` | security | Scan for obvious committed secrets and risky env exposure with redacted output |
+| `runtime_artifact_cleaner` | cleanup | Dry-run-first cleanup of allowlisted generated artifacts with tracked-file protection |
 | `module_decomp_planner` | architecture | AST-based module decomposition planning |
 | `tokenizing_patcher` | editing | Whitespace-immune hunk-based patching |
 | `domain_boundary_audit` | analysis | Detect domain boundary violations |
@@ -86,7 +88,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 35 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 37 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 

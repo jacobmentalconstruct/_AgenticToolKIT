@@ -67,6 +67,9 @@ The planned sys-ops layer closes the remaining local-agent northstar in stages:
    manifests must resolve under the project root, image tag/push and live
    Kubernetes apply require `confirm: true`, and portable preview/validation
    paths allow agents to plan operations before touching a daemon or cluster.
-5. Audit secrets and runtime artifacts before cleanup or packaging.
+5. Audit secrets and runtime artifacts before cleanup or packaging. This stage
+   is implemented by `secret_surface_audit` and `runtime_artifact_cleaner`;
+   secret-like values are redacted in output, cleanup defaults to dry-run, and
+   tracked files are protected unless explicitly allowlisted and confirmed.
 6. Emit a local-agent bootstrap packet that summarizes the safe operating
    envelope for the current project.

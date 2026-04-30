@@ -21,24 +21,33 @@ _Last updated: 2026-04-30._
 
 ## Current tranche
 
-**Tranche 5 — safety, secrets, and runtime cleanup.**
+**Tranche 6 — local-agent bootstrap and northstar closeout.**
 
-Tranche 4 is implemented and in the parking path. The next source tranche
-should add safety and cleanup wrappers that help a local agent inspect risky
-surfaces before packaging, backing up, or pruning generated state.
+Tranche 5 is implemented and in the parking path. The final source tranche
+should aggregate the sys-ops surfaces into a launch packet for a local agent,
+then close the Local Agent Operations northstar.
 
 ### Active tasks
 
-- [ ] Add `secret_surface_audit`.
-- [ ] Detect obvious committed secrets and risky `.env` exposure.
-- [ ] Redact discovered values in output.
-- [ ] Add `runtime_artifact_cleaner`.
-- [ ] Default cleanup to dry-run and restrict deletion to allowlisted generated artifacts.
-- [ ] Protect tracked files unless explicitly allowlisted and confirmed.
+- [ ] Add `local_agent_bootstrap`.
+- [ ] Aggregate host probe, boundary audit, command profile, dependency check,
+      latest journal entries, and relevant constraints.
+- [ ] Emit JSON or Markdown launch packet without writing by default.
+- [ ] Optional writes go only to ignored runtime/exports.
+- [ ] Mark Local Agent Operations satisfied in `NORTHSTARS.md`.
+- [ ] Move completed sys-ops items out of active TODO.
+- [ ] Append final `DEV_LOG` closeout with validation and `spiral` classification.
 - [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
 
 ### Previous source tranche (parked)
 
+- [x] Add `secret_surface_audit`.
+- [x] Detect obvious committed secrets and risky `.env` exposure.
+- [x] Redact discovered values in output.
+- [x] Add `runtime_artifact_cleaner`.
+- [x] Default cleanup to dry-run and restrict deletion to allowlisted generated artifacts.
+- [x] Protect tracked files unless explicitly allowlisted and confirmed.
+- [x] Update README, agent guide, architecture, northstars, TODO, and dev log.
 - [x] Add `docker_ops` with `status`, `build`, `run_smoke`, `logs`, `tag`, and `push`.
 - [x] Keep Docker contexts under the project root.
 - [x] Require explicit confirmation for Docker `tag` and `push`.
@@ -140,7 +149,7 @@ surfaces before packaging, backing up, or pruning generated state.
 - [x] Implement Tranche 2: dependency readiness and command-profile IDs.
 - [x] Implement Tranche 3: guarded dev-server management.
 - [x] Implement Tranche 4: Docker and Kubernetes operation wrappers.
-- [ ] Implement Tranche 5: secret audit and runtime artifact cleanup.
+- [x] Implement Tranche 5: secret audit and runtime artifact cleanup.
 - [ ] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.
 
 ---

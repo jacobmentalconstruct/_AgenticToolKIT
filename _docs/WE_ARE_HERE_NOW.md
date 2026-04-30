@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-04-30 (Tranche 4 Docker/Kubernetes operation wrappers implemented)
+- 2026-04-30 (Tranche 5 safety and runtime cleanup implemented)
 
 ## Fresh-thread start
 
@@ -19,8 +19,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - `.dev-tools`
 - Current phase or tranche:
   - root prototype parked (strangler complete); `_v2-pod/` carries the
-    Kubernetes-wrapped bridge; Tranche 4 Docker/Kubernetes operation wrappers
-    are implemented and Tranche 5 safety/cleanup tools are next
+    Kubernetes-wrapped bridge; Tranche 5 safety/cleanup tools are implemented
+    and Tranche 6 local-agent bootstrap/closeout is next
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -64,19 +64,21 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   manifests are scoped under the project root, Docker tag/push and Kubernetes
   apply require confirmation, `_v2-pod/` can be previewed/validated through the
   tools, and MCP now lists 35 tools.
+- Tranche 5 added `secret_surface_audit` and `runtime_artifact_cleaner`: secret
+  findings are redacted, risky env files are flagged, cleanup defaults to
+  dry-run, tracked files are protected, and MCP now lists 37 tools.
 
 ## Current bottleneck
 
 - No internal root bottleneck. Remaining container work is operational:
   live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
-- The next source-shaped bottleneck is Tranche 5: secret-surface audit and
-  runtime artifact cleanup.
+- The next source-shaped bottleneck is Tranche 6: `local_agent_bootstrap` and
+  final Local Agent Operations northstar closeout.
 
 ## Next best move
 
-- Open Tranche 5: `secret_surface_audit` and `runtime_artifact_cleaner`, with
-  redaction, dry-run defaults, allowlisted cleanup, and tracked-file
-  protection.
+- Open Tranche 6: `local_agent_bootstrap`, launch packet export, and final
+  sys-ops northstar closeout.
 
 ## Current warnings
 
