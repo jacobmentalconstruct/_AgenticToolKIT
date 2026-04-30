@@ -658,6 +658,56 @@ truth through MCP-visible structured results.
 
 ---
 
+## 2026-04-30 — Tranche 1 local-agent sys-ops introspection implemented
+
+- Added four stdlib-only, read-only builder tools:
+  - `host_capability_probe` reports OS, Python, shell, and common developer
+    command availability/version text.
+  - `workspace_boundary_audit` resolves project root, sidecar root, git root,
+    runtime paths, ignored-ish footprint, and write-boundary warnings.
+  - `project_command_profile` detects declared setup/test/run/build/dev,
+    Docker, and Kubernetes commands and emits stable command IDs.
+  - `process_port_inspector` inspects relevant processes and occupied ports
+    with platform-specific fallbacks and bounded output.
+- Registered all four tools in `tool_manifest.json` and `src/mcp_server.py`.
+- Extended the root smoke test with temporary-fixture coverage for the new
+  sys-ops tools and MCP enumeration.
+- Updated `README.md`, `_docs/AGENT_GUIDE.md`, `_docs/ARCHITECTURE.md`,
+  `_docs/NORTHSTARS.md`, `_docs/TODO.md`, and `_docs/WE_ARE_HERE_NOW.md` so
+  the new active tool surface and next tranche are discoverable.
+
+Validation:
+
+- `python -m py_compile src/tools/host_capability_probe.py
+  src/tools/workspace_boundary_audit.py src/tools/project_command_profile.py
+  src/tools/process_port_inspector.py src/mcp_server.py src/smoke_test.py`
+  -> pass.
+- Focused metadata/run checks for the new tools -> pass.
+- `python src/smoke_test.py` -> 43/43 pass; MCP lists 31 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` ->
+  5/5 smoke suites pass.
+- Runtime journal entry written with `journal_write`:
+  `journal_584fc62bf04c`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Classification: spiral.
+
+- Capability increased: a local agent can now learn host capability,
+  workspace boundaries, project command declarations, and process/port state
+  through structured MCP-visible tools.
+- Uncertainty decreased: the first sys-ops layer is read-only and works on the
+  current Windows desktop environment.
+- Boundary clarified: no dependency installation, server control, process
+  killing, Docker mutation, Kubernetes apply, or raw terminal parity was added.
+
+Current read: Tranche 1 is complete. Tranche 2 should add
+`dependency_env_check` and refine command-profile IDs so later guarded
+operations can reuse one stable command vocabulary.
+
+---
+
 ## Template for future entries
 
 - Files changed:

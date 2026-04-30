@@ -122,6 +122,30 @@
       "category": "introspection"
     },
     {
+      "tool_name": "host_capability_probe",
+      "script": "src/tools/host_capability_probe.py",
+      "mcp_name": "host_capability_probe",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "workspace_boundary_audit",
+      "script": "src/tools/workspace_boundary_audit.py",
+      "mcp_name": "workspace_boundary_audit",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "project_command_profile",
+      "script": "src/tools/project_command_profile.py",
+      "mcp_name": "project_command_profile",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "process_port_inspector",
+      "script": "src/tools/process_port_inspector.py",
+      "mcp_name": "process_port_inspector",
+      "category": "introspection"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

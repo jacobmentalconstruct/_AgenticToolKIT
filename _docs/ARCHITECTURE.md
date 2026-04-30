@@ -51,7 +51,9 @@ command profiles and explicit confirmations.
 The planned sys-ops layer closes the remaining local-agent northstar in stages:
 
 1. Probe host capabilities, workspace boundaries, command profiles, and
-   processes/ports.
+   processes/ports. This stage is implemented by `host_capability_probe`,
+   `workspace_boundary_audit`, `project_command_profile`, and
+   `process_port_inspector`.
 2. Check dependency readiness without installing anything.
 3. Manage only declared dev-server commands with tracked runtime state.
 4. Wrap Docker and Kubernetes workflows with structured status, validation,

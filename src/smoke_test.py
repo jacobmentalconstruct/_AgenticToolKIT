@@ -522,6 +522,59 @@ def test_repo_search() -> None:
         _fail("repo_search invalid regex", str(bad_regex))
 
 
+def test_sys_ops_introspection() -> None:
+    """Local-agent sys-ops read-only tools."""
+    print("\n── Local-Agent Sys-Ops Introspection ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="sys_ops_"))
+    (target_root / "src").mkdir()
+    (target_root / "src" / "smoke_test.py").write_text("print('ok')\n", encoding="utf-8")
+    (target_root / "package.json").write_text(
+        json.dumps({"scripts": {"dev": "vite", "test": "echo ok", "build": "echo build"}}),
+        encoding="utf-8",
+    )
+    (target_root / "requirements.txt").write_text("pytest\n", encoding="utf-8")
+    (target_root / "run.bat").write_text("@echo off\npython src\\smoke_test.py\n", encoding="utf-8")
+
+    host = _tool("host_capability_probe", {
+        "commands": ["python", "git"],
+        "timeout_seconds": 3,
+    })
+    if host["status"] == "ok" and host["result"]["summary"]["available_count"] >= 1:
+        _ok("host_capability_probe reports command availability")
+    else:
+        _fail("host_capability_probe", str(host))
+
+    boundary = _tool("workspace_boundary_audit", {
+        "project_root": str(target_root),
+        "max_depth": 2,
+    })
+    if boundary["status"] == "ok" and boundary["result"]["project_root"] == str(target_root.resolve()):
+        _ok("workspace_boundary_audit resolves project root")
+    else:
+        _fail("workspace_boundary_audit", str(boundary))
+
+    profile = _tool("project_command_profile", {
+        "project_root": str(target_root),
+    })
+    command_ids = {item["id"] for item in profile["result"]["commands"]}
+    expected_ids = {"npm:dev", "npm:test", "npm:build", "python:smoke", "file:run.bat"}
+    if expected_ids.issubset(command_ids):
+        _ok("project_command_profile detects declared commands")
+    else:
+        _fail("project_command_profile", f"missing: {expected_ids - command_ids}")
+
+    processes = _tool("process_port_inspector", {
+        "ports": [],
+        "process_name_contains": ["python"],
+        "max_processes": 10,
+    })
+    if processes["status"] == "ok" and "process_count" in processes["result"]["summary"]:
+        _ok("process_port_inspector returns structured process summary")
+    else:
+        _fail("process_port_inspector", str(processes))
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -558,7 +611,8 @@ def test_mcp(project_root: Path) -> None:
             "journal_manifest", "journal_acknowledge", "journal_actions",
             "journal_scaffold", "journal_pack", "journal_snapshot",
             "sidecar_install", "project_setup", "onboarding_site_check",
-            "repo_search",
+            "repo_search", "host_capability_probe", "workspace_boundary_audit",
+            "project_command_profile", "process_port_inspector",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):
@@ -609,6 +663,7 @@ def main() -> int:
     test_snapshot(project_root, db_path)
     test_sidecar_install_and_setup()
     test_repo_search()
+    test_sys_ops_introspection()
     test_mcp(project_root)
 
     print(f"\n═══ Results: {PASS} passed, {FAIL} failed ═══")

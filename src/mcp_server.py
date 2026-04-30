@@ -1,7 +1,7 @@
 """
 FILE: mcp_server.py
-ROLE: MCP stdio server for _app-journal v2.
-WHAT IT DOES: Exposes all journal tools through MCP using the same run(arguments) functions.
+ROLE: MCP stdio server for .dev-tools.
+WHAT IT DOES: Exposes builder tools through MCP using the same run(arguments) functions.
 HOW TO USE:
   - Start: python src/mcp_server.py
   - Connect as a stdio MCP server from an MCP-capable client.
@@ -73,6 +73,26 @@ try:
     from tools.repo_search import FILE_METADATA as REPO_SEARCH_METADATA, run as run_repo_search
 except ImportError:
     REPO_SEARCH_METADATA, run_repo_search = None, None
+
+try:
+    from tools.host_capability_probe import FILE_METADATA as HOST_CAPABILITY_METADATA, run as run_host_capability_probe
+except ImportError:
+    HOST_CAPABILITY_METADATA, run_host_capability_probe = None, None
+
+try:
+    from tools.workspace_boundary_audit import FILE_METADATA as WORKSPACE_BOUNDARY_METADATA, run as run_workspace_boundary_audit
+except ImportError:
+    WORKSPACE_BOUNDARY_METADATA, run_workspace_boundary_audit = None, None
+
+try:
+    from tools.project_command_profile import FILE_METADATA as PROJECT_COMMAND_METADATA, run as run_project_command_profile
+except ImportError:
+    PROJECT_COMMAND_METADATA, run_project_command_profile = None, None
+
+try:
+    from tools.process_port_inspector import FILE_METADATA as PROCESS_PORT_METADATA, run as run_process_port_inspector
+except ImportError:
+    PROCESS_PORT_METADATA, run_process_port_inspector = None, None
 
 try:
     from tools.module_decomp_planner import FILE_METADATA as MODULE_DECOMP_METADATA, run as run_module_decomp_planner
@@ -158,6 +178,10 @@ for meta, runner in [
     (PROJECT_SETUP_METADATA, run_project_setup),
     (ONBOARDING_SITE_CHECK_METADATA, run_onboarding_site_check),
     (REPO_SEARCH_METADATA, run_repo_search),
+    (HOST_CAPABILITY_METADATA, run_host_capability_probe),
+    (WORKSPACE_BOUNDARY_METADATA, run_workspace_boundary_audit),
+    (PROJECT_COMMAND_METADATA, run_project_command_profile),
+    (PROCESS_PORT_METADATA, run_process_port_inspector),
     (MODULE_DECOMP_METADATA, run_module_decomp_planner),
     (TOKENIZING_PATCHER_METADATA, run_tokenizing_patcher),
     (DOMAIN_BOUNDARY_METADATA, run_domain_boundary_audit),

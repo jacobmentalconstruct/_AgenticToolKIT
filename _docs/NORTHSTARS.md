@@ -59,10 +59,10 @@ clear write boundaries, and boring failure modes:
 
 | Capability | Purpose | Likely tool surface |
 |---|---|---|
-| Host capability probe | Report OS, shell, Python, Git, Docker, kubectl, Node, rg, browser availability, and versions. | `host_capability_probe` |
-| Workspace boundary audit | Confirm project root, sidecar location, ignored/generated paths, disk footprint, and unsafe write targets. | `workspace_boundary_audit` |
-| Command profile detector | Discover package managers, test commands, launch commands, lockfiles, and likely dev-server entrypoints. | `project_command_profile` |
-| Process and port inspector | See running dev servers, occupied ports, command lines, and stale child processes. | `process_port_inspector` |
+| Host capability probe | Report OS, shell, Python, Git, Docker, kubectl, Node, rg, browser availability, and versions. | `host_capability_probe` — complete |
+| Workspace boundary audit | Confirm project root, sidecar location, ignored/generated paths, disk footprint, and unsafe write targets. | `workspace_boundary_audit` — complete |
+| Command profile detector | Discover package managers, test commands, launch commands, lockfiles, and likely dev-server entrypoints. | `project_command_profile` — complete |
+| Process and port inspector | See running dev servers, occupied ports, command lines, and stale child processes. | `process_port_inspector` — complete |
 | Dev server manager | Start, stop, restart, tail logs, and health-check local app servers by declared profile. | `dev_server_manager` |
 | Dependency environment check | Verify virtualenv/node_modules/lockfile state without installing blindly. | `dependency_env_check` |
 | Docker ops wrapper | Build, run, inspect, and log toolbox/project containers with consistent JSON results. | `docker_ops` |

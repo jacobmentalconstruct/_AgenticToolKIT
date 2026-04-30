@@ -21,13 +21,32 @@ _Last updated: 2026-04-30._
 
 ## Current tranche
 
-**Container packaging — Kubernetes-wrapped v2 in `_v2-pod/`.**
+**Tranche 2 — dependency readiness and command-profile refinement.**
 
-The previous tranche (release-candidate cleanup + strangler finalization) is
-parked. All current work happens inside the isolated `_v2-pod/` workspace so
-the parked root prototype is not disturbed.
+Tranche 1 is parked complete. The next source tranche should add
+`dependency_env_check` and refine `project_command_profile` command IDs/metadata
+so later guarded operations can reuse one stable command vocabulary.
 
 ### Active tasks
+
+- [ ] Add `dependency_env_check`.
+- [ ] Extend `project_command_profile` with command metadata needed by
+      `dev_server_manager`, `docker_ops`, and `k8s_ops`.
+- [ ] Add smoke-test fixture coverage proving readiness checks do not install
+      dependencies or mutate the project.
+- [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
+
+### Previous source tranche (parked)
+
+- [x] Add `host_capability_probe`.
+- [x] Add `workspace_boundary_audit`.
+- [x] Add `project_command_profile`.
+- [x] Add `process_port_inspector`.
+- [x] Register all four tools in `tool_manifest.json` and `src/mcp_server.py`.
+- [x] Add smoke-test coverage and confirm MCP lists all 31 tools.
+- [x] Update README, agent guide, architecture, northstars, TODO, and dev log.
+
+### Operational container follow-up
 
 - [x] Verify headless install path works without a display server. The
       existing `src/tools/sidecar_install.py` uses `standard_main` and
@@ -68,14 +87,10 @@ the parked root prototype is not disturbed.
 
 ### Explicit non-goals for this tranche
 
-- [ ] Do not modify the root prototype while v2 work is live. If a real
-      bug surfaces in root, park v2, fix root, restart v2.
-- [ ] Do not introduce new third-party Python dependencies — stdlib only,
-      same as the parked root.
-- [ ] Do not productionize Kubernetes (RBAC, secrets, ingress, monitoring)
-      in this tranche. Goal is a working pod, not a hardened deployment.
-- [ ] Do not rewrite the toolkit. v2 is a wrapper around the parked v1, not
-      a re-architecture.
+- [x] Do not add raw unrestricted terminal parity.
+- [ ] Do not install dependencies, start servers, stop processes, or apply
+      Kubernetes resources.
+- [ ] Do not introduce third-party Python dependencies.
 
 ### Previous tranche (parked)
 
@@ -101,7 +116,7 @@ the parked root prototype is not disturbed.
       `host_capability_probe`, `workspace_boundary_audit`,
       `project_command_profile`, `process_port_inspector`, and then
       dev-server/Docker/Kubernetes wrappers.
-- [ ] Implement Tranche 1: read-only host/workspace/command/process
+- [x] Implement Tranche 1: read-only host/workspace/command/process
       introspection tools.
 - [ ] Implement Tranche 2: dependency readiness and command-profile IDs.
 - [ ] Implement Tranche 3: guarded dev-server management.

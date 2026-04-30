@@ -63,6 +63,10 @@ these to work ON target projects without modifying the toolbox itself.
 | `project_setup` | bootstrap | Audit, apply, and verify setup doctrine inside a target project |
 | `onboarding_site_check` | testing | Verify the offline onboarding microsite and launch surfaces |
 | `repo_search` | introspection | Search project text with an `rg` fast path and safe native fallback |
+| `host_capability_probe` | introspection | Report local host, runtime, shell, Docker, kubectl, Node/npm, rg, and browser command availability |
+| `workspace_boundary_audit` | introspection | Resolve project, sidecar, git, runtime, ignored-path, footprint, and write-boundary context |
+| `project_command_profile` | introspection | Detect declared setup/test/run/build/dev commands and emit stable command IDs |
+| `process_port_inspector` | introspection | Inspect relevant processes and occupied ports with platform-safe fallbacks |
 | `module_decomp_planner` | architecture | AST-based module decomposition planning |
 | `tokenizing_patcher` | editing | Whitespace-immune hunk-based patching |
 | `domain_boundary_audit` | analysis | Detect domain boundary violations |
@@ -78,7 +82,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 27 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 31 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
