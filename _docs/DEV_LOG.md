@@ -442,10 +442,79 @@ agent through setup/contract doctrine, then build from project-local tools.
     appear in tracked content. Author attribution in `LICENSE.md` and the
     BCC template is intentional copyright marking and was left untouched.
 
+Validation:
+
+- `python src/smoke_test.py` — 39/39 pass after the cleanup
+- 27 MCP tools enumerate cleanly via `mcp_server.py`
+- `install.py` imports cleanly; the new remove-and-reinstall dialog path
+  exercised by hand on a throwaway target
+- Manual sweep confirmed no surviving references to `launch_ui`, `run-ui`,
+  `app_journal_ui` outside historical DEV_LOG entries
+- Tracked-content audit found no API keys, tokens, third-party app names,
+  or other private data; LICENSE attribution intentionally retained
+
+Classification: spiral.
+
+- Capability increased: root identity is now single-purpose, pod-packaging
+  is unblocked.
+- Uncertainty decreased: the next bounded move (Dockerfile + headless
+  install flag) is concrete and small.
+- Boundary clarified: root toolbox vs vendable `_app-journal` package no
+  longer overlap. Root no longer impersonates the package.
+
 Current read: the root toolbox is now a single-purpose installer surface plus
 agent/MCP/smoke-test surfaces. The journal UI lives only inside its vendable
 package, and the strangler pattern is complete — no part of the active root
 repo still pretends to be the original `_app-journal` package.
+
+---
+
+## 2026-04-29 — Park-doctrine gaps closed; v2 container workspace opened
+
+- Park-doctrine completion (closing the gaps from the prior strangler entry):
+  - Added explicit `Validation:` and `Classification: spiral` blocks to the
+    strangler-finalization entry above, per `_docs/PARKING_WORKFLOW.md`
+    minimum-park-payload requirements.
+  - Dropped the stale "compliance checklist not all final" warning from
+    `_docs/WE_ARE_HERE_NOW.md`. The compliance checklist is fully `[x]`.
+  - Opened a fresh "Current tranche" in `_docs/TODO.md` for the container
+    packaging work, with explicit tasks, non-goals, and the previous
+    tranche moved into a parked-history block.
+- v2 container workspace opened in isolation:
+  - Created `_v2-pod/` at the repo root as the dedicated build space for
+    wrapping the parked root prototype into a Kubernetes-friendly pod.
+  - Created `_v2-pod/README.md` recording intent, layout, working rules,
+    and the rule that the parent root is frozen during this tranche.
+  - Installed a fresh `.dev-tools/` sidecar into `_v2-pod/.dev-tools/` via
+    `sidecar_install` (265 files, full toolkit). This sidecar serves as
+    the agent's toolbelt while working in `_v2-pod/`.
+  - Added `_v2-pod/.dev-tools/` and `_v2-pod/_docs/_AppJOURNAL/`,
+    `_v2-pod/_docs/_journalDB/` to `.gitignore` so the embedded toolkit
+    copy and its runtime state are not tracked. Only the wrapper code we
+    write inside `_v2-pod/` (Dockerfile, k8s manifests, etc.) gets
+    tracked.
+
+Validation:
+
+- `python _v2-pod/.dev-tools/src/smoke_test.py` — 39/39 pass; 27 MCP
+  tools enumerate cleanly from inside the installed sidecar
+- `git status` confirmed `_v2-pod/.dev-tools/` is properly ignored; only
+  `_v2-pod/README.md` shows as a tracked addition under the v2 folder
+- DEV_LOG, WE_ARE_HERE_NOW, TODO continuity packet now self-consistent
+
+Classification: spiral.
+
+- Capability increased: an isolated workspace exists with a working
+  toolkit copy ready to use, and the container tranche has a concrete
+  task list.
+- Uncertainty decreased: the "where do we build v2 without disturbing
+  v1" question is now answered.
+- Boundary clarified: the parent root is parked-frozen for this tranche;
+  novel work happens only in `_v2-pod/`.
+
+Current read: doc continuity packet meets the parking protocol's minimum
+payload, and the container packaging tranche is open in an isolated
+workspace. The parked root remains untouched and authoritative.
 
 ---
 

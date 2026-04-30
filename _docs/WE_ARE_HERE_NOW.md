@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-04-29 (strangler finalization tranche parked)
+- 2026-04-29 (strangler parked + container tranche opened in `_v2-pod/`)
 
 ## Fresh-thread start
 
@@ -18,7 +18,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Project root:
   - `.dev-tools`
 - Current phase or tranche:
-  - parked release-candidate prototype (strangler finalization complete)
+  - root prototype parked (strangler complete); active work moves into
+    `_v2-pod/` where the Kubernetes-wrapped v2 is being assembled in
+    isolation
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -49,23 +51,26 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Current bottleneck
 
-- None internal to the prototype. The release-candidate is parkable.
-  Outstanding work is packaging-shaped (Dockerfile, Kubernetes pod), not
-  source-shaped.
+- None internal to the parked root. Active work is now happening inside
+  `_v2-pod/` — adding a `--headless --target` CLI mode to `install.py`,
+  drafting the Dockerfile, and writing the minimal Kubernetes manifests.
 
 ## Next best move
 
-- Wrap the cleaned `.dev-tools/` in a minimal Dockerfile (Python 3.11 slim,
-  `COPY . /opt/dev-tools/`, headless `install.py` entrypoint against a
-  mounted `/workspace`) so the same artifact serves local desktop install
-  and Kubernetes pod reuse.
+- Inside `_v2-pod/`: add `--headless --target <path>` flag to `install.py`
+  (so `RUN python install.py --headless --target /workspace` works in a
+  Dockerfile without a display server), then write the minimal Dockerfile
+  and a one-replica k8s Deployment manifest. Iterate locally with
+  `docker build` before touching a cluster.
 
 ## Current warnings
 
-- The backlog is still young and not yet a fully mature continuation surface.
-- Deferred expansion capabilities remain intentionally out of scope for this
+- The root prototype is parked; do not edit root surfaces casually while
+  the v2 tranche is open. Treat root as frozen reference for this tranche.
+- `_v2-pod/.dev-tools/` is gitignored (it is just an installed sidecar);
+  the wrapper code we write inside `_v2-pod/` IS tracked.
+- Deferred expansion capabilities remain intentionally out of scope for the
   release candidate.
-- Not all compliance checklist surfaces exist yet in final form.
 
 ## Read in this order if resuming cold
 

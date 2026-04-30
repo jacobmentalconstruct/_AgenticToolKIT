@@ -19,24 +19,45 @@ _Last updated: 2026-04-29._
 
 ## Current tranche
 
-Name the current bounded work slice and list only the tasks that belong in it.
+**Container packaging — Kubernetes-wrapped v2 in `_v2-pod/`.**
+
+The previous tranche (release-candidate cleanup + strangler finalization) is
+parked. All current work happens inside the isolated `_v2-pod/` workspace so
+the parked root prototype is not disturbed.
 
 ### Active tasks
 
-- [x] Integrate the park-and-handoff doctrine cleanly into the dev-suite docs.
-- [x] Add a machine-readable release payload inventory for the sidecar install path.
-- [x] Add the full sidecar install path, project setup flow, and onboarding-site verification tools.
-- [x] Run and tighten the fresh-project trial from an installed sidecar only.
-- [x] Classify and retire remaining reference/cache material for release payload handling.
-- [x] Formalize release-scope northstars and defer post-release expansion explicitly.
-- [x] Formalize how toolbox-level backlog items should be mirrored into the docs-first continuity packet for this prototype.
-- [x] Scope and build the Windows-safe search fallback tool as the first concrete capability-hardening surface.
-- [x] Retire legacy authority/thin-shim surfaces from the active prototype shape.
+- [ ] Add `--headless --target <path>` CLI mode to `install.py` so it can run
+      without a display server (required for `docker build` RUN steps).
+- [ ] Draft `_v2-pod/Dockerfile` (Python 3.11-slim base, COPY toolbox into
+      `/opt/dev-tools/`, run headless install against `/workspace`).
+- [ ] Draft `_v2-pod/k8s/deployment.yaml` — single-replica Deployment first;
+      worry about parallel replicas only after one pod runs cleanly.
+- [ ] Decide and document: ephemeral pod vs PVC-mounted `/workspace` for
+      journal/output persistence.
+- [ ] Decide and document: project-baked-in vs project-mounted-at-runtime
+      pod model. Pick one for v2; defer the other.
+- [ ] Verify `docker build` succeeds locally from `_v2-pod/` and the
+      resulting image runs `mcp_server.py` end-to-end.
 
-### Explicit non-goals
+### Explicit non-goals for this tranche
 
-- [x] Do not turn this backlog into a vague dumping ground with no ownership.
-- [x] Do not treat wishlist items as active implementation commitments by default.
+- [ ] Do not modify the root prototype while v2 work is live. If a real
+      bug surfaces in root, park v2, fix root, restart v2.
+- [ ] Do not introduce new third-party Python dependencies — stdlib only,
+      same as the parked root.
+- [ ] Do not productionize Kubernetes (RBAC, secrets, ingress, monitoring)
+      in this tranche. Goal is a working pod, not a hardened deployment.
+- [ ] Do not rewrite the toolkit. v2 is a wrapper around the parked v1, not
+      a re-architecture.
+
+### Previous tranche (parked)
+
+- [x] Strangler finalization — root identity collapsed to single-purpose
+      installer; `src/launch_ui.py`, `src/ui/`, `run-ui.*` purged.
+- [x] Privacy hardening — `.gitignore` extended; tracked content audited.
+- [x] Park doctrine gaps closed — Validation + Classification added to the
+      strangler DEV_LOG entry; container tranche opened in this file.
 
 ---
 

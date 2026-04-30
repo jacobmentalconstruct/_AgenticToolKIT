@@ -40,3 +40,10 @@ _docs/_AppJOURNAL/db_manifest.json
 _docs/_AppJOURNAL/exports/*
 !_docs/_AppJOURNAL/exports/.gitkeep
 _docs/_journalDB/app_journal.sqlite3
+
+# v2 build workspace — installed sidecar inside _v2-pod is a copy of the
+# parent toolkit and should not be tracked. Wrapper artifacts (Dockerfile,
+# k8s manifests, scripts) inside _v2-pod ARE tracked.
+_v2-pod/.dev-tools/
+_v2-pod/_docs/_AppJOURNAL/
+_v2-pod/_docs/_journalDB/
