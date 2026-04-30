@@ -45,8 +45,10 @@ The first post-RC bridge is now present in `_v2-pod/`:
 - The entrypoint installs `.dev-tools` into `/workspace`, runs smoke tests, and
   launches the MCP server over stdio.
 - The image builds and runs locally; in-container smoke tests pass.
-- Remaining work is cluster-side: live `kubectl apply`, `kubectl attach`, and
-  registry publication.
+- Docker and Kubernetes wrapper tools now expose the bridge through structured
+  MCP-visible operations.
+- Remaining work is environment-side: live `kubectl apply`, `kubectl attach`,
+  and registry publication when a cluster/registry target is available.
 
 ## Next Northstar: Local Agent Operations
 
@@ -65,8 +67,8 @@ clear write boundaries, and boring failure modes:
 | Process and port inspector | See running dev servers, occupied ports, command lines, and stale child processes. | `process_port_inspector` — complete |
 | Dev server manager | Start, stop, restart, tail logs, and health-check local app servers by declared profile. | `dev_server_manager` — complete |
 | Dependency environment check | Verify virtualenv/node_modules/lockfile state without installing blindly. | `dependency_env_check` — complete |
-| Docker ops wrapper | Build, run, inspect, and log toolbox/project containers with consistent JSON results. | `docker_ops` |
-| Kubernetes ops wrapper | Check context, dry-run/apply manifests, watch readiness, fetch logs, and report attach instructions. | `k8s_ops` |
+| Docker ops wrapper | Build, run, inspect, and log toolbox/project containers with consistent JSON results. | `docker_ops` — complete |
+| Kubernetes ops wrapper | Check context, dry-run/apply manifests, watch readiness, fetch logs, and report attach instructions. | `k8s_ops` — complete |
 | Secret and credential audit | Detect obvious committed secrets, local `.env` exposure, and unsafe payload inclusion. | `secret_surface_audit` |
 | Runtime artifact cleaner | Identify generated smoke/build/cache artifacts and propose or perform scoped cleanup. | `runtime_artifact_cleaner` |
 | Local agent bootstrap | Produce a launch packet for a local agent: root, commands, constraints, available tools, and safe operating envelope. | `local_agent_bootstrap` |

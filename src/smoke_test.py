@@ -691,10 +691,114 @@ def test_sys_ops_introspection() -> None:
                 "command_id": "python:dev-server",
                 "confirm": True,
             })
-            if stop["status"] == "ok" and stop["result"]["alive"] is False:
-                _ok("dev_server_manager stops registered server")
-            else:
-                _fail("dev_server_manager stop", str(stop))
+        if stop["status"] == "ok" and stop["result"]["alive"] is False:
+            _ok("dev_server_manager stops registered server")
+        else:
+            _fail("dev_server_manager stop", str(stop))
+
+    (target_root / "Dockerfile").write_text(
+        "FROM python:3.11-slim\nCMD [\"python\", \"--version\"]\n",
+        encoding="utf-8",
+    )
+    docker_status = _tool("docker_ops", {
+        "action": "status",
+        "project_root": str(target_root),
+        "timeout_seconds": 3,
+    })
+    if docker_status["status"] == "ok" and "docker" in docker_status["result"]:
+        _ok("docker_ops reports Docker availability status")
+    else:
+        _fail("docker_ops status", str(docker_status))
+
+    docker_build = _tool("docker_ops", {
+        "action": "build",
+        "project_root": str(target_root),
+        "context": ".",
+        "image": "devtools-smoke:local",
+        "preview": True,
+    })
+    if docker_build["status"] == "ok" and docker_build["result"]["executed"] is False:
+        _ok("docker_ops validates project-scoped build previews")
+    else:
+        _fail("docker_ops build preview", str(docker_build))
+
+    docker_tag_denied = _tool("docker_ops", {
+        "action": "tag",
+        "project_root": str(target_root),
+        "source_image": "devtools-smoke:local",
+        "target_image": "example/devtools-smoke:local",
+    })
+    if docker_tag_denied["status"] == "error":
+        _ok("docker_ops requires confirmation before tag")
+    else:
+        _fail("docker_ops tag confirmation", str(docker_tag_denied))
+
+    k8s_dir = target_root / "k8s"
+    k8s_dir.mkdir()
+    (k8s_dir / "deployment.yaml").write_text(
+        "\n".join([
+            "apiVersion: apps/v1",
+            "kind: Deployment",
+            "metadata:",
+            "  name: devtools-smoke",
+            "spec:",
+            "  replicas: 1",
+            "  selector:",
+            "    matchLabels:",
+            "      app: devtools-smoke",
+            "  template:",
+            "    metadata:",
+            "      labels:",
+            "        app: devtools-smoke",
+            "    spec:",
+            "      containers:",
+            "        - name: smoke",
+            "          image: devtools-smoke:local",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    k8s_validate = _tool("k8s_ops", {
+        "action": "validate",
+        "project_root": str(target_root),
+        "manifest": "k8s/deployment.yaml",
+    })
+    if k8s_validate["status"] == "ok" and k8s_validate["result"]["resources"][0]["kind"] == "Deployment":
+        _ok("k8s_ops validates manifest structure")
+    else:
+        _fail("k8s_ops validate", str(k8s_validate))
+
+    k8s_dry_run = _tool("k8s_ops", {
+        "action": "dry_run",
+        "project_root": str(target_root),
+        "manifest": "k8s/deployment.yaml",
+        "preview": True,
+    })
+    if k8s_dry_run["status"] == "ok" and k8s_dry_run["result"]["executed"] is False:
+        _ok("k8s_ops prepares dry-run apply command")
+    else:
+        _fail("k8s_ops dry_run preview", str(k8s_dry_run))
+
+    k8s_apply_denied = _tool("k8s_ops", {
+        "action": "apply",
+        "project_root": str(target_root),
+        "manifest": "k8s/deployment.yaml",
+        "preview": True,
+    })
+    if k8s_apply_denied["status"] == "error":
+        _ok("k8s_ops requires confirmation before apply")
+    else:
+        _fail("k8s_ops apply confirmation", str(k8s_apply_denied))
+
+    attach = _tool("k8s_ops", {
+        "action": "attach_instructions",
+        "project_root": str(target_root),
+        "resource": "deploy/devtools-smoke",
+    })
+    if attach["status"] == "ok" and "kubectl" in attach["result"]["command"][0]:
+        _ok("k8s_ops emits attach instructions")
+    else:
+        _fail("k8s_ops attach instructions", str(attach))
 
 
 def test_mcp(project_root: Path) -> None:
@@ -735,7 +839,7 @@ def test_mcp(project_root: Path) -> None:
             "sidecar_install", "project_setup", "onboarding_site_check",
             "repo_search", "host_capability_probe", "workspace_boundary_audit",
             "project_command_profile", "process_port_inspector",
-            "dependency_env_check", "dev_server_manager",
+            "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):

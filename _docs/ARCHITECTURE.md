@@ -62,7 +62,11 @@ The planned sys-ops layer closes the remaining local-agent northstar in stages:
    explicit confirmation for start/stop/restart, and writes state/logs under
    ignored `.dev-tools/runtime/dev_servers/`.
 4. Wrap Docker and Kubernetes workflows with structured status, validation,
-   logs, dry-runs, and explicit confirmation for side effects.
+   logs, dry-runs, and explicit confirmation for side effects. This stage is
+   implemented by `docker_ops` and `k8s_ops`; Docker contexts and Kubernetes
+   manifests must resolve under the project root, image tag/push and live
+   Kubernetes apply require `confirm: true`, and portable preview/validation
+   paths allow agents to plan operations before touching a daemon or cluster.
 5. Audit secrets and runtime artifacts before cleanup or packaging.
 6. Emit a local-agent bootstrap packet that summarizes the safe operating
    envelope for the current project.

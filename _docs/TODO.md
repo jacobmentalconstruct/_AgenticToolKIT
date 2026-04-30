@@ -21,25 +21,31 @@ _Last updated: 2026-04-30._
 
 ## Current tranche
 
-**Tranche 4 — Docker and Kubernetes operation wrappers.**
+**Tranche 5 — safety, secrets, and runtime cleanup.**
 
-Tranche 3 is implemented and in the parking path. The next source tranche
-should add `docker_ops` and `k8s_ops`, using `_v2-pod/` as the primary fixture
-and preserving explicit confirmation for side effects such as push, tag, and
-live Kubernetes apply.
+Tranche 4 is implemented and in the parking path. The next source tranche
+should add safety and cleanup wrappers that help a local agent inspect risky
+surfaces before packaging, backing up, or pruning generated state.
 
 ### Active tasks
 
-- [ ] Add `docker_ops` with `status`, `build`, `run_smoke`, `logs`, `tag`, and `push`.
-- [ ] Keep Docker contexts under the project root.
-- [ ] Require explicit confirmation for Docker `tag` and `push`.
-- [ ] Add `k8s_ops` with `context`, `validate`, `dry_run`, `apply`, `status`, `logs`, and `attach_instructions`.
-- [ ] Require explicit confirmation for live Kubernetes `apply`.
-- [ ] Use `_v2-pod/` for build/run and manifest validation fixtures.
+- [ ] Add `secret_surface_audit`.
+- [ ] Detect obvious committed secrets and risky `.env` exposure.
+- [ ] Redact discovered values in output.
+- [ ] Add `runtime_artifact_cleaner`.
+- [ ] Default cleanup to dry-run and restrict deletion to allowlisted generated artifacts.
+- [ ] Protect tracked files unless explicitly allowlisted and confirmed.
 - [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
 
 ### Previous source tranche (parked)
 
+- [x] Add `docker_ops` with `status`, `build`, `run_smoke`, `logs`, `tag`, and `push`.
+- [x] Keep Docker contexts under the project root.
+- [x] Require explicit confirmation for Docker `tag` and `push`.
+- [x] Add `k8s_ops` with `context`, `validate`, `dry_run`, `apply`, `status`, `logs`, and `attach_instructions`.
+- [x] Require explicit confirmation for live Kubernetes `apply`.
+- [x] Use `_v2-pod/` for build/run and manifest validation fixtures.
+- [x] Update README, agent guide, architecture, northstars, TODO, and dev log.
 - [x] Add `dev_server_manager`.
 - [x] Allow only command IDs emitted by `project_command_profile`.
 - [x] Track launched processes in gitignored runtime state.
@@ -133,7 +139,7 @@ live Kubernetes apply.
       introspection tools.
 - [x] Implement Tranche 2: dependency readiness and command-profile IDs.
 - [x] Implement Tranche 3: guarded dev-server management.
-- [ ] Implement Tranche 4: Docker and Kubernetes operation wrappers.
+- [x] Implement Tranche 4: Docker and Kubernetes operation wrappers.
 - [ ] Implement Tranche 5: secret audit and runtime artifact cleanup.
 - [ ] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.
 

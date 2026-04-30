@@ -158,6 +158,18 @@
       "category": "operations"
     },
     {
+      "tool_name": "docker_ops",
+      "script": "src/tools/docker_ops.py",
+      "mcp_name": "docker_ops",
+      "category": "operations"
+    },
+    {
+      "tool_name": "k8s_ops",
+      "script": "src/tools/k8s_ops.py",
+      "mcp_name": "k8s_ops",
+      "category": "operations"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

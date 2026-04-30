@@ -214,6 +214,12 @@ Use `project_command_profile` first, choose a `dev` or `run` command ID, then
 start/stop/restart only with `confirm: true`. Runtime state and logs are kept
 under ignored `.dev-tools/runtime/dev_servers/`.
 
+Use `docker_ops` and `k8s_ops` for container work instead of raw terminal
+commands. Docker contexts and Kubernetes manifests must stay under the project
+root; Docker tag/push and live Kubernetes apply require `confirm: true`.
+Preview actions are useful for planning and for hosts without a daemon or
+cluster attached.
+
 ---
 
 ## Tool Selection Cheat Sheet

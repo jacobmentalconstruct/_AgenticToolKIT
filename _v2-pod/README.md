@@ -121,9 +121,10 @@ kubectl scale deploy/devtools-pod --replicas=N
 
 See `../_docs/TODO.md` "Current tranche" for the live task list.
 
-The first concrete move is adding a `--headless --target <path>` CLI mode to
-the parent's `install.py` so the Dockerfile RUN step can install the sidecar
-without a display server.
+The source-side Docker/Kubernetes wrapper tranche is now complete at the parent
+root: use `docker_ops` for status/build/run-smoke/log/tag/push and `k8s_ops`
+for context/validate/dry-run/apply/status/logs/attach instructions. Live image
+tag/push and Kubernetes apply remain confirmation-gated.
 
 ## How to use the installed sidecar
 

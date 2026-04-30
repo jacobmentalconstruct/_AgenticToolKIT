@@ -804,6 +804,64 @@ primary fixture and keeping live side effects behind confirmation.
 
 ---
 
+## 2026-04-30 — Tranche 4 Docker and Kubernetes operation wrappers
+
+- Added `docker_ops`, a stdlib-only operations wrapper for Docker `status`,
+  `build`, `run_smoke`, `logs`, `tag`, and `push`.
+- Docker build contexts must resolve under `project_root`; tag and push require
+  `confirm: true`; preview mode lets an agent inspect commands without touching
+  Docker.
+- Added `k8s_ops`, a stdlib-only operations wrapper for Kubernetes `context`,
+  `validate`, `dry_run`, `apply`, `status`, `logs`, and
+  `attach_instructions`.
+- Kubernetes manifests must resolve under `project_root`; live apply requires
+  `confirm: true`; `validate` performs a portable structural manifest check and
+  `dry_run` can prepare the kubectl command in preview mode.
+- Registered both tools in `tool_manifest.json` and `src/mcp_server.py`.
+- Extended smoke coverage with Docker and Kubernetes fixtures that verify
+  status, project-scoped build previews, confirmation gates, manifest
+  validation, dry-run previews, attach instructions, and MCP listing.
+- Verified `_v2-pod/` through the new tools: Docker build/run-smoke previews
+  resolve to `_v2-pod`, and `k8s_ops validate` recognizes the Deployment named
+  `devtools-pod` using image `devtools-pod:v2`.
+- Updated README, agent guide, architecture, northstars, TODO, `_v2-pod`
+  README, and continuity state so Tranche 5 safety/cleanup tools are next.
+- Runtime journal entry written with `journal_write`:
+  `journal_e1f5cc1066a2`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Validation:
+
+- `python -m py_compile src/tools/docker_ops.py src/tools/k8s_ops.py
+  src/mcp_server.py src/smoke_test.py` -> pass.
+- `python src/tools/docker_ops.py metadata` -> pass.
+- `python src/tools/k8s_ops.py metadata` -> pass.
+- Focused `_v2-pod` wrapper runs:
+  `docker_ops build --preview`, `docker_ops run_smoke --preview`,
+  `k8s_ops validate`, and `k8s_ops dry_run --preview` -> pass.
+- `python src/smoke_test.py` -> 57/57 pass; MCP lists 35 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` ->
+  5/5 smoke suites pass.
+
+Classification: spiral.
+
+- Capability increased: a local or podded agent can now plan and operate
+  Docker/Kubernetes workflows through scoped JSON tools rather than raw shell.
+- Uncertainty decreased: `_v2-pod` is now visible to the tool layer as a real
+  Docker/Kubernetes fixture.
+- Boundary clarified: registry mutation and live cluster apply require
+  explicit confirmation; portable preview and validation paths avoid accidental
+  daemon/cluster side effects.
+
+Current read: Tranche 4 is complete pending final parking verification.
+Tranche 5 should add `secret_surface_audit` and `runtime_artifact_cleaner`
+with redaction, dry-run defaults, allowlisted cleanup, and tracked-file
+protection.
+
+---
+
 ## Template for future entries
 
 - Files changed:
