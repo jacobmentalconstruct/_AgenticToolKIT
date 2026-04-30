@@ -518,6 +518,59 @@ workspace. The parked root remains untouched and authoritative.
 
 ---
 
+## 2026-04-29 — Container tranche: Dockerfile, entrypoint, and k8s manifest drafted in `_v2-pod/`
+
+- Confirmed the headless install path was already available: the existing
+  `src/tools/sidecar_install.py` uses `standard_main` and accepts
+  `python sidecar_install.py run --input-json '{...}'`. No new
+  `--headless` flag on `install.py` was needed; `install.py` stays the
+  GUI surface, `sidecar_install.py` is the canonical CLI surface, and the
+  Dockerfile wires to the latter.
+- Added `_v2-pod/Dockerfile` — `python:3.11-slim` base, COPY of the
+  embedded sidecar into `/opt/dev-tools/`, entrypoint script as the
+  container entrypoint. Stdlib only; no `apt install`, no extra Python
+  packages.
+- Added `_v2-pod/.dockerignore` — excludes runtime journal state and
+  pycache from the build context so the image ships a clean toolkit, not
+  the build host's accumulated journal artifacts.
+- Added `_v2-pod/entrypoint.sh` — idempotent: installs a fresh sidecar
+  into `/workspace` if missing, runs the smoke test (failure aborts the
+  pod), then `exec`s into the MCP server so PID 1 is the actual workload.
+- Added `_v2-pod/k8s/deployment.yaml` — single-replica Deployment with
+  ephemeral default and a commented PVC opt-in path. `replicas` is
+  scalable for parallel ephemeral agent sandboxes.
+- Documented model decisions in `_v2-pod/README.md`: ephemeral by default
+  (PVC opt-in), project mounted at runtime (not baked into the image),
+  MCP over stdio (no port exposure), stdlib-only discipline.
+
+Validation:
+
+- `python src/tools/sidecar_install.py metadata` confirms the headless CLI
+  surface
+- `python _v2-pod/.dev-tools/src/smoke_test.py` — 39/39 pass against the
+  embedded sidecar copy, which is what the image will COPY at build time
+- `docker build` and `kubectl apply` are pending host-side verification
+  (cannot run from the agent sandbox); both are tracked as the remaining
+  unchecked items in `_docs/TODO.md`'s active tranche
+
+Classification: spiral.
+
+- Capability increased: pod-image artifacts exist and are coherent.
+- Uncertainty decreased: the build/run flow is documented end to end; the
+  remaining unknowns are host-side `docker build` quirks, not design
+  questions.
+- Boundary clarified: parent root remains parked-frozen; all v2 wiring
+  lives inside `_v2-pod/`. The Dockerfile builds with `_v2-pod/` itself
+  as the build context, so no `.dockerignore` or build artifact at the
+  parent root was required.
+
+Current read: `_v2-pod/` now carries a complete first-cut pod packaging
+(Dockerfile, entrypoint, k8s manifest, README). The next concrete move is
+host-side: `docker build` + a local kind/minikube `kubectl apply` to
+verify the image and pod actually behave as designed.
+
+---
+
 ## Template for future entries
 
 - Files changed:

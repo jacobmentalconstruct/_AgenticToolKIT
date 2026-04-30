@@ -18,14 +18,89 @@ self-contained sandbox.
 ```
 _v2-pod/
 ├── README.md          # this file
-├── .dev-tools/        # GITIGNORED — installed sidecar, used as agent toolbelt
-│                      # while working in this folder. Treat as read-only
-│                      # dependency. Do NOT modify these files; modify the
-│                      # parent repo's source instead and reinstall.
-├── Dockerfile         # (pending) container definition for the pod image
-└── k8s/               # (pending) Kubernetes manifests
-    └── deployment.yaml
+├── Dockerfile         # container definition for the pod image
+├── .dockerignore      # excludes runtime journal state from the build context
+├── entrypoint.sh      # idempotent install + smoke + MCP launch
+├── k8s/
+│   └── deployment.yaml  # single-replica Deployment, ephemeral default
+└── .dev-tools/        # GITIGNORED — installed sidecar, used as agent toolbelt
+                       # while working in this folder. Treat as read-only
+                       # dependency. Do NOT modify these files; modify the
+                       # parent repo's source instead and reinstall.
 ```
+
+## Build & run
+
+### 1. Refresh the embedded sidecar (any time the parent toolkit changes)
+
+From the parent repo root:
+
+```
+python src/tools/sidecar_install.py run --input-json \
+  '{"target_project_root": "_v2-pod", "overwrite": true}'
+```
+
+This drops a fresh, current copy of the toolkit at `_v2-pod/.dev-tools/`. The
+copy is gitignored — only the wrapper artifacts in `_v2-pod/` are tracked.
+
+### 2. Build the image
+
+From inside `_v2-pod/`:
+
+```
+docker build -t devtools-pod:v2 .
+```
+
+Build context is `_v2-pod/` itself; the Dockerfile copies the embedded
+`.dev-tools/` into `/opt/dev-tools` inside the image. The parent repo is not
+touched by the build.
+
+### 3. Run a single pod locally (for smoke verification)
+
+```
+docker run --rm -it devtools-pod:v2
+```
+
+The entrypoint will:
+1. Install a fresh sidecar into the (ephemeral) `/workspace` inside the pod.
+2. Run `smoke_test.py` against it. Failure aborts the pod immediately.
+3. `exec` into `python /workspace/.dev-tools/src/mcp_server.py`.
+
+### 4. Deploy to Kubernetes
+
+```
+kubectl apply -f k8s/deployment.yaml
+```
+
+To attach an agent to the running pod's MCP stdio:
+
+```
+kubectl attach -ti deploy/devtools-pod
+```
+
+To scale to N parallel ephemeral agent sandboxes (each with its own fresh
+`/workspace`):
+
+```
+kubectl scale deploy/devtools-pod --replicas=N
+```
+
+## Model decisions
+
+- **Persistence: ephemeral by default.** Each pod's `/workspace` is created
+  fresh; agent work disappears on pod death. To persist across restarts,
+  uncomment the `volumeMounts` + `volumes` blocks in `k8s/deployment.yaml`
+  and provision a PVC named `devtools-workspace`.
+- **Project source: mounted at runtime.** The image does not bake a project
+  in. The agent works on whatever `/workspace` it's given (empty volume by
+  default → fresh install; PVC → persistent project). Project-baked-in
+  images are deferred until there's a concrete reason to bake one project
+  per image.
+- **MCP transport: stdio.** No port exposure. Use `kubectl attach` for
+  interactive access, or sidecar an HTTP shim at the Deployment level if you
+  need network reachability.
+- **Stdlib-only.** No `apt install` and no extra Python packages — same
+  discipline as the parent toolkit.
 
 ## Working rules
 

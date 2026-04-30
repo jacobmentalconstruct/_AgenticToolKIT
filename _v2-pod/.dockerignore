@@ -1,0 +1,30 @@
+# Skip runtime journal state that may have accumulated in the embedded
+# sidecar copy. The image should ship with a clean toolkit, not snapshots
+# of the build host's journal activity.
+.dev-tools/_docs/_AppJOURNAL/journal_config.json
+.dev-tools/_docs/_AppJOURNAL/db_manifest.json
+.dev-tools/_docs/_AppJOURNAL/exports
+.dev-tools/_docs/_journalDB/app_journal.sqlite3
+
+# Python / OS junk
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.DS_Store
+**/Thumbs.db
+**/desktop.ini
+
+# Editor / IDE
+**/.idea
+**/.vscode
+**/*.swp
+**/*.swo
+
+# Reserve build/dist output paths
+build
+dist
+
+# k8s manifests are not needed inside the image (they live alongside, not in)
+k8s
+
+# This file and the Dockerfile remain in build context (not ignored)

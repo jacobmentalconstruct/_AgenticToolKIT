@@ -1,0 +1,51 @@
+# Minimal single-replica Deployment for the .dev-tools v2 pod.
+#
+# Defaults: ephemeral /workspace, no port exposure, MCP over stdio, attach via
+# `kubectl attach -ti <pod>` or sidecar an HTTP shim at the manifest level if
+# you need network access from outside.
+#
+# To run multiple parallel pods, raise `replicas`. Each pod gets its own
+# ephemeral /workspace and is fully isolated from the others — appropriate for
+# parallel-exploration agent sessions on the same starting state.
+#
+# To persist /workspace across pod restarts, uncomment the volumeMounts and
+# volumes blocks below and provision a PersistentVolumeClaim named
+# `devtools-workspace`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devtools-pod
+  labels:
+    app: devtools-pod
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devtools-pod
+  template:
+    metadata:
+      labels:
+        app: devtools-pod
+        version: v2
+    spec:
+      containers:
+        - name: devtools
+          image: devtools-pod:v2
+          imagePullPolicy: IfNotPresent
+          stdin: true
+          tty: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          # volumeMounts:
+          #   - name: workspace
+          #     mountPath: /workspace
+      # volumes:
+      #   - name: workspace
+      #     persistentVolumeClaim:
+      #       claimName: devtools-workspace

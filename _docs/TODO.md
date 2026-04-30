@@ -27,18 +27,31 @@ the parked root prototype is not disturbed.
 
 ### Active tasks
 
-- [ ] Add `--headless --target <path>` CLI mode to `install.py` so it can run
-      without a display server (required for `docker build` RUN steps).
-- [ ] Draft `_v2-pod/Dockerfile` (Python 3.11-slim base, COPY toolbox into
-      `/opt/dev-tools/`, run headless install against `/workspace`).
-- [ ] Draft `_v2-pod/k8s/deployment.yaml` — single-replica Deployment first;
-      worry about parallel replicas only after one pod runs cleanly.
-- [ ] Decide and document: ephemeral pod vs PVC-mounted `/workspace` for
-      journal/output persistence.
-- [ ] Decide and document: project-baked-in vs project-mounted-at-runtime
-      pod model. Pick one for v2; defer the other.
-- [ ] Verify `docker build` succeeds locally from `_v2-pod/` and the
-      resulting image runs `mcp_server.py` end-to-end.
+- [x] Verify headless install path works without a display server. The
+      existing `src/tools/sidecar_install.py` uses `standard_main` and
+      accepts `python sidecar_install.py run --input-json '{...}'`. No new
+      `--headless` flag on `install.py` was needed; `install.py` stays
+      GUI-only and `sidecar_install.py` is the canonical CLI surface.
+- [x] Draft `_v2-pod/Dockerfile` (Python 3.11-slim base, COPY embedded
+      sidecar into `/opt/dev-tools/`, entrypoint installs into `/workspace`).
+- [x] Draft `_v2-pod/entrypoint.sh` (idempotent install + smoke + MCP launch).
+- [x] Draft `_v2-pod/.dockerignore` (skip runtime journal state and pyc).
+- [x] Draft `_v2-pod/k8s/deployment.yaml` — single-replica Deployment with
+      ephemeral default and a commented PVC opt-in path.
+- [x] Document model decisions in `_v2-pod/README.md`:
+      - **Persistence:** ephemeral default; PVC opt-in via the commented
+        block in the Deployment manifest.
+      - **Project source:** project mounted at runtime as `/workspace`
+        (defaults to empty volume → fresh install). Project-baked-in is
+        deferred until there's a concrete reason to bake one project per
+        image.
+- [ ] Verify `docker build -f _v2-pod/Dockerfile -t devtools-pod:v2 _v2-pod`
+      succeeds locally and the resulting image runs `mcp_server.py`
+      end-to-end (this requires Docker on the host; cannot be done from
+      inside the agent sandbox).
+- [ ] After local Docker verification: run `kubectl apply -f
+      _v2-pod/k8s/deployment.yaml` against a local k8s (kind/minikube) and
+      confirm the pod reaches Ready and the MCP server responds.
 
 ### Explicit non-goals for this tranche
 
