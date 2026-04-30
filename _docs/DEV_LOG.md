@@ -688,6 +688,10 @@ Validation:
   '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` ->
   5/5 smoke suites pass.
 - Runtime journal entry written with `journal_write`:
+  `journal_34d0db4663bf`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+- Runtime journal entry written with `journal_write`:
   `journal_584fc62bf04c`.
 - Local markdown journal export created under the gitignored
   `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
@@ -705,6 +709,49 @@ Classification: spiral.
 Current read: Tranche 1 is complete. Tranche 2 should add
 `dependency_env_check` and refine command-profile IDs so later guarded
 operations can reuse one stable command vocabulary.
+
+---
+
+## 2026-04-30 — Tranche 2 dependency readiness and command profile refinement
+
+- Added `dependency_env_check`, a stdlib-only read-only tool that inspects
+  Python and Node dependency surfaces without installing anything.
+- The new tool reports virtualenv state, requirements/pyproject surfaces,
+  package.json and node_modules state, lockfiles, tool availability, optional
+  Python import checks, and readiness warnings.
+- Refined `project_command_profile` to emit `profile_version`, command line,
+  working directory, runtime, requirement hints, tags, and confirmation flags
+  for every discovered command.
+- Registered `dependency_env_check` in `tool_manifest.json` and
+  `src/mcp_server.py`.
+- Extended smoke coverage so the temporary sys-ops fixture proves dependency
+  readiness checks and command metadata without installing dependencies.
+- Updated README, agent guide, architecture, northstars, TODO, and continuity
+  state so Tranche 3 is the next active source tranche.
+
+Validation:
+
+- `python -m py_compile src/tools/dependency_env_check.py
+  src/tools/project_command_profile.py src/mcp_server.py src/smoke_test.py`
+  -> pass.
+- Focused `dependency_env_check` and `project_command_profile` runs -> pass.
+- `python src/smoke_test.py` -> 44/44 pass; MCP lists 32 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` ->
+  5/5 smoke suites pass.
+
+Classification: spiral.
+
+- Capability increased: local agents can now distinguish declared dependency
+  surfaces from installed/readiness state before running workflows.
+- Uncertainty decreased: later guarded operations can consume a richer command
+  profile instead of re-detecting runtime assumptions.
+- Boundary clarified: no install, server start/stop, Docker mutation,
+  Kubernetes apply, or raw terminal parity was added.
+
+Current read: Tranche 2 is complete pending final verification. Tranche 3
+should implement `dev_server_manager` on top of declared command IDs and
+gitignored runtime process/log state.
 
 ---
 

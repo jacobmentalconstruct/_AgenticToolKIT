@@ -146,6 +146,12 @@
       "category": "introspection"
     },
     {
+      "tool_name": "dependency_env_check",
+      "script": "src/tools/dependency_env_check.py",
+      "mcp_name": "dependency_env_check",
+      "category": "introspection"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

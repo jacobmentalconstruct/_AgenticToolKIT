@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-04-30 (Tranche 1 local-agent sys-ops introspection implemented)
+- 2026-04-30 (Tranche 2 dependency readiness implemented)
 
 ## Fresh-thread start
 
@@ -19,8 +19,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - `.dev-tools`
 - Current phase or tranche:
   - root prototype parked (strangler complete); `_v2-pod/` carries the
-    Kubernetes-wrapped bridge; Tranche 1 read-only local-agent sys-ops
-    introspection is implemented and Tranche 2 is next
+    Kubernetes-wrapped bridge; Tranche 2 dependency readiness and command
+    profile refinement is implemented and Tranche 3 is next
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -54,19 +54,21 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Tranche 1 sys-ops tools are active: `host_capability_probe`,
   `workspace_boundary_audit`, `project_command_profile`, and
   `process_port_inspector`.
+- Tranche 2 added `dependency_env_check` and enriched command profiles with
+  stable metadata for later guarded operations.
 
 ## Current bottleneck
 
 - No internal root bottleneck. Remaining container work is operational:
   live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
-- The next source-shaped bottleneck is Tranche 2: dependency readiness and
-  stronger command-profile IDs for later guarded operations.
+- The next source-shaped bottleneck is Tranche 3: guarded dev-server
+  management on top of declared command profiles.
 
 ## Next best move
 
 - Either finish the operational pod proof (`kubectl apply`, readiness,
-  `kubectl attach`, registry push), or open Tranche 2:
-  `dependency_env_check` plus command-profile refinements.
+  `kubectl attach`, registry push), or open Tranche 3:
+  `dev_server_manager`.
 
 ## Current warnings
 

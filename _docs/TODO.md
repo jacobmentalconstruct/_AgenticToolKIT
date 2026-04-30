@@ -21,23 +21,29 @@ _Last updated: 2026-04-30._
 
 ## Current tranche
 
-**Tranche 2 — dependency readiness and command-profile refinement.**
+**Tranche 3 — guarded dev-server management.**
 
-Tranche 1 is parked complete. The next source tranche should add
-`dependency_env_check` and refine `project_command_profile` command IDs/metadata
-so later guarded operations can reuse one stable command vocabulary.
+Tranche 2 is parked complete. The next source tranche should add
+`dev_server_manager` on top of the command profiles and dependency readiness
+checks, while preserving explicit confirmation and scoped runtime state.
 
 ### Active tasks
 
-- [ ] Add `dependency_env_check`.
-- [ ] Extend `project_command_profile` with command metadata needed by
-      `dev_server_manager`, `docker_ops`, and `k8s_ops`.
-- [ ] Add smoke-test fixture coverage proving readiness checks do not install
-      dependencies or mutate the project.
+- [ ] Add `dev_server_manager`.
+- [ ] Allow only command IDs emitted by `project_command_profile`.
+- [ ] Track launched processes in gitignored runtime state.
+- [ ] Write logs under ignored runtime/log paths.
+- [ ] Add smoke-test fixture coverage for start/status/tail/stop/health.
 - [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
 
 ### Previous source tranche (parked)
 
+- [x] Add `dependency_env_check`.
+- [x] Extend `project_command_profile` with command metadata needed by
+      `dev_server_manager`, `docker_ops`, and `k8s_ops`.
+- [x] Add smoke-test fixture coverage proving readiness checks do not install
+      dependencies or mutate the project.
+- [x] Update README, agent guide, architecture, northstars, TODO, and dev log.
 - [x] Add `host_capability_probe`.
 - [x] Add `workspace_boundary_audit`.
 - [x] Add `project_command_profile`.
@@ -88,8 +94,7 @@ so later guarded operations can reuse one stable command vocabulary.
 ### Explicit non-goals for this tranche
 
 - [x] Do not add raw unrestricted terminal parity.
-- [ ] Do not install dependencies, start servers, stop processes, or apply
-      Kubernetes resources.
+- [ ] Do not install dependencies or apply Kubernetes resources.
 - [ ] Do not introduce third-party Python dependencies.
 
 ### Previous tranche (parked)
@@ -118,7 +123,7 @@ so later guarded operations can reuse one stable command vocabulary.
       dev-server/Docker/Kubernetes wrappers.
 - [x] Implement Tranche 1: read-only host/workspace/command/process
       introspection tools.
-- [ ] Implement Tranche 2: dependency readiness and command-profile IDs.
+- [x] Implement Tranche 2: dependency readiness and command-profile IDs.
 - [ ] Implement Tranche 3: guarded dev-server management.
 - [ ] Implement Tranche 4: Docker and Kubernetes operation wrappers.
 - [ ] Implement Tranche 5: secret audit and runtime artifact cleanup.

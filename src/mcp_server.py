@@ -95,6 +95,11 @@ except ImportError:
     PROCESS_PORT_METADATA, run_process_port_inspector = None, None
 
 try:
+    from tools.dependency_env_check import FILE_METADATA as DEPENDENCY_ENV_METADATA, run as run_dependency_env_check
+except ImportError:
+    DEPENDENCY_ENV_METADATA, run_dependency_env_check = None, None
+
+try:
     from tools.module_decomp_planner import FILE_METADATA as MODULE_DECOMP_METADATA, run as run_module_decomp_planner
 except ImportError:
     MODULE_DECOMP_METADATA, run_module_decomp_planner = None, None
@@ -182,6 +187,7 @@ for meta, runner in [
     (WORKSPACE_BOUNDARY_METADATA, run_workspace_boundary_audit),
     (PROJECT_COMMAND_METADATA, run_project_command_profile),
     (PROCESS_PORT_METADATA, run_process_port_inspector),
+    (DEPENDENCY_ENV_METADATA, run_dependency_env_check),
     (MODULE_DECOMP_METADATA, run_module_decomp_planner),
     (TOKENIZING_PATCHER_METADATA, run_tokenizing_patcher),
     (DOMAIN_BOUNDARY_METADATA, run_domain_boundary_audit),

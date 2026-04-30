@@ -559,10 +559,26 @@ def test_sys_ops_introspection() -> None:
     })
     command_ids = {item["id"] for item in profile["result"]["commands"]}
     expected_ids = {"npm:dev", "npm:test", "npm:build", "python:smoke", "file:run.bat"}
-    if expected_ids.issubset(command_ids):
-        _ok("project_command_profile detects declared commands")
+    profile_has_metadata = all("requires" in item and "runtime" in item for item in profile["result"]["commands"])
+    if expected_ids.issubset(command_ids) and profile_has_metadata:
+        _ok("project_command_profile detects declared commands with metadata")
     else:
         _fail("project_command_profile", f"missing: {expected_ids - command_ids}")
+
+    deps = _tool("dependency_env_check", {
+        "project_root": str(target_root),
+        "check_imports": ["json"],
+    })
+    dep_payload = deps["result"]
+    if (
+        deps["status"] == "ok"
+        and dep_payload["python"]["requirements"][0]["entry_count"] == 1
+        and dep_payload["node"]["package_json"]["exists"]
+        and dep_payload["python"]["import_checks"][0]["available"]
+    ):
+        _ok("dependency_env_check reports readiness without installing")
+    else:
+        _fail("dependency_env_check", str(deps))
 
     processes = _tool("process_port_inspector", {
         "ports": [],
@@ -613,6 +629,7 @@ def test_mcp(project_root: Path) -> None:
             "sidecar_install", "project_setup", "onboarding_site_check",
             "repo_search", "host_capability_probe", "workspace_boundary_audit",
             "project_command_profile", "process_port_inspector",
+            "dependency_env_check",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):
