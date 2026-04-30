@@ -27,6 +27,7 @@ If you want the friendliest onboarding path from a copied folder, open:
 | Wanting the lived workflow behind the mechanics | `_docs/EXPERIENTIAL_WORKFLOW.md` |
 | Wanting the setup-first doctrine for new projects | `_docs/SETUP_DOCTRINE.md` |
 | Wanting the tranche closeout and handoff regimen | `_docs/PARKING_WORKFLOW.md` |
+| Wanting the remaining northstars and local-agent ops roadmap | `_docs/NORTHSTARS.md` |
 | Looking for the dev history | `_docs/DEV_LOG.md` |
 
 ---
@@ -80,6 +81,13 @@ The single source of truth for the active tool set is `tool_manifest.json`
 (currently 27 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
+
+The next active capability horizon is local-agent system operations: safe
+MCP-visible tools that let an agent inspect host capabilities, workspace
+boundaries, declared project commands, processes/ports, dependency readiness,
+dev servers, Docker/Kubernetes surfaces, secrets, runtime artifacts, and a
+bootstrap packet without adding raw unrestricted terminal parity. See
+`_docs/NORTHSTARS.md` for the phased closure plan.
 
 ### Tier 2: Vendable Packages (`packages/`)
 
@@ -197,6 +205,7 @@ python src/smoke_test.py
 | `_docs/EXPERIENTIAL_WORKFLOW.md` | Human-agent workflow rhythm and onboarding doctrine |
 | `_docs/SETUP_DOCTRINE.md` | Project setup-first doctrine for freshly armed agents |
 | `_docs/PARKING_WORKFLOW.md` | Practical tranche parking and handoff workflow |
+| `_docs/NORTHSTARS.md` | Release closure and local-agent sys-ops roadmap |
 | `_docs/DEV_LOG.md` | Development history and change log |
 | `_docs/ARCHITECTURE.md` | Current sidecar architecture |
 | `LICENSE.md` | Source-available reference license |

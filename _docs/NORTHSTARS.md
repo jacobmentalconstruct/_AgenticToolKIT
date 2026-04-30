@@ -1,8 +1,9 @@
 # Northstars
 
-_Last updated: 2026-04-29._
+_Last updated: 2026-04-30._
 
-This file records the release-scope northstar for `.dev-tools`.
+This file records the release-scope northstar for `.dev-tools` and the next
+post-release capability horizon.
 
 ## Current Truth
 
@@ -35,10 +36,49 @@ The prototype northstar is now satisfied by a self-contained sidecar toolbox:
 | MCP-visible tool surface | satisfied | `src/mcp_server.py`, `tool_manifest.json` |
 | Vendable building material | satisfied | `packages/`, `templates/` |
 
-## Deferred Expansion
+## Container Bridge
 
-These capabilities are valuable, but they are not required for this prototype to
-be release-ready:
+The first post-RC bridge is now present in `_v2-pod/`:
+
+- The root prototype stays parked.
+- `_v2-pod/` wraps an installed sidecar in a `python:3.11-slim` image.
+- The entrypoint installs `.dev-tools` into `/workspace`, runs smoke tests, and
+  launches the MCP server over stdio.
+- The image builds and runs locally; in-container smoke tests pass.
+- Remaining work is cluster-side: live `kubectl apply`, `kubectl attach`, and
+  registry publication.
+
+## Next Northstar: Local Agent Operations
+
+The next meaningful expansion is not broad creative tooling. It is a sys-ops
+layer that lets a local or podded agent understand and operate its host/project
+environment safely.
+
+The desired shape is a small set of MCP-visible tools with structured outputs,
+clear write boundaries, and boring failure modes:
+
+| Capability | Purpose | Likely tool surface |
+|---|---|---|
+| Host capability probe | Report OS, shell, Python, Git, Docker, kubectl, Node, rg, browser availability, and versions. | `host_capability_probe` |
+| Workspace boundary audit | Confirm project root, sidecar location, ignored/generated paths, disk footprint, and unsafe write targets. | `workspace_boundary_audit` |
+| Command profile detector | Discover package managers, test commands, launch commands, lockfiles, and likely dev-server entrypoints. | `project_command_profile` |
+| Process and port inspector | See running dev servers, occupied ports, command lines, and stale child processes. | `process_port_inspector` |
+| Dev server manager | Start, stop, restart, tail logs, and health-check local app servers by declared profile. | `dev_server_manager` |
+| Dependency environment check | Verify virtualenv/node_modules/lockfile state without installing blindly. | `dependency_env_check` |
+| Docker ops wrapper | Build, run, inspect, and log toolbox/project containers with consistent JSON results. | `docker_ops` |
+| Kubernetes ops wrapper | Check context, dry-run/apply manifests, watch readiness, fetch logs, and report attach instructions. | `k8s_ops` |
+| Secret and credential audit | Detect obvious committed secrets, local `.env` exposure, and unsafe payload inclusion. | `secret_surface_audit` |
+| Runtime artifact cleaner | Identify generated smoke/build/cache artifacts and propose or perform scoped cleanup. | `runtime_artifact_cleaner` |
+| Local agent bootstrap | Produce a launch packet for a local agent: root, commands, constraints, available tools, and safe operating envelope. | `local_agent_bootstrap` |
+
+This is the foundation for a local agent using the toolset directly. Once the
+agent can inspect the host, run declared workflows, manage servers, and report
+state without improvising shell behavior, richer capabilities become safer.
+
+## Later Expansion
+
+These remain valuable, but they should follow the sys-ops layer rather than
+compete with it:
 
 - Web browsing/search/open.
 - Image generation/editing.
@@ -48,12 +88,5 @@ be release-ready:
 - Node REPL/JavaScript execution.
 - Full terminal execution parity.
 
-They belong in later expansion tranches after the release candidate is clean.
-
-## Release Gate
-
-The remaining northstar is not another feature. It is cleanliness:
-
-- Remove old reference/provenance material from the active repo shape.
-- Verify the sidecar installs from the cleaned source only.
-- Keep docs, manifests, microsite, and smoke tests aligned to the final shape.
+Terminal parity should arrive through declared command profiles and audited
+wrappers first, not as an undifferentiated "run anything" surface.

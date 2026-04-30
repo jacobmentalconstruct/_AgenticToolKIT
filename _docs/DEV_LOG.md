@@ -618,6 +618,46 @@ cluster up.
 
 ---
 
+## 2026-04-30 — Local-agent sys-ops northstar planned and parked
+
+- Promoted the remaining post-RC northstar from broad deferred capability
+  notes into a phased local-agent system-operations roadmap.
+- Set the implementation sequence: host capability probe, workspace boundary
+  audit, command profile detection, process/port inspection, dependency
+  readiness, guarded dev-server management, Docker/Kubernetes wrappers,
+  secret/runtime-artifact safety, and local-agent bootstrap packet.
+- Updated the continuity packet so future sessions can enter through
+  `README.md`, `_docs/NORTHSTARS.md`, `_docs/TODO.md`,
+  `_docs/WE_ARE_HERE_NOW.md`, `_docs/ARCHITECTURE.md`, and
+  `_docs/AGENT_GUIDE.md`.
+- Preserved the safety boundary: no raw unrestricted terminal parity. Mutating
+  operations must flow through declared command profiles, scoped wrappers, and
+  explicit confirmation inputs.
+
+Validation:
+
+- Runtime journal entry written with `journal_write`:
+  `journal_1819d44c3943`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+- `python src/smoke_test.py` -> 39/39 pass.
+
+Classification: spiral.
+
+- Capability increased: the remaining northstar is now implementation-shaped,
+  not a vague wishlist.
+- Uncertainty decreased: local desktop is the first runtime target, with pod
+  support layered through Docker/Kubernetes wrappers.
+- Boundary clarified: creative/browser/automation capabilities remain later
+  horizons until the sys-ops layer gives local agents a reliable operating
+  envelope.
+
+Current read: Tranche 0 is the roadmap parking commit. Tranche 1 begins with
+read-only sys-ops tools that expose host, workspace, command, and process/port
+truth through MCP-visible structured results.
+
+---
+
 ## Template for future entries
 
 - Files changed:

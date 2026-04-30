@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-04-29 (strangler parked + container tranche opened in `_v2-pod/`)
+- 2026-04-30 (container bridge verified; local-agent sys-ops northstar named)
 
 ## Fresh-thread start
 
@@ -18,9 +18,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Project root:
   - `.dev-tools`
 - Current phase or tranche:
-  - root prototype parked (strangler complete); active work moves into
-    `_v2-pod/` where the Kubernetes-wrapped v2 is being assembled in
-    isolation
+  - root prototype parked (strangler complete); `_v2-pod/` now carries the
+    Kubernetes-wrapped bridge; next planning horizon is local-agent sys-ops
+    tooling
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -32,8 +32,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     logs, and runtime journal state
 - Current collaboration truth:
   - the prototype is parkable: human installs via the GUI, agent takes over
-    inside the target project from `project_setup` onward; next step is
-    container packaging for Kubernetes reuse
+    inside the target project from `project_setup` onward; the next useful
+    expansion is host/project operations tooling for a local or podded agent
 
 ## What works right now
 
@@ -48,20 +48,23 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - The release payload manifest now lists only active release-candidate surfaces.
 - `repo_search` now gives agents a Windows-safe search surface with an `rg`
   fast path and native fallback.
+- `_v2-pod/` contains the container bridge: Dockerfile, entrypoint, deployment
+  manifest, and README. The image build/run path has been recorded as verified
+  in `DEV_LOG.md`.
 
 ## Current bottleneck
 
-- None internal to the parked root. Active work is now happening inside
-  `_v2-pod/` — adding a `--headless --target` CLI mode to `install.py`,
-  drafting the Dockerfile, and writing the minimal Kubernetes manifests.
+- No internal root bottleneck. Remaining container work is operational:
+  live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
+- The next source-shaped bottleneck is defining the local-agent sys-ops tool
+  layer without turning it into unsafe unrestricted terminal parity.
 
 ## Next best move
 
-- Inside `_v2-pod/`: add `--headless --target <path>` flag to `install.py`
-  (so `RUN python install.py --headless --target /workspace` works in a
-  Dockerfile without a display server), then write the minimal Dockerfile
-  and a one-replica k8s Deployment manifest. Iterate locally with
-  `docker build` before touching a cluster.
+- Either finish the operational pod proof (`kubectl apply`, readiness,
+  `kubectl attach`, registry push), or open the next source tranche:
+  `host_capability_probe`, `workspace_boundary_audit`,
+  `project_command_profile`, and `process_port_inspector`.
 
 ## Current warnings
 
@@ -69,8 +72,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   the v2 tranche is open. Treat root as frozen reference for this tranche.
 - `_v2-pod/.dev-tools/` is gitignored (it is just an installed sidecar);
   the wrapper code we write inside `_v2-pod/` IS tracked.
-- Deferred expansion capabilities remain intentionally out of scope for the
-  release candidate.
+- Deferred creative/browser/automation capabilities should wait until the
+  sys-ops layer gives a local agent a reliable operating envelope.
 
 ## Read in this order if resuming cold
 

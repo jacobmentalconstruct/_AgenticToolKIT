@@ -1,6 +1,6 @@
 # Project Backlog
 
-_Last updated: 2026-04-29._
+_Last updated: 2026-04-30._
 
 ---
 
@@ -14,6 +14,8 @@ _Last updated: 2026-04-29._
   orchestration, and an onboarding-site integrity check.
 - The prototype northstars are collapsed into current release truth; deferred
   expansion is intentionally out of scope for this release candidate.
+- The active post-RC source horizon is local-agent sys-ops tooling: safe,
+  structured host/project operations for a desktop-first agent.
 
 ---
 
@@ -95,6 +97,17 @@ the parked root prototype is not disturbed.
 ## Longer-horizon work
 
 - [x] Build a repo-safe search fallback tool for Windows environments that detects `rg` permission/app-bundle failures and cleanly falls back to native search instead of triggering awkward security-bypass behavior or brittle manual recovery.
+- [x] Shape the local-agent sys-ops layer as the next post-RC northstar:
+      `host_capability_probe`, `workspace_boundary_audit`,
+      `project_command_profile`, `process_port_inspector`, and then
+      dev-server/Docker/Kubernetes wrappers.
+- [ ] Implement Tranche 1: read-only host/workspace/command/process
+      introspection tools.
+- [ ] Implement Tranche 2: dependency readiness and command-profile IDs.
+- [ ] Implement Tranche 3: guarded dev-server management.
+- [ ] Implement Tranche 4: Docker and Kubernetes operation wrappers.
+- [ ] Implement Tranche 5: secret audit and runtime artifact cleanup.
+- [ ] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.
 
 ---
 

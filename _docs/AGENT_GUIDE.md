@@ -41,7 +41,7 @@ packet, then read the contract and proceed from there.
 
 ---
 
-## The Four Workflow Loops
+## The Workflow Loops
 
 Every task you do fits one of these patterns. Learn the loop, not the tool list.
 
@@ -179,6 +179,36 @@ HANDOFF
   report changed files, verification, next tranche, and risks
 ```
 
+### Loop 6: Probe → Profile → Operate → Report
+
+_The local-agent sys-ops cycle. Use when the agent needs to work with a local
+desktop project or podded workspace without guessing at host state._
+
+```
+PROBE
+  host_capability_probe      → see OS, shells, runtimes, Docker, kubectl, rg
+  workspace_boundary_audit   → confirm root, sidecar, git, ignored/runtime paths
+
+PROFILE
+  project_command_profile    → discover declared setup/test/run/build/dev commands
+  dependency_env_check       → check environment readiness without installing
+  process_port_inspector     → see occupied ports and relevant processes
+
+OPERATE
+  dev_server_manager         → start/stop/tail/health declared dev commands only
+  docker_ops                 → build/run/log/tag/push guarded container workflows
+  k8s_ops                    → validate/dry-run/apply/status/logs/attach instructions
+
+REPORT
+  secret_surface_audit       → check secret exposure before packaging
+  runtime_artifact_cleaner   → dry-run generated-artifact cleanup
+  local_agent_bootstrap      → emit the safe operating packet for the agent
+  journal_write              → record operational findings and handoff
+```
+
+This loop deliberately avoids a raw "run anything" tool. Terminal parity should
+arrive through declared command profiles and audited wrappers first.
+
 ---
 
 ## Tool Selection Cheat Sheet
@@ -189,6 +219,17 @@ _"I need to…" → use this tool._
 |---|---|
 | Understand the project file layout | `file_tree_snapshot` |
 | Search project text safely when `rg` or shell search is unreliable | `repo_search` |
+| Inspect host capabilities for local-agent work | `host_capability_probe` |
+| Confirm workspace, sidecar, git, and runtime boundaries | `workspace_boundary_audit` |
+| Discover declared project setup/test/run/build commands | `project_command_profile` |
+| Check dependency/environment readiness without installing | `dependency_env_check` |
+| Inspect running processes and occupied ports | `process_port_inspector` |
+| Manage declared dev servers safely | `dev_server_manager` |
+| Wrap Docker build/run/log/push operations | `docker_ops` |
+| Wrap Kubernetes validate/dry-run/apply/status/log operations | `k8s_ops` |
+| Audit likely committed secrets and risky env files | `secret_surface_audit` |
+| Dry-run and clean allowlisted runtime artifacts | `runtime_artifact_cleaner` |
+| Emit a local-agent launch packet | `local_agent_bootstrap` |
 | See how Python modules depend on each other | `import_graph_mapper` |
 | Inspect a SQLite database structure | `sqlite_schema_inspector` |
 | Compare two database versions | `schema_diff_tool` |
