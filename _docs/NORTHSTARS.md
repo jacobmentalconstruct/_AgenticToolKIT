@@ -63,7 +63,7 @@ clear write boundaries, and boring failure modes:
 | Workspace boundary audit | Confirm project root, sidecar location, ignored/generated paths, disk footprint, and unsafe write targets. | `workspace_boundary_audit` — complete |
 | Command profile detector | Discover package managers, test commands, launch commands, lockfiles, and likely dev-server entrypoints. | `project_command_profile` — complete |
 | Process and port inspector | See running dev servers, occupied ports, command lines, and stale child processes. | `process_port_inspector` — complete |
-| Dev server manager | Start, stop, restart, tail logs, and health-check local app servers by declared profile. | `dev_server_manager` |
+| Dev server manager | Start, stop, restart, tail logs, and health-check local app servers by declared profile. | `dev_server_manager` — complete |
 | Dependency environment check | Verify virtualenv/node_modules/lockfile state without installing blindly. | `dependency_env_check` — complete |
 | Docker ops wrapper | Build, run, inspect, and log toolbox/project containers with consistent JSON results. | `docker_ops` |
 | Kubernetes ops wrapper | Check context, dry-run/apply manifests, watch readiness, fetch logs, and report attach instructions. | `k8s_ops` |

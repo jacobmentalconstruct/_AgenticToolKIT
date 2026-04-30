@@ -21,23 +21,31 @@ _Last updated: 2026-04-30._
 
 ## Current tranche
 
-**Tranche 3 — guarded dev-server management.**
+**Tranche 4 — Docker and Kubernetes operation wrappers.**
 
-Tranche 2 is parked complete. The next source tranche should add
-`dev_server_manager` on top of the command profiles and dependency readiness
-checks, while preserving explicit confirmation and scoped runtime state.
+Tranche 3 is implemented and in the parking path. The next source tranche
+should add `docker_ops` and `k8s_ops`, using `_v2-pod/` as the primary fixture
+and preserving explicit confirmation for side effects such as push, tag, and
+live Kubernetes apply.
 
 ### Active tasks
 
-- [ ] Add `dev_server_manager`.
-- [ ] Allow only command IDs emitted by `project_command_profile`.
-- [ ] Track launched processes in gitignored runtime state.
-- [ ] Write logs under ignored runtime/log paths.
-- [ ] Add smoke-test fixture coverage for start/status/tail/stop/health.
+- [ ] Add `docker_ops` with `status`, `build`, `run_smoke`, `logs`, `tag`, and `push`.
+- [ ] Keep Docker contexts under the project root.
+- [ ] Require explicit confirmation for Docker `tag` and `push`.
+- [ ] Add `k8s_ops` with `context`, `validate`, `dry_run`, `apply`, `status`, `logs`, and `attach_instructions`.
+- [ ] Require explicit confirmation for live Kubernetes `apply`.
+- [ ] Use `_v2-pod/` for build/run and manifest validation fixtures.
 - [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
 
 ### Previous source tranche (parked)
 
+- [x] Add `dev_server_manager`.
+- [x] Allow only command IDs emitted by `project_command_profile`.
+- [x] Track launched processes in gitignored runtime state.
+- [x] Write logs under ignored runtime/log paths.
+- [x] Add smoke-test fixture coverage for start/status/tail/stop/health.
+- [x] Update README, agent guide, architecture, northstars, TODO, and dev log.
 - [x] Add `dependency_env_check`.
 - [x] Extend `project_command_profile` with command metadata needed by
       `dev_server_manager`, `docker_ops`, and `k8s_ops`.
@@ -124,7 +132,7 @@ checks, while preserving explicit confirmation and scoped runtime state.
 - [x] Implement Tranche 1: read-only host/workspace/command/process
       introspection tools.
 - [x] Implement Tranche 2: dependency readiness and command-profile IDs.
-- [ ] Implement Tranche 3: guarded dev-server management.
+- [x] Implement Tranche 3: guarded dev-server management.
 - [ ] Implement Tranche 4: Docker and Kubernetes operation wrappers.
 - [ ] Implement Tranche 5: secret audit and runtime artifact cleanup.
 - [ ] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.

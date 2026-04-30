@@ -152,6 +152,12 @@
       "category": "introspection"
     },
     {
+      "tool_name": "dev_server_manager",
+      "script": "src/tools/dev_server_manager.py",
+      "mcp_name": "dev_server_manager",
+      "category": "operations"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

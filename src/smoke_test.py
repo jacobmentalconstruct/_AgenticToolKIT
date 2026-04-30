@@ -9,9 +9,11 @@ HOW TO USE:
 from __future__ import annotations
 
 import json
+import socket
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -58,6 +60,12 @@ def _tool(name: str, arguments: dict) -> dict:
         sys.executable, str(ROOT / "tools" / f"{name}.py"),
         "run", "--input-json", json.dumps(arguments),
     ])
+
+
+def _free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
 
 
 def _mcp_message(message: dict) -> bytes:
@@ -535,6 +543,27 @@ def test_sys_ops_introspection() -> None:
     )
     (target_root / "requirements.txt").write_text("pytest\n", encoding="utf-8")
     (target_root / "run.bat").write_text("@echo off\npython src\\smoke_test.py\n", encoding="utf-8")
+    dev_port = _free_port()
+    (target_root / "dev_server.py").write_text(
+        "\n".join([
+            "from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer",
+            f"PORT = {dev_port}",
+            "class Handler(BaseHTTPRequestHandler):",
+            "    def do_GET(self):",
+            "        body = b'dev-server-ok'",
+            "        self.send_response(200)",
+            "        self.send_header('Content-Type', 'text/plain')",
+            "        self.send_header('Content-Length', str(len(body)))",
+            "        self.end_headers()",
+            "        self.wfile.write(body)",
+            "    def log_message(self, format, *args):",
+            "        print(format % args, flush=True)",
+            "print(f'listening on {PORT}', flush=True)",
+            "ThreadingHTTPServer(('127.0.0.1', PORT), Handler).serve_forever()",
+            "",
+        ]),
+        encoding="utf-8",
+    )
 
     host = _tool("host_capability_probe", {
         "commands": ["python", "git"],
@@ -558,7 +587,7 @@ def test_sys_ops_introspection() -> None:
         "project_root": str(target_root),
     })
     command_ids = {item["id"] for item in profile["result"]["commands"]}
-    expected_ids = {"npm:dev", "npm:test", "npm:build", "python:smoke", "file:run.bat"}
+    expected_ids = {"npm:dev", "npm:test", "npm:build", "python:smoke", "file:run.bat", "python:dev-server"}
     profile_has_metadata = all("requires" in item and "runtime" in item for item in profile["result"]["commands"])
     if expected_ids.issubset(command_ids) and profile_has_metadata:
         _ok("project_command_profile detects declared commands with metadata")
@@ -589,6 +618,83 @@ def test_sys_ops_introspection() -> None:
         _ok("process_port_inspector returns structured process summary")
     else:
         _fail("process_port_inspector", str(processes))
+
+    health_url = f"http://127.0.0.1:{dev_port}/"
+    started = False
+    try:
+        start_denied = _tool("dev_server_manager", {
+            "action": "start",
+            "project_root": str(target_root),
+            "command_id": "python:dev-server",
+            "health_url": health_url,
+        })
+        if start_denied["status"] == "error":
+            _ok("dev_server_manager requires confirmation before start")
+        else:
+            _fail("dev_server_manager confirmation", str(start_denied))
+
+        start = _tool("dev_server_manager", {
+            "action": "start",
+            "project_root": str(target_root),
+            "command_id": "python:dev-server",
+            "health_url": health_url,
+            "port": dev_port,
+            "confirm": True,
+        })
+        started = start["status"] == "ok"
+        if started and start["result"]["server"]["pid"]:
+            _ok("dev_server_manager starts a profiled dev server")
+        else:
+            _fail("dev_server_manager start", str(start))
+
+        health = {"status": "error"}
+        for _ in range(20):
+            health = _tool("dev_server_manager", {
+                "action": "health",
+                "project_root": str(target_root),
+                "command_id": "python:dev-server",
+                "timeout_seconds": 1,
+            })
+            if health["status"] == "ok":
+                break
+            time.sleep(0.2)
+        if health["status"] == "ok" and health["result"]["health"]["status_code"] == 200:
+            _ok("dev_server_manager health-checks the registered server")
+        else:
+            _fail("dev_server_manager health", str(health))
+
+        status = _tool("dev_server_manager", {
+            "action": "status",
+            "project_root": str(target_root),
+            "command_id": "python:dev-server",
+        })
+        if status["status"] == "ok" and status["result"]["summary"]["registered_count"] == 1:
+            _ok("dev_server_manager reports registered server status")
+        else:
+            _fail("dev_server_manager status", str(status))
+
+        tail = _tool("dev_server_manager", {
+            "action": "tail",
+            "project_root": str(target_root),
+            "command_id": "python:dev-server",
+            "tail_lines": 20,
+        })
+        if tail["status"] == "ok" and tail["result"]["line_count"] >= 1:
+            _ok("dev_server_manager tails runtime logs")
+        else:
+            _fail("dev_server_manager tail", str(tail))
+    finally:
+        if started:
+            stop = _tool("dev_server_manager", {
+                "action": "stop",
+                "project_root": str(target_root),
+                "command_id": "python:dev-server",
+                "confirm": True,
+            })
+            if stop["status"] == "ok" and stop["result"]["alive"] is False:
+                _ok("dev_server_manager stops registered server")
+            else:
+                _fail("dev_server_manager stop", str(stop))
 
 
 def test_mcp(project_root: Path) -> None:
@@ -629,7 +735,7 @@ def test_mcp(project_root: Path) -> None:
             "sidecar_install", "project_setup", "onboarding_site_check",
             "repo_search", "host_capability_probe", "workspace_boundary_audit",
             "project_command_profile", "process_port_inspector",
-            "dependency_env_check",
+            "dependency_env_check", "dev_server_manager",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):

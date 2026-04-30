@@ -201,6 +201,13 @@ def _file_commands(root: Path, include_inferred: bool) -> list[dict[str, Any]]:
             [sys.executable, "src/smoke_test.py"], "src/smoke_test.py",
             runtime="python", requires=["python"], tags=["smoke-test"],
         ))
+    if include_inferred and (root / "dev_server.py").exists():
+        commands.append(_command(
+            "python:dev-server", "dev", "Python dev server",
+            [sys.executable, "dev_server.py"], "dev_server.py",
+            declared=False, runtime="python", requires=["python"],
+            tags=["inferred", "dev-server"],
+        ))
     if include_inferred and (root / "requirements.txt").exists():
         commands.append(_command(
             "python:install-requirements", "setup", "install requirements",

@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-04-30 (Tranche 2 dependency readiness implemented)
+- 2026-04-30 (Tranche 3 guarded dev-server management implemented)
 
 ## Fresh-thread start
 
@@ -19,8 +19,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - `.dev-tools`
 - Current phase or tranche:
   - root prototype parked (strangler complete); `_v2-pod/` carries the
-    Kubernetes-wrapped bridge; Tranche 2 dependency readiness and command
-    profile refinement is implemented and Tranche 3 is next
+    Kubernetes-wrapped bridge; Tranche 3 guarded dev-server management is
+    implemented and Tranche 4 Docker/Kubernetes operation wrappers are next
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -56,19 +56,22 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   `process_port_inspector`.
 - Tranche 2 added `dependency_env_check` and enriched command profiles with
   stable metadata for later guarded operations.
+- Tranche 3 added `dev_server_manager`: it starts only profiled `dev`/`run`
+  command IDs with confirmation, records runtime state under ignored
+  `.dev-tools/runtime/dev_servers/`, tails logs, reports status, checks health,
+  and stops registered processes.
 
 ## Current bottleneck
 
 - No internal root bottleneck. Remaining container work is operational:
   live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
-- The next source-shaped bottleneck is Tranche 3: guarded dev-server
-  management on top of declared command profiles.
+- The next source-shaped bottleneck is Tranche 4: guarded Docker and Kubernetes
+  operation wrappers on top of `_v2-pod/` and declared project boundaries.
 
 ## Next best move
 
-- Either finish the operational pod proof (`kubectl apply`, readiness,
-  `kubectl attach`, registry push), or open Tranche 3:
-  `dev_server_manager`.
+- Open Tranche 4: `docker_ops` and `k8s_ops`, with `_v2-pod/` as the primary
+  fixture and confirmation required for tag/push/live apply.
 
 ## Current warnings
 

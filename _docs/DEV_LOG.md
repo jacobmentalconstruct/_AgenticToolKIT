@@ -755,6 +755,55 @@ gitignored runtime process/log state.
 
 ---
 
+## 2026-04-30 — Tranche 3 guarded dev-server manager
+
+- Added `dev_server_manager`, a stdlib-only operations tool for guarded
+  `status`, `start`, `stop`, `restart`, `tail`, and `health` actions.
+- The manager starts only `dev` or `run` command IDs emitted by
+  `project_command_profile`; start/stop/restart require `confirm: true`.
+- Runtime process state is written under ignored
+  `.dev-tools/runtime/dev_servers/servers.json`, and logs are written under
+  ignored `.dev-tools/runtime/dev_servers/logs/`.
+- `project_command_profile` now infers `python:dev-server` when a project has a
+  root `dev_server.py`, giving tests and small Python projects a stdlib dev
+  server command profile.
+- Registered `dev_server_manager` in `tool_manifest.json` and
+  `src/mcp_server.py`.
+- Extended smoke coverage with a temporary HTTP server fixture that verifies
+  confirmation refusal, start, health, status, tail, stop, and MCP listing.
+- Updated README, agent guide, architecture, northstars, TODO, and continuity
+  state so Tranche 4 Docker/Kubernetes wrappers are the next source tranche.
+- Runtime journal entry written with `journal_write`:
+  `journal_cf51feb7a664`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Validation:
+
+- `python -m py_compile src/tools/dev_server_manager.py
+  src/tools/project_command_profile.py src/mcp_server.py src/smoke_test.py`
+  -> pass.
+- `python src/tools/dev_server_manager.py metadata` -> pass.
+- `python src/smoke_test.py` -> 50/50 pass; MCP lists 33 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` ->
+  5/5 smoke suites pass.
+
+Classification: spiral.
+
+- Capability increased: a local agent can now manage a project dev server
+  lifecycle without raw terminal parity.
+- Uncertainty decreased: command-profile IDs now carry through to a real
+  guarded process/log/health workflow.
+- Boundary clarified: the manager only controls registered processes it
+  launched, and mutating lifecycle actions require explicit confirmation.
+
+Current read: Tranche 3 is complete pending final parking verification.
+Tranche 4 should add Docker and Kubernetes wrappers, using `_v2-pod/` as the
+primary fixture and keeping live side effects behind confirmation.
+
+---
+
 ## Template for future entries
 
 - Files changed:

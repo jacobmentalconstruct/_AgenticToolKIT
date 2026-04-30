@@ -56,7 +56,11 @@ The planned sys-ops layer closes the remaining local-agent northstar in stages:
    `process_port_inspector`.
 2. Check dependency readiness without installing anything. This stage is
    implemented by `dependency_env_check` and command-profile metadata.
-3. Manage only declared dev-server commands with tracked runtime state.
+3. Manage only declared dev-server commands with tracked runtime state. This
+   stage is implemented by `dev_server_manager`; it starts only
+   `project_command_profile` command IDs with `dev` or `run` kind, requires
+   explicit confirmation for start/stop/restart, and writes state/logs under
+   ignored `.dev-tools/runtime/dev_servers/`.
 4. Wrap Docker and Kubernetes workflows with structured status, validation,
    logs, dry-runs, and explicit confirmation for side effects.
 5. Audit secrets and runtime artifacts before cleanup or packaging.

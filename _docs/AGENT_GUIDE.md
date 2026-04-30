@@ -195,7 +195,7 @@ PROFILE
   process_port_inspector     → see occupied ports and relevant processes
 
 OPERATE
-  dev_server_manager         → start/stop/tail/health declared dev commands only
+  dev_server_manager         → start/stop/tail/status/health declared dev/run commands only
   docker_ops                 → build/run/log/tag/push guarded container workflows
   k8s_ops                    → validate/dry-run/apply/status/logs/attach instructions
 
@@ -208,6 +208,11 @@ REPORT
 
 This loop deliberately avoids a raw "run anything" tool. Terminal parity should
 arrive through declared command profiles and audited wrappers first.
+
+`dev_server_manager` is the first mutating local-agent ops tool in this loop.
+Use `project_command_profile` first, choose a `dev` or `run` command ID, then
+start/stop/restart only with `confirm: true`. Runtime state and logs are kept
+under ignored `.dev-tools/runtime/dev_servers/`.
 
 ---
 
