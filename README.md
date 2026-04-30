@@ -73,6 +73,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `k8s_ops` | operations | Validate manifests, prepare dry-runs, apply with confirmation, read status/logs, and emit attach instructions |
 | `secret_surface_audit` | security | Scan for obvious committed secrets and risky env exposure with redacted output |
 | `runtime_artifact_cleaner` | cleanup | Dry-run-first cleanup of allowlisted generated artifacts with tracked-file protection |
+| `local_agent_bootstrap` | bootstrap | Aggregate host, workspace, command, dependency, journal, and constraint context into a launch packet |
 | `module_decomp_planner` | architecture | AST-based module decomposition planning |
 | `tokenizing_patcher` | editing | Whitespace-immune hunk-based patching |
 | `domain_boundary_audit` | analysis | Detect domain boundary violations |
@@ -88,16 +89,15 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 37 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 38 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
-The next active capability horizon is local-agent system operations: safe
-MCP-visible tools that let an agent inspect host capabilities, workspace
-boundaries, declared project commands, processes/ports, dependency readiness,
-dev servers, Docker/Kubernetes surfaces, secrets, runtime artifacts, and a
-bootstrap packet without adding raw unrestricted terminal parity. See
-`_docs/NORTHSTARS.md` for the phased closure plan.
+The local-agent system operations northstar is now satisfied: MCP-visible tools
+can inspect host capabilities, workspace boundaries, declared project commands,
+processes/ports, dependency readiness, dev servers, Docker/Kubernetes surfaces,
+secrets, runtime artifacts, and emit a bootstrap packet without adding raw
+unrestricted terminal parity. See `_docs/NORTHSTARS.md` for closure details.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

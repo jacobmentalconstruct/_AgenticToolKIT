@@ -911,6 +911,50 @@ Operations northstar.
 
 ---
 
+## 2026-04-30 — Tranche 6 local-agent bootstrap and northstar closeout
+
+- Added `local_agent_bootstrap`, a stdlib-only launch packet generator for a
+  local or podded agent.
+- The tool aggregates host capabilities, workspace boundaries, command
+  profiles, dependency readiness, latest journal entries, tool-manifest sys-ops
+  coverage, operating-envelope notes, and constraint-document excerpts.
+- Default behavior returns the packet without writing. Optional writes go under
+  ignored `.dev-tools/runtime/local_agent_bootstrap/`.
+- Registered `local_agent_bootstrap` in `tool_manifest.json` and
+  `src/mcp_server.py`.
+- Extended smoke coverage so the launch packet is generated in Markdown form
+  and MCP lists 38 tools.
+- Closed the Local Agent Operations northstar in README, architecture,
+  northstars, TODO, AGENT_GUIDE, and WE_ARE_HERE_NOW.
+- Runtime journal entry written with `journal_write`:
+  `journal_2b64edce7521`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Validation:
+
+- `python -m py_compile src/tools/local_agent_bootstrap.py src/mcp_server.py
+  src/smoke_test.py` -> pass.
+- `python src/tools/local_agent_bootstrap.py metadata` -> pass.
+- `python src/smoke_test.py` -> 62/62 pass; MCP lists 38 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` ->
+  5/5 smoke suites pass.
+
+Classification: spiral.
+
+- Capability increased: a local agent can now receive one structured launch
+  packet summarizing its operating envelope before it acts.
+- Uncertainty decreased: the sys-ops layer has an explicit aggregation surface
+  rather than requiring agents to remember the whole tool sequence.
+- Boundary clarified: the bootstrap packet is orientation, not authority to
+  mutate; optional writes remain in ignored runtime state.
+
+Current read: Local Agent Operations is closed. The next horizon should be
+chosen deliberately rather than inferred from this sys-ops plan.
+
+---
+
 ## Template for future entries
 
 - Files changed:

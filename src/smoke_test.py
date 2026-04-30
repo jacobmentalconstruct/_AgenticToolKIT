@@ -865,6 +865,23 @@ def test_sys_ops_introspection() -> None:
     else:
         _fail("runtime_artifact_cleaner cleanup", str(cleaner_apply))
 
+    bootstrap = _tool("local_agent_bootstrap", {
+        "project_root": str(ROOT.parent),
+        "format": "markdown",
+        "journal_limit": 3,
+        "timeout_seconds": 3,
+    })
+    bootstrap_packet = bootstrap.get("result", {}).get("packet", {})
+    if (
+        bootstrap["status"] == "ok"
+        and "host_capability_probe" in bootstrap_packet.get("tool_manifest", {}).get("sys_ops_tools", [])
+        and "command_profile" in bootstrap_packet
+        and "Local Agent Launch Packet" in bootstrap["result"].get("rendered", "")
+    ):
+        _ok("local_agent_bootstrap emits a local-agent launch packet")
+    else:
+        _fail("local_agent_bootstrap", str(bootstrap))
+
 
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
@@ -906,6 +923,7 @@ def test_mcp(project_root: Path) -> None:
             "project_command_profile", "process_port_inspector",
             "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
             "secret_surface_audit", "runtime_artifact_cleaner",
+            "local_agent_bootstrap",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):

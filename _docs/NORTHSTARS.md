@@ -50,13 +50,13 @@ The first post-RC bridge is now present in `_v2-pod/`:
 - Remaining work is environment-side: live `kubectl apply`, `kubectl attach`,
   and registry publication when a cluster/registry target is available.
 
-## Next Northstar: Local Agent Operations
+## Satisfied Northstar: Local Agent Operations
 
-The next meaningful expansion is not broad creative tooling. It is a sys-ops
-layer that lets a local or podded agent understand and operate its host/project
-environment safely.
+The local-agent sys-ops layer is now satisfied. It lets a local or podded agent
+understand and operate its host/project environment safely without raw
+unrestricted terminal parity.
 
-The desired shape is a small set of MCP-visible tools with structured outputs,
+The closed shape is a small set of MCP-visible tools with structured outputs,
 clear write boundaries, and boring failure modes:
 
 | Capability | Purpose | Likely tool surface |
@@ -71,11 +71,12 @@ clear write boundaries, and boring failure modes:
 | Kubernetes ops wrapper | Check context, dry-run/apply manifests, watch readiness, fetch logs, and report attach instructions. | `k8s_ops` — complete |
 | Secret and credential audit | Detect obvious committed secrets, local `.env` exposure, and unsafe payload inclusion. | `secret_surface_audit` — complete |
 | Runtime artifact cleaner | Identify generated smoke/build/cache artifacts and propose or perform scoped cleanup. | `runtime_artifact_cleaner` — complete |
-| Local agent bootstrap | Produce a launch packet for a local agent: root, commands, constraints, available tools, and safe operating envelope. | `local_agent_bootstrap` |
+| Local agent bootstrap | Produce a launch packet for a local agent: root, commands, constraints, available tools, and safe operating envelope. | `local_agent_bootstrap` — complete |
 
-This is the foundation for a local agent using the toolset directly. Once the
-agent can inspect the host, run declared workflows, manage servers, and report
-state without improvising shell behavior, richer capabilities become safer.
+This is the foundation for a local agent using the toolset directly. The agent
+can inspect the host, run declared workflows, manage servers, operate
+Docker/Kubernetes wrappers, audit safety surfaces, clean generated state, and
+emit a launch packet without improvising shell behavior.
 
 ## Later Expansion
 

@@ -226,6 +226,10 @@ state; its findings are heuristic and values are always redacted. Use
 generated artifacts with `confirm: true`; tracked files stay protected by
 default.
 
+Use `local_agent_bootstrap` when a local or podded agent needs a compact launch
+packet. It returns JSON or Markdown by default; optional writes go only under
+ignored `.dev-tools/runtime/local_agent_bootstrap/`.
+
 ---
 
 ## Tool Selection Cheat Sheet

@@ -182,6 +182,12 @@
       "category": "cleanup"
     },
     {
+      "tool_name": "local_agent_bootstrap",
+      "script": "src/tools/local_agent_bootstrap.py",
+      "mcp_name": "local_agent_bootstrap",
+      "category": "bootstrap"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

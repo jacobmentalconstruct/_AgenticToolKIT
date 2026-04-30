@@ -46,9 +46,9 @@ command profiles and explicit confirmations.
 6. Use tools/packages/templates deliberately.
 7. Verify and park meaningful tranches using `_docs/PARKING_WORKFLOW.md`.
 
-## Local-Agent Ops Direction
+## Local-Agent Ops Closure
 
-The planned sys-ops layer closes the remaining local-agent northstar in stages:
+The sys-ops layer now closes the local-agent northstar in stages:
 
 1. Probe host capabilities, workspace boundaries, command profiles, and
    processes/ports. This stage is implemented by `host_capability_probe`,
@@ -72,4 +72,8 @@ The planned sys-ops layer closes the remaining local-agent northstar in stages:
    secret-like values are redacted in output, cleanup defaults to dry-run, and
    tracked files are protected unless explicitly allowlisted and confirmed.
 6. Emit a local-agent bootstrap packet that summarizes the safe operating
-   envelope for the current project.
+   envelope for the current project. This stage is implemented by
+   `local_agent_bootstrap`; it aggregates host, workspace, command,
+   dependency, journal, tool-manifest, and constraint-doc context, returning
+   the packet by default and writing only to ignored runtime exports when
+   requested.

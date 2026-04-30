@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-04-30 (Tranche 5 safety and runtime cleanup implemented)
+- 2026-04-30 (Local-agent sys-ops northstar closed)
 
 ## Fresh-thread start
 
@@ -19,8 +19,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - `.dev-tools`
 - Current phase or tranche:
   - root prototype parked (strangler complete); `_v2-pod/` carries the
-    Kubernetes-wrapped bridge; Tranche 5 safety/cleanup tools are implemented
-    and Tranche 6 local-agent bootstrap/closeout is next
+    Kubernetes-wrapped bridge; local-agent sys-ops tooling is closed through
+    Tranche 6 and the next horizon is undecided
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -67,18 +67,23 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Tranche 5 added `secret_surface_audit` and `runtime_artifact_cleaner`: secret
   findings are redacted, risky env files are flagged, cleanup defaults to
   dry-run, tracked files are protected, and MCP now lists 37 tools.
+- Tranche 6 added `local_agent_bootstrap`: it aggregates host, workspace,
+  command, dependency, journal, tool-manifest, and constraint context into a
+  JSON or Markdown launch packet, returning by default and writing only to
+  ignored runtime exports when requested. MCP now lists 38 tools.
 
 ## Current bottleneck
 
 - No internal root bottleneck. Remaining container work is operational:
   live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
-- The next source-shaped bottleneck is Tranche 6: `local_agent_bootstrap` and
-  final Local Agent Operations northstar closeout.
+- No active source-shaped sys-ops bottleneck remains. The next move is choosing
+  the post-sys-ops capability horizon.
 
 ## Next best move
 
-- Open Tranche 6: `local_agent_bootstrap`, launch packet export, and final
-  sys-ops northstar closeout.
+- Push the closeout commit, then choose the next horizon: browser/search,
+  image tools, automations, sub-agents, Node REPL, or another local-agent
+  layer.
 
 ## Current warnings
 

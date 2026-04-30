@@ -19,28 +19,30 @@ _Last updated: 2026-04-30._
 
 ---
 
-## Current tranche
+## Current state
 
-**Tranche 6 — local-agent bootstrap and northstar closeout.**
+**Local-agent sys-ops northstar closed.**
 
-Tranche 5 is implemented and in the parking path. The final source tranche
-should aggregate the sys-ops surfaces into a launch packet for a local agent,
-then close the Local Agent Operations northstar.
+Tranche 6 is implemented and in the parking path. The local-agent sys-ops
+northstar now has a complete tool chain: probe, audit, profile, dependency
+check, process/port inspection, dev-server management, Docker/Kubernetes
+wrappers, secret audit, runtime cleanup, and bootstrap packet generation.
 
 ### Active tasks
 
-- [ ] Add `local_agent_bootstrap`.
-- [ ] Aggregate host probe, boundary audit, command profile, dependency check,
-      latest journal entries, and relevant constraints.
-- [ ] Emit JSON or Markdown launch packet without writing by default.
-- [ ] Optional writes go only to ignored runtime/exports.
-- [ ] Mark Local Agent Operations satisfied in `NORTHSTARS.md`.
-- [ ] Move completed sys-ops items out of active TODO.
-- [ ] Append final `DEV_LOG` closeout with validation and `spiral` classification.
-- [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
+- [ ] Decide the next post-sys-ops capability horizon.
 
 ### Previous source tranche (parked)
 
+- [x] Add `local_agent_bootstrap`.
+- [x] Aggregate host probe, boundary audit, command profile, dependency check,
+      latest journal entries, and relevant constraints.
+- [x] Emit JSON or Markdown launch packet without writing by default.
+- [x] Optional writes go only to ignored runtime/exports.
+- [x] Mark Local Agent Operations satisfied in `NORTHSTARS.md`.
+- [x] Move completed sys-ops items out of active TODO.
+- [x] Append final `DEV_LOG` closeout with validation and `spiral` classification.
+- [x] Update README, agent guide, architecture, northstars, TODO, and dev log.
 - [x] Add `secret_surface_audit`.
 - [x] Detect obvious committed secrets and risky `.env` exposure.
 - [x] Redact discovered values in output.
@@ -150,7 +152,7 @@ then close the Local Agent Operations northstar.
 - [x] Implement Tranche 3: guarded dev-server management.
 - [x] Implement Tranche 4: Docker and Kubernetes operation wrappers.
 - [x] Implement Tranche 5: secret audit and runtime artifact cleanup.
-- [ ] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.
+- [x] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.
 
 ---
 
