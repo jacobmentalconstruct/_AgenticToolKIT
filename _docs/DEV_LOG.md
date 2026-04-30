@@ -571,6 +571,53 @@ verify the image and pod actually behave as designed.
 
 ---
 
+## 2026-04-29 — Container tranche: image builds clean, end-to-end pod flow verified
+
+- `docker build -t devtools-pod:v2 .` from `_v2-pod/` succeeds against
+  Docker 29.2.1. Image builds in ~10s on a python:3.11-slim base; build
+  context is `_v2-pod/` itself so the parked root is untouched.
+- `docker run --rm -i devtools-pod:v2 < /dev/null` runs the entrypoint
+  end-to-end:
+  - `[entrypoint] Installing .dev-tools sidecar into /workspace...`
+  - `[entrypoint] Sidecar install complete.`
+  - `[entrypoint] Running smoke test...`
+  - `[entrypoint] Smoke test passed.`
+  - `[entrypoint] Launching MCP server...`
+  - MCP exits cleanly when stdin closes.
+- Direct verification: 39/39 smoke tests pass inside the running container,
+  27 MCP tools enumerate, MCP `tools/list` and `tools/call journal_query`
+  both succeed.
+- `_v2-pod/k8s/deployment.yaml` parses as valid YAML; structure
+  (kind=Deployment, replicas=1, image=devtools-pod:v2) is correct.
+- `kubectl apply --dry-run` against a live cluster is still pending — no
+  local cluster (kind/minikube) was running at verification time.
+
+Validation:
+
+- `docker --version` → 29.2.1
+- `docker build -t devtools-pod:v2 _v2-pod/` → clean build
+- `docker run` end-to-end → entrypoint reaches MCP launch successfully
+- In-container smoke test → 39/39 pass, 27 MCP tools enumerated
+- `python -c "import yaml; yaml.safe_load(...)"` on the Deployment manifest
+  → valid YAML with expected fields
+
+Classification: spiral.
+
+- Capability increased: pod packaging is no longer just on paper — image
+  builds, runs, and the toolkit functions inside it.
+- Uncertainty decreased: the only remaining unknowns are cluster-side
+  (does a real k8s pod reach Ready, does `kubectl attach` work cleanly)
+  and registry distribution. Both are operational, not design.
+- Boundary clarified: the parent root remained untouched throughout
+  build and run — `_v2-pod/` is a fully self-contained build space.
+
+Current read: the container tranche is functionally complete inside the
+agent sandbox's reach. Remaining work (live k8s deploy + image registry
+push) is host/cluster-side and can be done at any time the user has a
+cluster up.
+
+---
+
 ## Template for future entries
 
 - Files changed:

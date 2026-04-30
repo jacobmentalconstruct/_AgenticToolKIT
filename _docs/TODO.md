@@ -45,13 +45,24 @@ the parked root prototype is not disturbed.
         (defaults to empty volume → fresh install). Project-baked-in is
         deferred until there's a concrete reason to bake one project per
         image.
-- [ ] Verify `docker build -f _v2-pod/Dockerfile -t devtools-pod:v2 _v2-pod`
-      succeeds locally and the resulting image runs `mcp_server.py`
-      end-to-end (this requires Docker on the host; cannot be done from
-      inside the agent sandbox).
-- [ ] After local Docker verification: run `kubectl apply -f
-      _v2-pod/k8s/deployment.yaml` against a local k8s (kind/minikube) and
-      confirm the pod reaches Ready and the MCP server responds.
+- [x] Verify `docker build` from `_v2-pod/` succeeds. Image
+      `devtools-pod:v2` builds clean (~10s, stdlib-only).
+- [x] Verify the resulting image runs end-to-end: entrypoint installs
+      sidecar into `/workspace`, smoke test passes 39/39, MCP server
+      enumerates 27 tools and launches.
+- [x] Validate `k8s/deployment.yaml` parses as valid YAML with the
+      expected Deployment shape (kind=Deployment, replicas=1,
+      image=devtools-pod:v2).
+- [ ] Run `kubectl apply -f _v2-pod/k8s/deployment.yaml` against a real
+      cluster (kind/minikube/Docker Desktop k8s) and confirm the pod
+      reaches Ready and `kubectl attach` reaches the MCP server. Pending
+      a running cluster — `kubectl version --client` works, but no
+      cluster API was reachable at validation time.
+- [ ] Push `devtools-pod:v2` to a registry (Docker Hub or GHCR) so the
+      image can be pulled by clusters other than the build host. Image
+      reference in `k8s/deployment.yaml` will need updating from
+      `devtools-pod:v2` to e.g. `ghcr.io/jacobmentalconstruct/devtools-pod:v2`
+      at that point.
 
 ### Explicit non-goals for this tranche
 
