@@ -74,6 +74,12 @@ these to work ON target projects without modifying the toolbox itself.
 | `secret_surface_audit` | security | Scan for obvious committed secrets and risky env exposure with redacted output |
 | `runtime_artifact_cleaner` | cleanup | Dry-run-first cleanup of allowlisted generated artifacts with tracked-file protection |
 | `local_agent_bootstrap` | bootstrap | Aggregate host, workspace, command, dependency, journal, and constraint context into a launch packet |
+| `text_file_reader` | introspection | Read bounded text files under a project root with binary, size, and sidecar protections |
+| `text_file_writer` | write | Create, overwrite, or append text payloads with confirmation and optional validation |
+| `directory_scaffold` | scaffold | Dry-run-first declarative directory and text-file scaffolding under a project root |
+| `text_file_validator` | testing | Validate Python, JSON, TOML, and basic text-like files without third-party dependencies |
+| `file_move_guarded` | editing | Move or rename project files and directories with confirmation, reason, and tracked-file protection |
+| `file_delete_guarded` | editing | Quarantine-delete project files and directories with receipts and tracked-file protection |
 | `module_decomp_planner` | architecture | AST-based module decomposition planning |
 | `tokenizing_patcher` | editing | Whitespace-immune hunk-based patching |
 | `domain_boundary_audit` | analysis | Detect domain boundary violations |
@@ -89,7 +95,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 38 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 44 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
@@ -99,17 +105,17 @@ processes/ports, dependency readiness, dev servers, Docker/Kubernetes surfaces,
 secrets, runtime artifacts, and emit a bootstrap packet without adding raw
 unrestricted terminal parity. See `_docs/NORTHSTARS.md` for closure details.
 
-The active next horizon is **Safe Text Workspace Operations**: bounded text
-read/write/scaffold/validate/move/quarantine-delete primitives under a chosen
-project root. This is the missing bridge between the sys-ops launch packet and
-an Ollama-backed local sidecar agent that can create and maintain text-based
-project files without raw filesystem or terminal parity.
+**Safe Text Workspace Operations is now implemented.** The toolbox has bounded
+text read/write/scaffold/validate/move/quarantine-delete primitives under a
+chosen project root. This closes the bridge between the sys-ops launch packet
+and an Ollama-backed local sidecar agent that can create and maintain
+text-based project files without raw filesystem or terminal parity.
 
 The queued local-agent implementation runway is now:
 
-1. **Tranche 7 — Safe Text Workspace Operations:** basic bounded text/file
+1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
    tools for read, write, scaffold, validate, move, and quarantine delete.
-2. **Tranche 8 — Private Git Workspace Operations:** sidecar-owned Git
+2. **Tranche 8 — Private Git Workspace Operations:** next; sidecar-owned Git
    checkpoints using a private gitdir under ignored runtime state, with
    init/add/commit/branch/pull/push wrappers that never touch the user's main
    `.git` by default.

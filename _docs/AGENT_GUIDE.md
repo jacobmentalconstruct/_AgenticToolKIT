@@ -232,8 +232,8 @@ ignored `.dev-tools/runtime/local_agent_bootstrap/`.
 
 ### Loop 7: Root → Setup → File Ops → Validate → Park
 
-_The planned local-agent file-operations cycle. Use after Tranche 7 lands, when
-an agent needs to create or maintain text-based project files safely._
+_The local-agent file-operations cycle. Use when an agent needs to create or
+maintain text-based project files safely._
 
 ```
 ROOT
@@ -351,6 +351,12 @@ _"I need to…" → use this tool._
 | Audit likely committed secrets and risky env files | `secret_surface_audit` |
 | Dry-run and clean allowlisted runtime artifacts | `runtime_artifact_cleaner` |
 | Emit a local-agent launch packet | `local_agent_bootstrap` |
+| Read a bounded text file safely | `text_file_reader` |
+| Create, overwrite, or append text safely | `text_file_writer` |
+| Create multiple directories/files from a manifest | `directory_scaffold` |
+| Validate Python, JSON, TOML, or text-like content | `text_file_validator` |
+| Move or rename files with guardrails | `file_move_guarded` |
+| Quarantine-delete files with receipts | `file_delete_guarded` |
 | See how Python modules depend on each other | `import_graph_mapper` |
 | Inspect a SQLite database structure | `sqlite_schema_inspector` |
 | Compare two database versions | `schema_diff_tool` |

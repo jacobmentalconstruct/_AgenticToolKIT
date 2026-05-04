@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-04 (Tranche 7 Safe Text Workspace Operations selected)
+- 2026-05-04 (Tranche 7 Safe Text Workspace Operations implemented)
 
 ## Fresh-thread start
 
@@ -20,21 +20,22 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Current phase or tranche:
   - root prototype parked (strangler complete); `_v2-pod/` carries the
     Kubernetes-wrapped bridge; local-agent sys-ops tooling is closed through
-    Tranche 6; Tranche 7 is Safe Text Workspace Operations
+    Tranche 6; Tranche 7 Safe Text Workspace Operations is implemented;
+    Tranche 8 Private Git Workspace Operations is next
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
   - the journal UI lives only inside the vendable `_app-journal` package; the
     toolbox root no longer pretends to be the original journal package
   - sidecar install, setup orchestration, and onboarding-site verification are
-    live builder-tool surfaces; the root smoke suite is current at 62 tests as
-    of Tranche 6 closeout
+    live builder-tool surfaces; the root smoke suite is current at 79 tests as
+    of Tranche 7 closeout
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
 - Current collaboration truth:
   - the prototype is parkable: human installs via the GUI, agent takes over
     inside the target project from `project_setup` onward; the next useful
-    expansion is bounded text/file primitives for a local or podded agent
+    expansion is private Git checkpointing for a local or podded agent
 
 ## What works right now
 
@@ -72,10 +73,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   command, dependency, journal, tool-manifest, and constraint context into a
   JSON or Markdown launch packet, returning by default and writing only to
   ignored runtime exports when requested. MCP now lists 38 tools.
-- Tranche 7 is selected but not yet implemented: Safe Text Workspace Operations
-  will add planned tools for bounded text reads, guarded text writes,
-  declarative directory/file scaffolds, text validation, guarded move/rename,
-  and quarantine delete.
+- Tranche 7 added Safe Text Workspace Operations: `text_file_reader`,
+  `text_file_writer`, `directory_scaffold`, `text_file_validator`,
+  `file_move_guarded`, and `file_delete_guarded`. MCP now lists 44 tools.
 - Tranche 8 is queued as Private Git Workspace Operations: a sidecar-owned Git
   checkpoint layer using ignored runtime state instead of the user's main
   `.git` by default.
@@ -87,18 +87,14 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 - No internal root bottleneck. Remaining container work is operational:
   live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
-- The active source-shaped bottleneck is file operations: a local agent can
-  understand and operate the project environment, but it does not yet have
-  bounded primitives for creating and maintaining text/code project files.
+- The active source-shaped bottleneck is private checkpointing: a local agent
+  can now inspect, operate, and safely touch text files, but it does not yet
+  have an agent-owned Git save/branch/sync layer.
 
 ## Next best move
 
-- Implement Tranche 7: `text_file_reader`, `text_file_writer`,
-  `directory_scaffold`, `text_file_validator`, `file_move_guarded`, and
-  `file_delete_guarded`, then park the tranche with docs, journal, smoke tests,
-  and a coherent commit.
-- After Tranche 7, implement Tranche 8 private Git operations, then Tranche 9
-  local sidecar agent runtime.
+- Implement Tranche 8 private Git operations, then Tranche 9 local sidecar
+  agent runtime.
 
 ## Current warnings
 
@@ -108,7 +104,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   the wrapper code we write inside `_v2-pod/` IS tracked.
 - Deferred creative/browser/automation capabilities should wait until the
   sys-ops layer gives a local agent a reliable operating envelope.
-- Do not let Tranche 7 replace `project_setup`; setup doctrine remains the
+- Do not let Safe Text Workspace Operations replace `project_setup`; setup doctrine remains the
   authority for required project scaffold and builder-contract surfaces.
 - Delete should mean quarantine by default, with receipts under ignored runtime
   state, not permanent removal.

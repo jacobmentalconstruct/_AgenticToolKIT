@@ -1043,6 +1043,71 @@ Tranche 8 private Git operations, then Tranche 9 local sidecar agent runtime.
 
 ---
 
+## 2026-05-04 — Tranche 7 Safe Text Workspace Operations implementation
+
+- Added shared safe text workspace helpers in `src/lib/text_workspace.py` for
+  root-bounded path resolution, `.dev-tools` protection, text/binary checks,
+  stdlib validation, tracked-file detection, and quarantine receipts.
+- Added `text_file_reader`, a bounded text reader that reports size, line
+  count, newline style, encoding, content, and excerpt while rejecting
+  outside-root, protected, oversized, and likely binary files.
+- Added `text_file_writer`, a confirmed create/overwrite/append tool with
+  `overwrite: true` replacement gating, parent creation control, `.dev-tools`
+  protection, and optional validation.
+- Added `directory_scaffold`, a dry-run-first declarative directory/text-file
+  scaffold tool with root-boundary checks, existing-file skip behavior, optional
+  validation, and confirmation-gated writes.
+- Added `text_file_validator`, a read-only validator for Python, JSON, TOML,
+  and basic text-like surfaces using only the Python standard library.
+- Added `file_move_guarded`, a confirmed move/rename tool that requires a
+  non-empty reason and protects tracked files and `.dev-tools` internals by
+  default.
+- Added `file_delete_guarded`, a confirmed quarantine-delete tool that moves
+  targets into ignored runtime trash and writes receipts instead of permanently
+  deleting by default.
+- Registered all six tools in `tool_manifest.json` and `src/mcp_server.py`.
+- Extended `src/smoke_test.py` with Tranche 7 fixtures covering confirmation
+  gates, outside-root rejection, binary rejection, validation failures,
+  scaffold dry-run/apply, guarded move, quarantine receipts, and tracked-file
+  protection.
+- Updated README, agent guide, architecture, northstars, TODO,
+  WE_ARE_HERE_NOW, experiential workflow, and onboarding pages so Tranche 7 is
+  satisfied and Tranche 8 Private Git Workspace Operations is next.
+- Runtime journal entry written with `journal_write`:
+  `journal_ce573aec1dd0`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Validation:
+
+- `git diff --check` -> pass.
+- `python -m py_compile src/lib/text_workspace.py` plus all six new tools,
+  `src/mcp_server.py`, and `src/smoke_test.py` -> pass.
+- Metadata CLI checks for all six new tools -> pass.
+- `python src/smoke_test.py` -> 79/79 pass; MCP lists 44 tools and onboarding
+  integrity passes.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` -> 4/5
+  suites passed; `_ollama-prompt-lab` timed out waiting for
+  `ollama run qwen3.5:2b` after 90 seconds. The toolbox suite and the
+  `_app-journal`, `_constraint-registry`, and `_manifold-mcp` package suites
+  passed.
+
+Classification: spiral.
+
+- Capability increased: a local agent now has bounded file primitives for
+  creating and maintaining text/code project files.
+- Uncertainty decreased: smoke fixtures prove the safety contract around
+  confirmation, boundaries, validation, tracked files, and quarantine delete.
+- Boundary clarified: this tranche adds guarded text/file operations, not raw
+  shell access, dependency installs, setup-doctrine replacement, or permanent
+  deletion by default.
+
+Current read: Tranche 7 is complete. Tranche 8 should implement
+`git_private_workspace` as the sidecar-owned private Git checkpoint layer.
+
+---
+
 ## Template for future entries
 
 - Files changed:

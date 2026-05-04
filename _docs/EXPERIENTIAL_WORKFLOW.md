@@ -227,9 +227,9 @@ In plain language:
 The current planning runway turns that relationship into a more capable local
 sidecar without skipping the safety layers:
 
-1. Safe Text Workspace Operations gives the agent bounded text/file primitives.
-2. Private Git Workspace Operations gives it an agent-owned checkpoint history.
-3. Local Sidecar Agent Runtime lets it plan and act through Ollama while using
+1. Safe Text Workspace Operations now gives the agent bounded text/file primitives.
+2. Private Git Workspace Operations will give it an agent-owned checkpoint history.
+3. Local Sidecar Agent Runtime will let it plan and act through Ollama while using
    only the guarded toolbox.
 
 This matters experientially because autonomy should arrive through smaller

@@ -78,11 +78,11 @@ can inspect the host, run declared workflows, manage servers, operate
 Docker/Kubernetes wrappers, audit safety surfaces, clean generated state, and
 emit a launch packet without improvising shell behavior.
 
-## Active Northstar: Safe Text Workspace Operations
+## Satisfied Northstar: Safe Text Workspace Operations
 
-The next post-sys-ops horizon is Safe Text Workspace Operations. This is the
-file-primitive layer a local sidecar agent needs before it can safely scaffold
-multiple folders or generate code/text assets through the toolbox.
+Safe Text Workspace Operations is now satisfied. This is the file-primitive
+layer a local sidecar agent needs before it can safely scaffold multiple
+folders or generate code/text assets through the toolbox.
 
 The northstar is deliberately narrower than full filesystem or terminal parity:
 all paths resolve under the user-chosen project root, `.dev-tools/` internals
@@ -91,7 +91,7 @@ stay protected by default, and mutating tools require explicit confirmation.
 support project work after that setup contract is known rather than asking an
 agent to infer the scaffold.
 
-| Capability | Purpose | Planned tool surface |
+| Capability | Purpose | Tool surface |
 |---|---|---|
 | Bounded text read | Inspect text files without leaking outside the root or loading unsafe/binary payloads. | `text_file_reader` |
 | Guarded text write | Create, overwrite, or append text payloads with confirmation and optional validation. | `text_file_writer` |
@@ -101,15 +101,16 @@ agent to infer the scaffold.
 | Quarantine delete | Move deleted targets into ignored runtime trash with a receipt instead of permanently deleting by default. | `file_delete_guarded` |
 
 This layer is the bridge from "the local agent understands the workspace" to
-"the local agent can create and maintain project text safely." It should become
-the substrate for a later Ollama-backed local agent loop using Qwen-class models
-for structured task JSON and human-facing responses.
+"the local agent can create and maintain project text safely." It is now the
+substrate for the queued private Git layer and a later Ollama-backed local
+agent loop using Qwen-class models for structured task JSON and human-facing
+responses.
 
-## Queued Northstar: Private Git Workspace Operations
+## Active Northstar: Private Git Workspace Operations
 
 After Safe Text Workspace Operations, the sidecar agent needs a private save
-layer. The first version should not casually use the user's main project `.git`;
-it should keep an agent-owned gitdir under ignored runtime state while using the
+layer. Tranche 8 should not casually use the user's main project `.git`; it
+should keep an agent-owned gitdir under ignored runtime state while using the
 chosen project root as the worktree.
 
 The planned surface is `git_private_workspace`, a guarded Git wrapper with

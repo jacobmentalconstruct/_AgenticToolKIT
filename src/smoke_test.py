@@ -883,6 +883,234 @@ def test_sys_ops_introspection() -> None:
         _fail("local_agent_bootstrap", str(bootstrap))
 
 
+def test_safe_text_workspace_operations() -> None:
+    """Tranche 7 safe text/file workspace tools."""
+    print("\n── Safe Text Workspace Operations ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="text_workspace_"))
+
+    denied_write = _tool("text_file_writer", {
+        "project_root": str(target_root),
+        "path": "src/app.py",
+        "content": "print('ok')\n",
+        "create_dirs": True,
+    })
+    if denied_write["status"] == "error":
+        _ok("text_file_writer requires confirmation")
+    else:
+        _fail("text_file_writer confirmation", str(denied_write))
+
+    write = _tool("text_file_writer", {
+        "project_root": str(target_root),
+        "path": "src/app.py",
+        "content": "print('ok')\n",
+        "create_dirs": True,
+        "confirm": True,
+        "validate_after_write": True,
+    })
+    if write["status"] == "ok" and (target_root / "src" / "app.py").exists():
+        _ok("text_file_writer creates and validates a Python file")
+    else:
+        _fail("text_file_writer create", str(write))
+
+    overwrite_blocked = _tool("text_file_writer", {
+        "project_root": str(target_root),
+        "path": "src/app.py",
+        "content": "print('new')\n",
+        "confirm": True,
+    })
+    if overwrite_blocked["status"] == "error":
+        _ok("text_file_writer refuses accidental overwrite")
+    else:
+        _fail("text_file_writer overwrite guard", str(overwrite_blocked))
+
+    read = _tool("text_file_reader", {
+        "project_root": str(target_root),
+        "path": "src/app.py",
+        "excerpt_lines": 1,
+    })
+    if read["status"] == "ok" and read["result"]["line_count"] == 1 and "print" in read["result"].get("content", ""):
+        _ok("text_file_reader reads bounded text metadata")
+    else:
+        _fail("text_file_reader", str(read))
+
+    outside_read = _tool("text_file_reader", {
+        "project_root": str(target_root),
+        "path": "../escape.txt",
+    })
+    if outside_read["status"] == "error":
+        _ok("text_file_reader rejects outside-root paths")
+    else:
+        _fail("text_file_reader outside-root guard", str(outside_read))
+
+    (target_root / "binary.dat").write_bytes(b"\x00\x01\x02")
+    binary_read = _tool("text_file_reader", {
+        "project_root": str(target_root),
+        "path": "binary.dat",
+    })
+    if binary_read["status"] == "error":
+        _ok("text_file_reader rejects likely binary files")
+    else:
+        _fail("text_file_reader binary guard", str(binary_read))
+
+    bad_json = _tool("text_file_validator", {
+        "project_root": str(target_root),
+        "content": "{",
+        "file_type": "json",
+    })
+    if bad_json["status"] == "error" and bad_json["result"]["validation"]["errors"]:
+        _ok("text_file_validator reports invalid JSON")
+    else:
+        _fail("text_file_validator invalid JSON", str(bad_json))
+
+    good_python = _tool("text_file_validator", {
+        "project_root": str(target_root),
+        "path": "src/app.py",
+    })
+    if good_python["status"] == "ok" and good_python["result"]["validation"]["valid"]:
+        _ok("text_file_validator validates existing Python files")
+    else:
+        _fail("text_file_validator Python", str(good_python))
+
+    scaffold_dry = _tool("directory_scaffold", {
+        "project_root": str(target_root),
+        "entries": [
+            {"type": "directory", "path": "docs"},
+            {"type": "file", "path": "config/app.json", "content": "{\"ok\": true}\n", "file_type": "json"},
+        ],
+        "validate_files": True,
+    })
+    if (
+        scaffold_dry["status"] == "ok"
+        and scaffold_dry["result"]["dry_run"] is True
+        and scaffold_dry["result"]["applied_count"] == 0
+        and not (target_root / "docs").exists()
+    ):
+        _ok("directory_scaffold defaults to dry-run")
+    else:
+        _fail("directory_scaffold dry-run", str(scaffold_dry))
+
+    scaffold_apply = _tool("directory_scaffold", {
+        "project_root": str(target_root),
+        "dry_run": False,
+        "confirm": True,
+        "entries": [
+            {"type": "directory", "path": "docs"},
+            {"type": "file", "path": "config/app.json", "content": "{\"ok\": true}\n", "file_type": "json"},
+            {"type": "file", "path": "notes/todo.txt", "content": "move me\n"},
+        ],
+        "validate_files": True,
+    })
+    if (
+        scaffold_apply["status"] == "ok"
+        and (target_root / "docs").is_dir()
+        and (target_root / "config" / "app.json").is_file()
+        and (target_root / "notes" / "todo.txt").is_file()
+    ):
+        _ok("directory_scaffold applies confirmed manifests")
+    else:
+        _fail("directory_scaffold apply", str(scaffold_apply))
+
+    scaffold_blocked = _tool("directory_scaffold", {
+        "project_root": str(target_root),
+        "dry_run": False,
+        "confirm": True,
+        "entries": [{"type": "file", "path": "../escape.txt", "content": "no\n"}],
+    })
+    if scaffold_blocked["status"] == "error":
+        _ok("directory_scaffold rejects escaping entries")
+    else:
+        _fail("directory_scaffold outside-root guard", str(scaffold_blocked))
+
+    move_denied = _tool("file_move_guarded", {
+        "project_root": str(target_root),
+        "source": "notes/todo.txt",
+        "destination": "notes/done.txt",
+        "reason": "smoke test",
+    })
+    if move_denied["status"] == "error":
+        _ok("file_move_guarded requires confirmation")
+    else:
+        _fail("file_move_guarded confirmation", str(move_denied))
+
+    move = _tool("file_move_guarded", {
+        "project_root": str(target_root),
+        "source": "notes/todo.txt",
+        "destination": "notes/done.txt",
+        "confirm": True,
+        "reason": "smoke test move",
+    })
+    if move["status"] == "ok" and not (target_root / "notes" / "todo.txt").exists() and (target_root / "notes" / "done.txt").exists():
+        _ok("file_move_guarded moves confirmed files")
+    else:
+        _fail("file_move_guarded move", str(move))
+
+    delete_denied = _tool("file_delete_guarded", {
+        "project_root": str(target_root),
+        "path": "notes/done.txt",
+        "reason": "smoke test",
+    })
+    if delete_denied["status"] == "error":
+        _ok("file_delete_guarded requires confirmation")
+    else:
+        _fail("file_delete_guarded confirmation", str(delete_denied))
+
+    delete = _tool("file_delete_guarded", {
+        "project_root": str(target_root),
+        "path": "notes/done.txt",
+        "confirm": True,
+        "reason": "smoke test quarantine",
+        "actor": "smoke_test",
+    })
+    receipt_rel = delete.get("result", {}).get("receipt", {}).get("receipt_path", "")
+    if (
+        delete["status"] == "ok"
+        and not (target_root / "notes" / "done.txt").exists()
+        and receipt_rel
+        and (target_root / receipt_rel).exists()
+    ):
+        _ok("file_delete_guarded quarantines with a receipt")
+    else:
+        _fail("file_delete_guarded quarantine", str(delete))
+
+    git_available = subprocess.run(
+        ["git", "--version"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    ).returncode == 0
+    if git_available:
+        subprocess.run(["git", "init"], cwd=str(target_root), capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+        (target_root / "tracked.txt").write_text("tracked\n", encoding="utf-8")
+        subprocess.run(["git", "add", "tracked.txt"], cwd=str(target_root), capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+        tracked_move = _tool("file_move_guarded", {
+            "project_root": str(target_root),
+            "source": "tracked.txt",
+            "destination": "tracked2.txt",
+            "confirm": True,
+            "reason": "tracked protection smoke",
+        })
+        if tracked_move["status"] == "error" and (target_root / "tracked.txt").exists():
+            _ok("file_move_guarded protects tracked files by default")
+        else:
+            _fail("file_move_guarded tracked protection", str(tracked_move))
+
+        tracked_delete = _tool("file_delete_guarded", {
+            "project_root": str(target_root),
+            "path": "tracked.txt",
+            "confirm": True,
+            "reason": "tracked protection smoke",
+        })
+        if tracked_delete["status"] == "error" and (target_root / "tracked.txt").exists():
+            _ok("file_delete_guarded protects tracked files by default")
+        else:
+            _fail("file_delete_guarded tracked protection", str(tracked_delete))
+    else:
+        _ok("tracked-file protection fixture skipped because git is unavailable")
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -924,6 +1152,8 @@ def test_mcp(project_root: Path) -> None:
             "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
             "secret_surface_audit", "runtime_artifact_cleaner",
             "local_agent_bootstrap",
+            "text_file_reader", "text_file_writer", "directory_scaffold",
+            "text_file_validator", "file_move_guarded", "file_delete_guarded",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):
@@ -975,6 +1205,7 @@ def main() -> int:
     test_sidecar_install_and_setup()
     test_repo_search()
     test_sys_ops_introspection()
+    test_safe_text_workspace_operations()
     test_mcp(project_root)
 
     print(f"\n═══ Results: {PASS} passed, {FAIL} failed ═══")

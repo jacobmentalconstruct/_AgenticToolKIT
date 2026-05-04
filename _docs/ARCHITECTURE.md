@@ -29,10 +29,11 @@ surfaces are not part of the current architecture.
 The toolbox should remain project-agnostic and should not depend on sibling
 folders, old project roots, generated caches, or hidden runtime state.
 
-The local-agent system operations layer is now closed. The next source-shaped
-architecture layer is Safe Text Workspace Operations: small MCP-visible file
-primitives that let a local agent create and maintain text project assets under
-a user-chosen project root without raw filesystem or terminal parity.
+The local-agent system operations layer is closed, and the Safe Text Workspace
+Operations layer is implemented. The next source-shaped architecture layer is
+Private Git Workspace Operations: a sidecar-owned checkpoint surface that lets
+a local agent save and branch work without taking ownership of the user's main
+project `.git` by default.
 
 ## Agent Flow
 
@@ -79,12 +80,12 @@ The sys-ops layer now closes the local-agent northstar in stages:
 
 ## Safe Text Workspace Operations
 
-Tranche 7 is the planned bridge between sys-ops bootstrap and a future
+Tranche 7 implements the bridge between sys-ops bootstrap and a future
 Ollama-backed local agent runtime. The agent can already learn where it is,
-which commands exist, and which operational boundaries apply. It still needs a
-bounded way to touch text files.
+which commands exist, and which operational boundaries apply; it now also has
+a bounded way to touch text files.
 
-The planned layer should add:
+The implemented layer adds:
 
 - `text_file_reader` for bounded reads under `project_root`.
 - `text_file_writer` for confirmed create/overwrite/append operations.
@@ -103,7 +104,7 @@ been audited or applied.
 
 ## Private Git Workspace Operations
 
-Tranche 8 is queued as the private checkpoint layer for a future sidecar agent.
+Tranche 8 is the active next private checkpoint layer for a future sidecar agent.
 It should use Git without taking ownership of the user's existing project
 repository. The planned shape is a `git_private_workspace` wrapper that stores
 an agent-owned gitdir under ignored `.dev-tools/runtime/private_git/` while

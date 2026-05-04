@@ -188,6 +188,42 @@
       "category": "bootstrap"
     },
     {
+      "tool_name": "text_file_reader",
+      "script": "src/tools/text_file_reader.py",
+      "mcp_name": "text_file_reader",
+      "category": "introspection"
+    },
+    {
+      "tool_name": "text_file_writer",
+      "script": "src/tools/text_file_writer.py",
+      "mcp_name": "text_file_writer",
+      "category": "write"
+    },
+    {
+      "tool_name": "directory_scaffold",
+      "script": "src/tools/directory_scaffold.py",
+      "mcp_name": "directory_scaffold",
+      "category": "scaffold"
+    },
+    {
+      "tool_name": "text_file_validator",
+      "script": "src/tools/text_file_validator.py",
+      "mcp_name": "text_file_validator",
+      "category": "testing"
+    },
+    {
+      "tool_name": "file_move_guarded",
+      "script": "src/tools/file_move_guarded.py",
+      "mcp_name": "file_move_guarded",
+      "category": "editing"
+    },
+    {
+      "tool_name": "file_delete_guarded",
+      "script": "src/tools/file_delete_guarded.py",
+      "mcp_name": "file_delete_guarded",
+      "category": "editing"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

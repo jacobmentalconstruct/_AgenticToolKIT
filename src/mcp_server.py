@@ -130,6 +130,36 @@ except ImportError:
     LOCAL_AGENT_BOOTSTRAP_METADATA, run_local_agent_bootstrap = None, None
 
 try:
+    from tools.text_file_reader import FILE_METADATA as TEXT_FILE_READER_METADATA, run as run_text_file_reader
+except ImportError:
+    TEXT_FILE_READER_METADATA, run_text_file_reader = None, None
+
+try:
+    from tools.text_file_writer import FILE_METADATA as TEXT_FILE_WRITER_METADATA, run as run_text_file_writer
+except ImportError:
+    TEXT_FILE_WRITER_METADATA, run_text_file_writer = None, None
+
+try:
+    from tools.directory_scaffold import FILE_METADATA as DIRECTORY_SCAFFOLD_METADATA, run as run_directory_scaffold
+except ImportError:
+    DIRECTORY_SCAFFOLD_METADATA, run_directory_scaffold = None, None
+
+try:
+    from tools.text_file_validator import FILE_METADATA as TEXT_FILE_VALIDATOR_METADATA, run as run_text_file_validator
+except ImportError:
+    TEXT_FILE_VALIDATOR_METADATA, run_text_file_validator = None, None
+
+try:
+    from tools.file_move_guarded import FILE_METADATA as FILE_MOVE_GUARDED_METADATA, run as run_file_move_guarded
+except ImportError:
+    FILE_MOVE_GUARDED_METADATA, run_file_move_guarded = None, None
+
+try:
+    from tools.file_delete_guarded import FILE_METADATA as FILE_DELETE_GUARDED_METADATA, run as run_file_delete_guarded
+except ImportError:
+    FILE_DELETE_GUARDED_METADATA, run_file_delete_guarded = None, None
+
+try:
     from tools.module_decomp_planner import FILE_METADATA as MODULE_DECOMP_METADATA, run as run_module_decomp_planner
 except ImportError:
     MODULE_DECOMP_METADATA, run_module_decomp_planner = None, None
@@ -224,6 +254,12 @@ for meta, runner in [
     (SECRET_SURFACE_METADATA, run_secret_surface_audit),
     (RUNTIME_CLEANER_METADATA, run_runtime_artifact_cleaner),
     (LOCAL_AGENT_BOOTSTRAP_METADATA, run_local_agent_bootstrap),
+    (TEXT_FILE_READER_METADATA, run_text_file_reader),
+    (TEXT_FILE_WRITER_METADATA, run_text_file_writer),
+    (DIRECTORY_SCAFFOLD_METADATA, run_directory_scaffold),
+    (TEXT_FILE_VALIDATOR_METADATA, run_text_file_validator),
+    (FILE_MOVE_GUARDED_METADATA, run_file_move_guarded),
+    (FILE_DELETE_GUARDED_METADATA, run_file_delete_guarded),
     (MODULE_DECOMP_METADATA, run_module_decomp_planner),
     (TOKENIZING_PATCHER_METADATA, run_tokenizing_patcher),
     (DOMAIN_BOUNDARY_METADATA, run_domain_boundary_audit),
