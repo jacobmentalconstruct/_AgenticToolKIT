@@ -995,6 +995,54 @@ Current read: Tranche 7 is documented and ready for implementation.
 
 ---
 
+## 2026-05-04 — Planning runway parked through local sidecar agent
+
+- Added the next two queued phases after Tranche 7 to the continuity packet and
+  onboarding surfaces.
+- Tranche 8 is now planned as Private Git Workspace Operations. The core idea
+  is a sidecar-owned Git checkpoint layer using an ignored private gitdir under
+  `.dev-tools/runtime/private_git/` and the chosen project root as worktree.
+- The planned Git surface is `git_private_workspace` with guarded `status`,
+  `init`, `add`, `commit`, `branch`, `checkout`, `pull`, and `push` actions.
+- Private Git should not mutate the user's main project `.git` by default.
+  Push and pull require explicit private-remote configuration; mutating actions
+  require `confirm: true`.
+- Tranche 9 is now planned as Local Sidecar Agent Runtime: an Ollama-backed,
+  stdlib-first agent that acts only through allowlisted toolbox tools.
+- The planned agent loop is fixed by contract: probe, audit, setup, plan, ask,
+  act, verify, checkpoint, and park.
+- Qwen coder-family models are the preferred structured JSON/tool-planning
+  layer; Qwen human-interface models are the preferred response layer.
+- The local agent should use binary or multiple-choice human prompts for
+  high-risk or ambiguous decisions and must not receive raw terminal or
+  unrestricted filesystem parity.
+- Onboarding docs now point humans and agents toward the active Tranche 7,
+  queued Tranche 8, and queued Tranche 9 runway.
+- Runtime journal entry written with `journal_write`:
+  `journal_5fd12e2e1e5b`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Validation:
+
+- `git diff --check` -> pass.
+- `python src/smoke_test.py` -> 62/62 pass; MCP lists 38 tools and
+  onboarding integrity passes.
+
+Classification: spiral.
+
+- Capability direction increased: the path from basic safe file tools to
+  private checkpoints to a local sidecar agent is now explicit.
+- Uncertainty decreased: private Git is scoped as agent-owned runtime state,
+  not silent control of the user's real repository.
+- Boundary clarified: the future agent acts through the guarded toolbox, asks
+  before risky steps, and checkpoints through private Git.
+
+Current read: When implementation resumes, complete Tranche 7 first, then
+Tranche 8 private Git operations, then Tranche 9 local sidecar agent runtime.
+
+---
+
 ## Template for future entries
 
 - Files changed:

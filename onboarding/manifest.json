@@ -41,6 +41,21 @@
       "role": "Human-readable change trail for the toolbox."
     },
     {
+      "path": "_docs/TODO.md",
+      "label": "Project Backlog",
+      "role": "Active tranche tasks and queued implementation runway."
+    },
+    {
+      "path": "_docs/NORTHSTARS.md",
+      "label": "Northstars",
+      "role": "Capability closure, active northstars, and queued local-agent phases."
+    },
+    {
+      "path": "_docs/WE_ARE_HERE_NOW.md",
+      "label": "Where We Are Now",
+      "role": "Fast pickup state for the current tranche and next moves."
+    },
+    {
       "path": "_docs/ARCHITECTURE.md",
       "label": "Architecture",
       "role": "Current architecture for the sidecar toolbox surfaces."

@@ -76,6 +76,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   will add planned tools for bounded text reads, guarded text writes,
   declarative directory/file scaffolds, text validation, guarded move/rename,
   and quarantine delete.
+- Tranche 8 is queued as Private Git Workspace Operations: a sidecar-owned Git
+  checkpoint layer using ignored runtime state instead of the user's main
+  `.git` by default.
+- Tranche 9 is queued as Local Sidecar Agent Runtime: an Ollama-backed agent
+  loop that acts only through the guarded toolbox and checkpoints through the
+  private Git layer.
 
 ## Current bottleneck
 
@@ -91,6 +97,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   `directory_scaffold`, `text_file_validator`, `file_move_guarded`, and
   `file_delete_guarded`, then park the tranche with docs, journal, smoke tests,
   and a coherent commit.
+- After Tranche 7, implement Tranche 8 private Git operations, then Tranche 9
+  local sidecar agent runtime.
 
 ## Current warnings
 
@@ -104,6 +112,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   authority for required project scaffold and builder-contract surfaces.
 - Delete should mean quarantine by default, with receipts under ignored runtime
   state, not permanent removal.
+- Private Git should not mutate the user's main `.git` by default.
+- The sidecar agent should not gain raw shell or unrestricted filesystem parity;
+  it should use the guarded tool suite and human confirmation gates.
 
 ## Read in this order if resuming cold
 

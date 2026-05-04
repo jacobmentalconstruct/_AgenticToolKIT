@@ -82,6 +82,66 @@ are known.
 - [ ] Do not mutate `.dev-tools/` internals unless a future tool explicitly
       supports that maintenance mode.
 
+### Queued Tranche 8: Private Git Workspace Operations
+
+Purpose: give the sidecar agent a private Git checkpoint layer before it becomes
+autonomous. The agent should be able to save, branch, push, and pull its own
+work without casually mutating the user's main project `.git`.
+
+Planned tool surface:
+
+- [ ] Add `git_private_workspace`.
+- [ ] Support `status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`,
+      and `push`.
+- [ ] Store the private gitdir under ignored
+      `.dev-tools/runtime/private_git/` and use the chosen `project_root` as
+      the worktree.
+- [ ] Refuse to operate outside `project_root`.
+- [ ] Exclude `.git/`, `.dev-tools/runtime/`, obvious caches, and risky secret
+      surfaces by default.
+- [ ] Require `confirm: true` for every mutating action.
+- [ ] Require a non-empty commit message for commits.
+- [ ] Require explicit private-remote configuration before push or pull.
+- [ ] Never push to the user's existing `origin` unless a future maintenance
+      mode explicitly opts into that behavior.
+- [ ] Add temp-fixture smoke coverage proving private init/add/commit/branch
+      does not create or mutate a project-root `.git`.
+- [ ] Add local-bare-remote smoke coverage for push/pull without network.
+- [ ] Update README, agent guide, architecture, northstars, TODO, onboarding,
+      and dev log.
+- [ ] Write/export the Tranche 8 journal entry and commit the tranche.
+
+### Queued Tranche 9: Local Sidecar Agent Runtime
+
+Purpose: implement the first local desktop sidecar agent after it has the
+operating envelope, safe file primitives, and private Git checkpoints it needs.
+
+Planned runtime:
+
+- [ ] Add a stdlib-first local agent entrypoint, likely `local_sidecar_agent`,
+      runnable from the installed sidecar.
+- [ ] Use Ollama over localhost HTTP; default models should be configurable,
+      with Qwen coder-family models favored for structured JSON/tool planning
+      and Qwen human-interface models favored for user-facing responses.
+- [ ] Load `local_agent_bootstrap` before planning.
+- [ ] Use only allowlisted toolbox tools; do not expose raw terminal execution.
+- [ ] Resolve all project paths under the chosen `project_root`.
+- [ ] Use a fixed scaffolded loop so the model does not infer the builder
+      contract: probe, audit, setup, plan, ask, act, verify, checkpoint, park.
+- [ ] Validate model-produced tool calls against schemas before execution.
+- [ ] Use binary or multiple-choice human prompts for high-risk steps and
+      ambiguous decisions.
+- [ ] Require human confirmation before mutating tools, private Git push/pull,
+      delete/quarantine, dev-server lifecycle changes, Docker/Kubernetes
+      side effects, or broad cleanup.
+- [ ] Store session state under ignored `.dev-tools/runtime/local_agent/`.
+- [ ] Add mock-Ollama and temp-project smoke coverage proving the agent can
+      plan, call safe text tools, validate output, checkpoint through private
+      Git, and stop for human approval when required.
+- [ ] Update README, agent guide, architecture, northstars, TODO, onboarding,
+      and dev log.
+- [ ] Write/export the Tranche 9 journal entry and commit the tranche.
+
 ### Previous source tranche (parked)
 
 - [x] Add `local_agent_bootstrap`.
@@ -203,6 +263,9 @@ are known.
 - [x] Implement Tranche 4: Docker and Kubernetes operation wrappers.
 - [x] Implement Tranche 5: secret audit and runtime artifact cleanup.
 - [x] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.
+- [ ] Implement Tranche 7: safe text workspace operations.
+- [ ] Implement Tranche 8: private Git workspace operations.
+- [ ] Implement Tranche 9: local sidecar agent runtime.
 
 ---
 

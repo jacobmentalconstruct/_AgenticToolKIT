@@ -100,3 +100,45 @@ The planned layer should add:
 Text Workspace Operations should not reinvent setup doctrine; it should give
 the later local agent the basic text/file hand tools needed after setup has
 been audited or applied.
+
+## Private Git Workspace Operations
+
+Tranche 8 is queued as the private checkpoint layer for a future sidecar agent.
+It should use Git without taking ownership of the user's existing project
+repository. The planned shape is a `git_private_workspace` wrapper that stores
+an agent-owned gitdir under ignored `.dev-tools/runtime/private_git/` while
+using the chosen `project_root` as the worktree.
+
+The tool should expose guarded actions for `status`, `init`, `add`, `commit`,
+`branch`, `checkout`, `pull`, and `push`. Mutating actions require
+`confirm: true`; commit requires a message; pull/push require an explicitly
+configured private remote. The wrapper must exclude `.git/`,
+`.dev-tools/runtime/`, generated caches, and risky secret surfaces by default.
+
+This makes Git available as an agent checkpoint mechanism before the local
+agent becomes more autonomous, while keeping the operator's primary repository
+history out of the default blast radius.
+
+## Local Sidecar Agent Runtime
+
+Tranche 9 is queued as the first real local desktop agent runtime. It should be
+Ollama-backed and stdlib-first, using the toolbox's own MCP-visible tools and
+CLI contracts as its action surface.
+
+The agent should not plan the scaffold required by the builder contract.
+Instead, its loop should be fixed by the sidecar:
+
+1. choose and audit the project root
+2. load `local_agent_bootstrap`
+3. run `project_setup audit` or `verify`
+4. produce a structured task list
+5. ask binary or multiple-choice questions for ambiguous or risky decisions
+6. call only allowlisted tools with schema-validated JSON arguments
+7. verify changed surfaces
+8. checkpoint through private Git
+9. journal and park
+
+Qwen coder-family models are the preferred planning/JSON generators. Qwen
+human-interface models are the preferred conversational response layer. Model
+names, endpoint, and timeouts should be configurable, with localhost Ollama as
+the first target.

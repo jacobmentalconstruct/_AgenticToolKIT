@@ -222,6 +222,21 @@ In plain language:
 - the agent chooses the right path
 - the docs make the result resumable
 
+## The Local-Agent Runway
+
+The current planning runway turns that relationship into a more capable local
+sidecar without skipping the safety layers:
+
+1. Safe Text Workspace Operations gives the agent bounded text/file primitives.
+2. Private Git Workspace Operations gives it an agent-owned checkpoint history.
+3. Local Sidecar Agent Runtime lets it plan and act through Ollama while using
+   only the guarded toolbox.
+
+This matters experientially because autonomy should arrive through smaller
+understandable moves, not by handing an agent a raw shell and hoping the prompt
+remembers every boundary. The human remains the source of intent and judgment;
+the sidecar supplies structure, evidence, checkpoints, and resumable state.
+
 ## Short Version
 
 The workflow works because the toolbox gives long-running collaboration five

@@ -15,7 +15,7 @@
         A copyable walkthrough for the universal toolbox. It gives humans and
         agents one clean way to understand the system, its trust boundaries,
         and the lived workflow before they start building, vendoring, or
-        hydrating packed authorities.
+        installing sidecars.
       </p>
       <div>
         <span class="pill">Open this file first</span>
@@ -49,9 +49,10 @@
           <h3>Inside the toolbox</h3>
           <ul>
             <li><code>src/tools/</code> builder tools that stay in the toolbox</li>
-            <li><code>authorities/</code> packed SQLite codices with managed runtime</li>
             <li><code>packages/</code> vendable subprojects copied into target apps</li>
             <li><code>templates/</code> vendable documents and starter surfaces</li>
+            <li><code>_v2-pod/</code> the container bridge around an installed sidecar</li>
+            <li><code>_docs/</code> continuity, northstars, and tranche parking</li>
           </ul>
         </div>
       </div>
@@ -73,8 +74,8 @@
           <h3>2. Work Inside Boundaries</h3>
           <p>
             Builder tools stay in the toolbox, vendable packages move into
-            projects, and packed authorities keep reference/runtime material
-            queryable without blurring trust boundaries.
+            projects, and sidecar/container surfaces keep local-agent work
+            inspectable without blurring trust boundaries.
           </p>
         </div>
         <div class="card">
@@ -142,7 +143,7 @@
         <div class="card">
           <h3>Toolbox README</h3>
           <span class="doc-id">README.md</span>
-          <p>The architecture overview and the clearest map of the four-surface toolbox.</p>
+          <p>The architecture overview and the clearest map of the sidecar toolbox.</p>
         </div>
         <div class="card">
           <h3>Toolbox Contract</h3>
@@ -165,15 +166,44 @@
           <p>The human-readable story of what changed in the toolbox and why.</p>
         </div>
         <div class="card">
+          <h3>Current State</h3>
+          <span class="doc-id">_docs/WE_ARE_HERE_NOW.md</span>
+          <p>The fast pickup surface for the active tranche, known warnings, and next best move.</p>
+        </div>
+        <div class="card">
+          <h3>Backlog</h3>
+          <span class="doc-id">_docs/TODO.md</span>
+          <p>The active task list and queued implementation runway.</p>
+        </div>
+        <div class="card">
+          <h3>Northstars</h3>
+          <span class="doc-id">_docs/NORTHSTARS.md</span>
+          <p>The capability closure record and the next local-agent horizons.</p>
+        </div>
+        <div class="card">
           <h3>Toolbox Manifest</h3>
           <span class="doc-id">toolbox_manifest.json</span>
-          <p>The zero-context map of tiers, packages, authorities, and inactive zones.</p>
+          <p>The zero-context map of tiers, packages, and active zones.</p>
         </div>
         <div class="card">
           <h3>Tool Manifest</h3>
           <span class="doc-id">tool_manifest.json</span>
           <p>The machine-readable index of the builder tool surface and its categories.</p>
         </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>The Current Local-Agent Runway</h2>
+      <p class="small">
+        The toolbox has closed the local-agent sys-ops layer. The next planned
+        phases add the safe action surfaces a local Ollama-backed sidecar agent
+        needs before it can work with less hand-holding.
+      </p>
+      <div class="flow">
+        <div class="step"><strong>Tranche 7:</strong> Safe Text Workspace Operations for bounded read, write, scaffold, validate, move, and quarantine delete.</div>
+        <div class="step"><strong>Tranche 8:</strong> Private Git Workspace Operations so the agent can checkpoint its own work without touching the user's main <code>.git</code> by default.</div>
+        <div class="step"><strong>Tranche 9:</strong> Local Sidecar Agent Runtime using Ollama and only the guarded toolbox surface.</div>
       </div>
     </section>
 
@@ -246,7 +276,7 @@
         are the practical next moves:
       </p>
       <pre>Windows: OPEN_ME_FIRST.bat
-Windows: run-ui.bat
+Windows: run.bat
 Python:  python src/mcp_server.py
 Python:  python src/smoke_test.py
 Python:  python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"

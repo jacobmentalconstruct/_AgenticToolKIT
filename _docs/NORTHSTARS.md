@@ -105,6 +105,47 @@ This layer is the bridge from "the local agent understands the workspace" to
 the substrate for a later Ollama-backed local agent loop using Qwen-class models
 for structured task JSON and human-facing responses.
 
+## Queued Northstar: Private Git Workspace Operations
+
+After Safe Text Workspace Operations, the sidecar agent needs a private save
+layer. The first version should not casually use the user's main project `.git`;
+it should keep an agent-owned gitdir under ignored runtime state while using the
+chosen project root as the worktree.
+
+The planned surface is `git_private_workspace`, a guarded Git wrapper with
+`status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`, and `push`.
+Mutating actions require `confirm: true`; commits require messages; push and
+pull require explicit private-remote configuration. The tool must exclude
+`.git/`, `.dev-tools/runtime/`, caches, and risky secret surfaces by default.
+
+This gives the future local agent a way to checkpoint and branch its own work
+before it becomes more independent, without handing it broad authority over the
+operator's real repository history.
+
+## Queued Northstar: Local Sidecar Agent Runtime
+
+The tranche after private Git should implement the first local sidecar agent.
+The target runtime is desktop-first and Ollama-backed, using the existing
+toolbox rather than inventing a parallel execution surface.
+
+The planned agent should:
+
+- call `local_agent_bootstrap` before planning
+- use only allowlisted toolbox tools
+- resolve all paths under the chosen project root
+- avoid raw terminal parity
+- use Qwen coder-family models for structured JSON/tool planning
+- use Qwen human-interface models for user-facing responses
+- validate model-produced tool calls against schemas
+- ask binary or multiple-choice questions when risk or ambiguity rises
+- require human confirmation before mutations, Git push/pull, delete,
+  dev-server lifecycle changes, Docker/Kubernetes side effects, or cleanup
+- checkpoint meaningful work through the private Git layer
+
+The important design move is to eliminate unnecessary inference. The agent loop
+should be scaffolded by contract: probe, audit, setup, plan, ask, act, verify,
+checkpoint, and park.
+
 ## Later Expansion
 
 These remain valuable, but they should follow the sys-ops layer rather than

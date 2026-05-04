@@ -266,6 +266,70 @@ not invent the builder-contract project shape; it should call `project_setup`
 for setup doctrine, then use Safe Text Workspace Operations for bounded
 text/file work inside the chosen root.
 
+### Loop 8: Save → Branch → Sync → Resume
+
+_The planned private-Git cycle. Use after Tranche 8 lands, when the sidecar
+agent needs its own checkpoint history without touching the user's main `.git`
+by default._
+
+```
+SAVE
+  git_private_workspace status  → see private repo state
+  git_private_workspace init    → create ignored private gitdir when confirmed
+  git_private_workspace add     → stage bounded pathspecs under project_root
+  git_private_workspace commit  → commit with an explicit message
+
+BRANCH
+  git_private_workspace branch  → list or create a named work branch
+  git_private_workspace checkout → switch private branches with confirmation
+
+SYNC
+  git_private_workspace pull    → pull only from configured private remotes
+  git_private_workspace push    → push only with confirmation
+
+RESUME
+  local_agent_bootstrap         → include private Git state in the next packet
+  journal_write                 → record the checkpoint purpose
+```
+
+The private Git layer is for agent checkpoints, not silent control of the
+operator's main repository. It should use ignored runtime state and explicit
+confirmation gates.
+
+### Loop 9: Bootstrap → Plan → Ask → Act → Checkpoint
+
+_The planned local sidecar agent cycle. Use after Tranche 9 lands, when an
+Ollama-backed agent is allowed to work through the guarded toolbox._
+
+```
+BOOTSTRAP
+  local_agent_bootstrap      → collect host, workspace, commands, constraints, and journal context
+  workspace_boundary_audit   → re-check project and write boundaries
+  project_setup audit        → remove scaffold inference from the model
+
+PLAN
+  local_sidecar_agent        → produce a structured task list through the configured model
+  text_file_reader           → gather only bounded file context
+
+ASK
+  binary/multiple choice     → resolve risk, ambiguity, or confirmation gates
+
+ACT
+  text_file_writer           → create or update text files
+  directory_scaffold         → create planned folder/file sets
+  dev_server_manager         → run only declared workflows when confirmed
+  docker_ops / k8s_ops       → use guarded operational wrappers only
+
+CHECKPOINT
+  text_file_validator        → validate changed text/code
+  smoke_test_runner          → run available verification
+  git_private_workspace      → commit the agent-owned checkpoint
+  journal_write              → park the session result
+```
+
+The local agent should not have a raw command channel. Its intelligence belongs
+in planning, asking, and choosing from the safe tool suite.
+
 ---
 
 ## Tool Selection Cheat Sheet

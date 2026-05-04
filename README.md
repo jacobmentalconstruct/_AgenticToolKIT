@@ -105,6 +105,18 @@ project root. This is the missing bridge between the sys-ops launch packet and
 an Ollama-backed local sidecar agent that can create and maintain text-based
 project files without raw filesystem or terminal parity.
 
+The queued local-agent implementation runway is now:
+
+1. **Tranche 7 — Safe Text Workspace Operations:** basic bounded text/file
+   tools for read, write, scaffold, validate, move, and quarantine delete.
+2. **Tranche 8 — Private Git Workspace Operations:** sidecar-owned Git
+   checkpoints using a private gitdir under ignored runtime state, with
+   init/add/commit/branch/pull/push wrappers that never touch the user's main
+   `.git` by default.
+3. **Tranche 9 — Local Sidecar Agent Runtime:** an Ollama-backed agent loop
+   that uses the guarded toolbox only, with Qwen-class models for structured
+   task JSON and human-facing responses.
+
 ### Tier 2: Vendable Packages (`packages/`)
 
 Self-contained subprojects that get **installed into** target projects. Each
@@ -222,6 +234,8 @@ python src/smoke_test.py
 | `_docs/SETUP_DOCTRINE.md` | Project setup-first doctrine for freshly armed agents |
 | `_docs/PARKING_WORKFLOW.md` | Practical tranche parking and handoff workflow |
 | `_docs/NORTHSTARS.md` | Release closure and active local-agent roadmap |
+| `_docs/TODO.md` | Active tranche tasks and queued implementation runway |
+| `_docs/WE_ARE_HERE_NOW.md` | Fast pickup state for the current tranche and next move |
 | `_docs/DEV_LOG.md` | Development history and change log |
 | `_docs/ARCHITECTURE.md` | Current sidecar architecture |
 | `LICENSE.md` | Source-available reference license |
