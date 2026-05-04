@@ -101,33 +101,35 @@ agent to infer the scaffold.
 | Quarantine delete | Move deleted targets into ignored runtime trash with a receipt instead of permanently deleting by default. | `file_delete_guarded` |
 
 This layer is the bridge from "the local agent understands the workspace" to
-"the local agent can create and maintain project text safely." It is now the
-substrate for the queued private Git layer and a later Ollama-backed local
-agent loop using Qwen-class models for structured task JSON and human-facing
-responses.
+"the local agent can create and maintain project text safely." It is now one
+substrate for the implemented private Git layer and the queued Ollama-backed
+local agent loop using Qwen-class models for structured task JSON and
+human-facing responses.
 
-## Active Northstar: Private Git Workspace Operations
+## Satisfied Northstar: Private Git Workspace Operations
 
-After Safe Text Workspace Operations, the sidecar agent needs a private save
-layer. Tranche 8 should not casually use the user's main project `.git`; it
-should keep an agent-owned gitdir under ignored runtime state while using the
-chosen project root as the worktree.
+Private Git Workspace Operations is now satisfied. Tranche 8 gives the sidecar
+agent a private save layer that does not casually use the user's main project
+`.git`; it keeps an agent-owned gitdir under ignored runtime state while using
+the chosen project root as the worktree.
 
-The planned surface is `git_private_workspace`, a guarded Git wrapper with
+The implemented surface is `git_private_workspace`, a guarded Git wrapper with
 `status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`, and `push`.
 Mutating actions require `confirm: true`; commits require messages; push and
-pull require explicit private-remote configuration. The tool must exclude
-`.git/`, `.dev-tools/runtime/`, caches, and risky secret surfaces by default.
+pull require explicit private-remote configuration. The tool excludes `.git/`,
+`.dev-tools/runtime/`, caches, and risky secret surfaces by default, and blocks
+`remote_name=origin` unless explicitly allowed.
 
 This gives the future local agent a way to checkpoint and branch its own work
 before it becomes more independent, without handing it broad authority over the
-operator's real repository history.
+operator's real repository history. `local_agent_bootstrap` now includes private
+Git status so the next agent launch packet can see checkpoint state.
 
-## Queued Northstar: Local Sidecar Agent Runtime
+## Active Northstar: Local Sidecar Agent Runtime
 
-The tranche after private Git should implement the first local sidecar agent.
-The target runtime is desktop-first and Ollama-backed, using the existing
-toolbox rather than inventing a parallel execution surface.
+The next tranche should implement the first local sidecar agent. The target
+runtime is desktop-first and Ollama-backed, using the existing toolbox rather
+than inventing a parallel execution surface.
 
 The planned agent should:
 

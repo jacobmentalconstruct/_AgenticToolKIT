@@ -224,6 +224,12 @@
       "category": "editing"
     },
     {
+      "tool_name": "git_private_workspace",
+      "script": "src/tools/git_private_workspace.py",
+      "mcp_name": "git_private_workspace",
+      "category": "version-control"
+    },
+    {
       "tool_name": "module_decomp_planner",
       "script": "src/tools/module_decomp_planner.py",
       "mcp_name": "module_decomp_planner",

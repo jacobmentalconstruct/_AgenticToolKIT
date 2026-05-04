@@ -95,7 +95,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 44 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 45 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
@@ -105,21 +105,29 @@ processes/ports, dependency readiness, dev servers, Docker/Kubernetes surfaces,
 secrets, runtime artifacts, and emit a bootstrap packet without adding raw
 unrestricted terminal parity. See `_docs/NORTHSTARS.md` for closure details.
 
-**Safe Text Workspace Operations is now implemented.** The toolbox has bounded
+**Safe Text Workspace Operations is implemented.** The toolbox has bounded
 text read/write/scaffold/validate/move/quarantine-delete primitives under a
 chosen project root. This closes the bridge between the sys-ops launch packet
 and an Ollama-backed local sidecar agent that can create and maintain
 text-based project files without raw filesystem or terminal parity.
 
+**Private Git Workspace Operations is now implemented.** `git_private_workspace`
+gives a future sidecar agent a private checkpoint layer with guarded
+`status`/`init`/`add`/`commit`/`branch`/`checkout`/`pull`/`push` actions. It
+stores the agent-owned gitdir under ignored `.dev-tools/runtime/private_git/`,
+uses the chosen project root as the worktree, requires confirmation for
+mutations, blocks risky pathspecs, and does not create or mutate the user's main
+project `.git` by default.
+
 The queued local-agent implementation runway is now:
 
 1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
    tools for read, write, scaffold, validate, move, and quarantine delete.
-2. **Tranche 8 — Private Git Workspace Operations:** next; sidecar-owned Git
+2. **Tranche 8 — Private Git Workspace Operations:** complete; sidecar-owned Git
    checkpoints using a private gitdir under ignored runtime state, with
-   init/add/commit/branch/pull/push wrappers that never touch the user's main
-   `.git` by default.
-3. **Tranche 9 — Local Sidecar Agent Runtime:** an Ollama-backed agent loop
+   init/add/commit/branch/checkout/pull/push wrappers that never touch the
+   user's main `.git` by default.
+3. **Tranche 9 — Local Sidecar Agent Runtime:** next; an Ollama-backed agent loop
    that uses the guarded toolbox only, with Qwen-class models for structured
    task JSON and human-facing responses.
 

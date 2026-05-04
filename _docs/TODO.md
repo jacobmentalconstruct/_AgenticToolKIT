@@ -14,48 +14,78 @@ _Last updated: 2026-05-04._
   orchestration, and an onboarding-site integrity check.
 - The prototype northstars are collapsed into current release truth; deferred
   expansion is intentionally out of scope for this release candidate.
-- The local-agent sys-ops northstar and Safe Text Workspace Operations are
-  closed. The active source horizon is Private Git Workspace Operations:
-  sidecar-owned checkpoints for a desktop-first local agent.
+- The local-agent sys-ops northstar, Safe Text Workspace Operations, and
+  Private Git Workspace Operations are closed. The active source horizon is now
+  Tranche 9: a desktop-first Ollama-backed local sidecar agent that acts only
+  through the guarded toolbox.
 
 ---
 
 ## Current state
 
-**Tranche 7 complete. Tranche 8 is next: Private Git Workspace Operations.**
+**Tranche 8 complete. Tranche 9 is next: Local Sidecar Agent Runtime.**
 
-Tranche 7 implemented Safe Text Workspace Operations: a local agent can now
-read, create, scaffold, validate, move, and quarantine-delete text project
-files under a user-chosen project root through guarded MCP-visible tools.
+Tranche 8 implemented Private Git Workspace Operations: a local agent can now
+create an agent-owned private Git history under ignored runtime state, stage
+bounded project-root pathspecs, commit with explicit messages, branch, checkout,
+and push/pull only against explicitly configured private remotes.
 
 `project_setup` remains the builder-contract scaffold authority. The next
-missing layer is private Git checkpointing so the sidecar agent can save,
-branch, push, and pull its own work without taking over the user's main `.git`
-by default.
+missing layer is the sidecar agent runtime itself: a fixed, schema-validated,
+Ollama-backed loop that uses the sys-ops, safe text, and private Git layers
+without raw terminal or unrestricted filesystem parity.
 
 ### Active tasks
 
-- [ ] Add `git_private_workspace`.
-- [ ] Support `status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`,
+- [ ] Add a stdlib-first local sidecar agent entrypoint.
+- [ ] Use Ollama over localhost HTTP with configurable model names, endpoint,
+      and timeouts.
+- [ ] Prefer Qwen coder-family models for structured JSON/tool-call planning
+      and Qwen human-interface models for user-facing responses.
+- [ ] Load `local_agent_bootstrap` before planning.
+- [ ] Use only allowlisted toolbox tools; do not expose raw shell execution.
+- [ ] Resolve all paths under the chosen `project_root`.
+- [ ] Use a fixed loop: probe, audit, setup, plan, ask, act, verify,
+      checkpoint, park.
+- [ ] Validate model-produced tool calls against schemas before execution.
+- [ ] Use binary or multiple-choice human prompts for high-risk or ambiguous
+      steps.
+- [ ] Require human confirmation before mutating tools, private Git push/pull,
+      delete/quarantine, dev-server lifecycle changes, Docker/Kubernetes side
+      effects, or broad cleanup.
+- [ ] Store session state under ignored `.dev-tools/runtime/local_agent/`.
+- [ ] Add mock-Ollama and temp-project smoke coverage proving the agent can
+      plan, call safe text tools, validate output, checkpoint through private
+      Git, and stop for human approval when required.
+- [ ] Update README, agent guide, architecture, northstars, TODO, onboarding,
+      and dev log.
+- [ ] Write/export the Tranche 9 journal entry and commit the tranche.
+
+### Previous source tranche (parked): Tranche 8 Private Git Workspace Operations
+
+- [x] Add `git_private_workspace`.
+- [x] Support `status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`,
       and `push`.
-- [ ] Store the private gitdir under ignored
+- [x] Store the private gitdir under ignored
       `.dev-tools/runtime/private_git/` and use the chosen `project_root` as
       the worktree.
-- [ ] Refuse to operate outside `project_root`.
-- [ ] Exclude `.git/`, `.dev-tools/runtime/`, obvious caches, and risky secret
+- [x] Refuse to operate outside `project_root`.
+- [x] Exclude `.git/`, `.dev-tools/runtime/`, obvious caches, and risky secret
       surfaces by default.
-- [ ] Require `confirm: true` for every mutating action.
-- [ ] Require a non-empty commit message for commits.
-- [ ] Require explicit private-remote configuration before push or pull.
-- [ ] Never push to the user's existing `origin` unless a future maintenance
-      mode explicitly opts into that behavior.
-- [ ] Add temp-fixture smoke coverage proving private init/add/commit/branch
+- [x] Require `confirm: true` for every mutating action.
+- [x] Require a non-empty commit message for commits.
+- [x] Require explicit private-remote configuration before push or pull.
+- [x] Block `remote_name=origin` unless explicitly allowed.
+- [x] Add temp-fixture smoke coverage proving private init/add/commit/branch
       does not create or mutate a project-root `.git`.
-- [ ] Add local-bare-remote smoke coverage for push/pull without network.
-- [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
-- [ ] Write a Tranche 8 journal entry and export the journal for operator
+- [x] Add local-bare-remote smoke coverage for push/pull without network.
+- [x] Register the tool in `tool_manifest.json` and `src/mcp_server.py`.
+- [x] Extend `local_agent_bootstrap` to include private Git status in launch
+      packets.
+- [x] Update README, agent guide, architecture, northstars, TODO, and dev log.
+- [x] Write a Tranche 8 journal entry and export the journal for operator
       visibility.
-- [ ] Run final verification and commit the implementation tranche.
+- [x] Run final verification and commit the implementation tranche.
 
 ### Previous source tranche (parked): Tranche 7 Safe Text Workspace Operations
 
@@ -111,30 +141,30 @@ Purpose: give the sidecar agent a private Git checkpoint layer before it becomes
 autonomous. The agent should be able to save, branch, push, and pull its own
 work without casually mutating the user's main project `.git`.
 
-Planned tool surface:
+Satisfied tool surface:
 
-- [ ] Add `git_private_workspace`.
-- [ ] Support `status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`,
+- [x] Add `git_private_workspace`.
+- [x] Support `status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`,
       and `push`.
-- [ ] Store the private gitdir under ignored
+- [x] Store the private gitdir under ignored
       `.dev-tools/runtime/private_git/` and use the chosen `project_root` as
       the worktree.
-- [ ] Refuse to operate outside `project_root`.
-- [ ] Exclude `.git/`, `.dev-tools/runtime/`, obvious caches, and risky secret
+- [x] Refuse to operate outside `project_root`.
+- [x] Exclude `.git/`, `.dev-tools/runtime/`, obvious caches, and risky secret
       surfaces by default.
-- [ ] Require `confirm: true` for every mutating action.
-- [ ] Require a non-empty commit message for commits.
-- [ ] Require explicit private-remote configuration before push or pull.
-- [ ] Never push to the user's existing `origin` unless a future maintenance
+- [x] Require `confirm: true` for every mutating action.
+- [x] Require a non-empty commit message for commits.
+- [x] Require explicit private-remote configuration before push or pull.
+- [x] Never push to the user's existing `origin` unless a future maintenance
       mode explicitly opts into that behavior.
-- [ ] Add temp-fixture smoke coverage proving private init/add/commit/branch
+- [x] Add temp-fixture smoke coverage proving private init/add/commit/branch
       does not create or mutate a project-root `.git`.
-- [ ] Add local-bare-remote smoke coverage for push/pull without network.
-- [ ] Update README, agent guide, architecture, northstars, TODO, onboarding,
+- [x] Add local-bare-remote smoke coverage for push/pull without network.
+- [x] Update README, agent guide, architecture, northstars, TODO, onboarding,
       and dev log.
-- [ ] Write/export the Tranche 8 journal entry and commit the tranche.
+- [x] Write/export the Tranche 8 journal entry and commit the tranche.
 
-### Queued Tranche 9: Local Sidecar Agent Runtime
+### Active Tranche 9: Local Sidecar Agent Runtime
 
 Purpose: implement the first local desktop sidecar agent after it has the
 operating envelope, safe file primitives, and private Git checkpoints it needs.

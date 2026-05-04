@@ -29,11 +29,11 @@ surfaces are not part of the current architecture.
 The toolbox should remain project-agnostic and should not depend on sibling
 folders, old project roots, generated caches, or hidden runtime state.
 
-The local-agent system operations layer is closed, and the Safe Text Workspace
-Operations layer is implemented. The next source-shaped architecture layer is
-Private Git Workspace Operations: a sidecar-owned checkpoint surface that lets
-a local agent save and branch work without taking ownership of the user's main
-project `.git` by default.
+The local-agent system operations layer, Safe Text Workspace Operations layer,
+and Private Git Workspace Operations layer are implemented. The next
+source-shaped architecture layer is Local Sidecar Agent Runtime: an
+Ollama-backed loop that uses the guarded toolbox, checkpoints through private
+Git, and avoids raw shell or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -104,17 +104,18 @@ been audited or applied.
 
 ## Private Git Workspace Operations
 
-Tranche 8 is the active next private checkpoint layer for a future sidecar agent.
-It should use Git without taking ownership of the user's existing project
-repository. The planned shape is a `git_private_workspace` wrapper that stores
-an agent-owned gitdir under ignored `.dev-tools/runtime/private_git/` while
-using the chosen `project_root` as the worktree.
+Tranche 8 implements the private checkpoint layer for a future sidecar agent. It
+uses Git without taking ownership of the user's existing project repository.
+The implemented shape is a `git_private_workspace` wrapper that stores an
+agent-owned gitdir under ignored `.dev-tools/runtime/private_git/` while using
+the chosen `project_root` as the worktree.
 
-The tool should expose guarded actions for `status`, `init`, `add`, `commit`,
+The tool exposes guarded actions for `status`, `init`, `add`, `commit`,
 `branch`, `checkout`, `pull`, and `push`. Mutating actions require
 `confirm: true`; commit requires a message; pull/push require an explicitly
 configured private remote. The wrapper must exclude `.git/`,
-`.dev-tools/runtime/`, generated caches, and risky secret surfaces by default.
+`.dev-tools/runtime/`, generated caches, and risky secret surfaces by default,
+and it blocks `origin` unless explicitly allowed.
 
 This makes Git available as an agent checkpoint mechanism before the local
 agent becomes more autonomous, while keeping the operator's primary repository
@@ -122,7 +123,7 @@ history out of the default blast radius.
 
 ## Local Sidecar Agent Runtime
 
-Tranche 9 is queued as the first real local desktop agent runtime. It should be
+Tranche 9 is the next real local desktop agent runtime. It should be
 Ollama-backed and stdlib-first, using the toolbox's own MCP-visible tools and
 CLI contracts as its action surface.
 

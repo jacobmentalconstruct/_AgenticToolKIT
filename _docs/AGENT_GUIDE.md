@@ -268,9 +268,8 @@ text/file work inside the chosen root.
 
 ### Loop 8: Save → Branch → Sync → Resume
 
-_The planned private-Git cycle. Use after Tranche 8 lands, when the sidecar
-agent needs its own checkpoint history without touching the user's main `.git`
-by default._
+_The implemented private-Git cycle. Use when the sidecar agent needs its own
+checkpoint history without touching the user's main `.git` by default._
 
 ```
 SAVE
@@ -293,8 +292,8 @@ RESUME
 ```
 
 The private Git layer is for agent checkpoints, not silent control of the
-operator's main repository. It should use ignored runtime state and explicit
-confirmation gates.
+operator's main repository. It uses ignored runtime state, explicit
+confirmation gates, and blocks `origin` unless explicitly allowed.
 
 ### Loop 9: Bootstrap → Plan → Ask → Act → Checkpoint
 

@@ -160,6 +160,11 @@ except ImportError:
     FILE_DELETE_GUARDED_METADATA, run_file_delete_guarded = None, None
 
 try:
+    from tools.git_private_workspace import FILE_METADATA as GIT_PRIVATE_WORKSPACE_METADATA, run as run_git_private_workspace
+except ImportError:
+    GIT_PRIVATE_WORKSPACE_METADATA, run_git_private_workspace = None, None
+
+try:
     from tools.module_decomp_planner import FILE_METADATA as MODULE_DECOMP_METADATA, run as run_module_decomp_planner
 except ImportError:
     MODULE_DECOMP_METADATA, run_module_decomp_planner = None, None
@@ -260,6 +265,7 @@ for meta, runner in [
     (TEXT_FILE_VALIDATOR_METADATA, run_text_file_validator),
     (FILE_MOVE_GUARDED_METADATA, run_file_move_guarded),
     (FILE_DELETE_GUARDED_METADATA, run_file_delete_guarded),
+    (GIT_PRIVATE_WORKSPACE_METADATA, run_git_private_workspace),
     (MODULE_DECOMP_METADATA, run_module_decomp_planner),
     (TOKENIZING_PATCHER_METADATA, run_tokenizing_patcher),
     (DOMAIN_BOUNDARY_METADATA, run_domain_boundary_audit),

@@ -1111,6 +1111,172 @@ def test_safe_text_workspace_operations() -> None:
         _ok("tracked-file protection fixture skipped because git is unavailable")
 
 
+def test_git_private_workspace() -> None:
+    print("\n── Tranche 8: Private Git Workspace ──")
+
+    git_available = subprocess.run(
+        ["git", "--version"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).returncode == 0
+    if not git_available:
+        _ok("git_private_workspace fixture skipped because git is unavailable")
+        return
+
+    target_root = Path(tempfile.mkdtemp(prefix="private_git_workspace_"))
+    (target_root / "README.md").write_text("# Private checkpoint\n", encoding="utf-8")
+
+    status = _tool("git_private_workspace", {"project_root": str(target_root), "action": "status"})
+    if status["status"] == "ok" and not status["result"]["initialized"]:
+        _ok("git_private_workspace reports uninitialized private state")
+    else:
+        _fail("git_private_workspace initial status", str(status))
+
+    init_denied = _tool("git_private_workspace", {"project_root": str(target_root), "action": "init"})
+    if init_denied["status"] == "error":
+        _ok("git_private_workspace init requires confirmation")
+    else:
+        _fail("git_private_workspace init confirmation", str(init_denied))
+
+    init = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "init",
+        "confirm": True,
+    })
+    private_gitdir = target_root / ".dev-tools" / "runtime" / "private_git" / "repo.git"
+    if init["status"] == "ok" and private_gitdir.exists() and not (target_root / ".git").exists():
+        _ok("git_private_workspace initializes sidecar gitdir without project .git")
+    else:
+        _fail("git_private_workspace init", str(init))
+
+    add_denied = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "add",
+        "paths": ["README.md"],
+    })
+    if add_denied["status"] == "error":
+        _ok("git_private_workspace add requires confirmation")
+    else:
+        _fail("git_private_workspace add confirmation", str(add_denied))
+
+    outside_add = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "add",
+        "paths": ["../escape.txt"],
+        "confirm": True,
+    })
+    if outside_add["status"] == "error":
+        _ok("git_private_workspace rejects outside-root pathspecs")
+    else:
+        _fail("git_private_workspace outside-root guard", str(outside_add))
+
+    (target_root / ".env").write_text("TOKEN=secret\n", encoding="utf-8")
+    risky_add = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "add",
+        "paths": [".env"],
+        "confirm": True,
+    })
+    if risky_add["status"] == "error":
+        _ok("git_private_workspace blocks risky secret pathspecs")
+    else:
+        _fail("git_private_workspace risky path guard", str(risky_add))
+
+    add = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "add",
+        "paths": ["README.md"],
+        "confirm": True,
+    })
+    if add["status"] == "ok":
+        _ok("git_private_workspace stages selected files")
+    else:
+        _fail("git_private_workspace add", str(add))
+
+    commit_denied = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "commit",
+        "confirm": True,
+    })
+    if commit_denied["status"] == "error":
+        _ok("git_private_workspace requires non-empty commit messages")
+    else:
+        _fail("git_private_workspace commit message guard", str(commit_denied))
+
+    commit = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "commit",
+        "message": "Initial private checkpoint",
+        "confirm": True,
+    })
+    if commit["status"] == "ok":
+        _ok("git_private_workspace commits private checkpoint")
+    else:
+        _fail("git_private_workspace commit", str(commit))
+
+    branch_denied = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "branch",
+        "branch": "agent-work",
+        "create": True,
+    })
+    if branch_denied["status"] == "error":
+        _ok("git_private_workspace branch creation requires confirmation")
+    else:
+        _fail("git_private_workspace branch confirmation", str(branch_denied))
+
+    branch = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "branch",
+        "branch": "agent-work",
+        "create": True,
+        "confirm": True,
+    })
+    checkout = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "checkout",
+        "branch": "agent-work",
+        "confirm": True,
+    })
+    if branch["status"] == "ok" and checkout["status"] == "ok" and checkout["result"]["status"]["branch"] == "agent-work":
+        _ok("git_private_workspace creates and checks out private branch")
+    else:
+        _fail("git_private_workspace branch/checkout", f"{branch} {checkout}")
+
+    remote_root = target_root.parent / f"{target_root.name}_remote.git"
+    subprocess.run(["git", "init", "--bare", str(remote_root)], capture_output=True, text=True, timeout=10)
+
+    push_denied = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "push",
+        "branch": "agent-work",
+        "remote_url": str(remote_root),
+    })
+    if push_denied["status"] == "error":
+        _ok("git_private_workspace push requires confirmation")
+    else:
+        _fail("git_private_workspace push confirmation", str(push_denied))
+
+    push = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "push",
+        "branch": "agent-work",
+        "remote_url": str(remote_root),
+        "confirm": True,
+    })
+    pull = _tool("git_private_workspace", {
+        "project_root": str(target_root),
+        "action": "pull",
+        "branch": "agent-work",
+        "confirm": True,
+    })
+    if push["status"] == "ok" and pull["status"] == "ok" and not (target_root / ".git").exists():
+        _ok("git_private_workspace pushes and pulls against explicit local private remote")
+    else:
+        _fail("git_private_workspace push/pull", f"{push} {pull}")
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -1154,6 +1320,7 @@ def test_mcp(project_root: Path) -> None:
             "local_agent_bootstrap",
             "text_file_reader", "text_file_writer", "directory_scaffold",
             "text_file_validator", "file_move_guarded", "file_delete_guarded",
+            "git_private_workspace",
         }
         found = set(tool_names)
         if expected_tools.issubset(found):
@@ -1206,6 +1373,7 @@ def main() -> int:
     test_repo_search()
     test_sys_ops_introspection()
     test_safe_text_workspace_operations()
+    test_git_private_workspace()
     test_mcp(project_root)
 
     print(f"\n═══ Results: {PASS} passed, {FAIL} failed ═══")

@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-04 (Tranche 7 Safe Text Workspace Operations implemented)
+- 2026-05-04 (Tranche 8 Private Git Workspace Operations implemented)
 
 ## Fresh-thread start
 
@@ -21,21 +21,22 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - root prototype parked (strangler complete); `_v2-pod/` carries the
     Kubernetes-wrapped bridge; local-agent sys-ops tooling is closed through
     Tranche 6; Tranche 7 Safe Text Workspace Operations is implemented;
-    Tranche 8 Private Git Workspace Operations is next
+    Tranche 8 Private Git Workspace Operations is implemented; Tranche 9
+    Local Sidecar Agent Runtime is next
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
   - the journal UI lives only inside the vendable `_app-journal` package; the
     toolbox root no longer pretends to be the original journal package
   - sidecar install, setup orchestration, and onboarding-site verification are
-    live builder-tool surfaces; the root smoke suite is current at 79 tests as
-    of Tranche 7 closeout
+    live builder-tool surfaces; the root smoke suite is current at 92 tests as
+    of Tranche 8 closeout
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
 - Current collaboration truth:
   - the prototype is parkable: human installs via the GUI, agent takes over
     inside the target project from `project_setup` onward; the next useful
-    expansion is private Git checkpointing for a local or podded agent
+    expansion is the local sidecar agent runtime
 
 ## What works right now
 
@@ -76,9 +77,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Tranche 7 added Safe Text Workspace Operations: `text_file_reader`,
   `text_file_writer`, `directory_scaffold`, `text_file_validator`,
   `file_move_guarded`, and `file_delete_guarded`. MCP now lists 44 tools.
-- Tranche 8 is queued as Private Git Workspace Operations: a sidecar-owned Git
-  checkpoint layer using ignored runtime state instead of the user's main
-  `.git` by default.
+- Tranche 8 added Private Git Workspace Operations: `git_private_workspace`, a
+  sidecar-owned Git checkpoint layer using ignored runtime state instead of the
+  user's main `.git` by default. MCP now lists 45 tools.
 - Tranche 9 is queued as Local Sidecar Agent Runtime: an Ollama-backed agent
   loop that acts only through the guarded toolbox and checkpoints through the
   private Git layer.
@@ -87,14 +88,14 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 - No internal root bottleneck. Remaining container work is operational:
   live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
-- The active source-shaped bottleneck is private checkpointing: a local agent
-  can now inspect, operate, and safely touch text files, but it does not yet
-  have an agent-owned Git save/branch/sync layer.
+- The active source-shaped bottleneck is the agent runtime itself: the toolbox
+  can now inspect, operate, touch text files, and checkpoint privately, but it
+  does not yet have the Ollama-backed loop that plans, asks, acts, verifies,
+  checkpoints, and parks through those tools.
 
 ## Next best move
 
-- Implement Tranche 8 private Git operations, then Tranche 9 local sidecar
-  agent runtime.
+- Implement Tranche 9 local sidecar agent runtime.
 
 ## Current warnings
 

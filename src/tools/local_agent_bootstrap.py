@@ -21,6 +21,7 @@ from typing import Any
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common import ensure_dir, standard_main, tool_error, tool_result, write_json
 from tools.dependency_env_check import run as run_dependency_env_check
+from tools.git_private_workspace import run as run_git_private_workspace
 from tools.host_capability_probe import run as run_host_capability_probe
 from tools.journal_query import run as run_journal_query
 from tools.project_command_profile import run as run_project_command_profile
@@ -61,6 +62,7 @@ SYS_OPS_TOOLS = [
     "secret_surface_audit",
     "runtime_artifact_cleaner",
     "local_agent_bootstrap",
+    "git_private_workspace",
 ]
 
 CONSTRAINT_DOCS = [
@@ -180,6 +182,17 @@ def _packet_to_markdown(packet: dict[str, Any]) -> str:
             lines.append(f"- {warning}")
     else:
         lines.append("- No dependency readiness warnings reported.")
+    lines.extend(["", "## Private Git", ""])
+    private_git = packet.get("private_git", {}).get("result", {})
+    if private_git:
+        lines.append(f"- Initialized: `{private_git.get('initialized')}`")
+        lines.append(f"- Branch: `{private_git.get('branch', '')}`")
+        lines.append(f"- Project .git exists: `{private_git.get('project_git_exists')}`")
+        paths = private_git.get("private_paths", {})
+        if paths.get("gitdir"):
+            lines.append(f"- Private gitdir: `{paths.get('gitdir')}`")
+    else:
+        lines.append("- Private Git status unavailable.")
     lines.extend(["", "## Latest Journal Entries", ""])
     entries = packet["journal"].get("result", {}).get("entries", [])
     if entries:
@@ -225,6 +238,7 @@ def run(arguments: dict) -> dict:
         "workspace": _safe_tool_call("workspace_boundary_audit", run_workspace_boundary_audit, {"project_root": str(project_root), "max_depth": 3}),
         "command_profile": _safe_tool_call("project_command_profile", run_project_command_profile, {"project_root": str(project_root)}),
         "dependency_check": _safe_tool_call("dependency_env_check", run_dependency_env_check, {"project_root": str(project_root), "timeout_seconds": timeout}),
+        "private_git": _safe_tool_call("git_private_workspace", run_git_private_workspace, {"project_root": str(project_root), "action": "status", "timeout_seconds": timeout}),
         "journal": _journal_entries(project_root, journal_limit),
         "constraints": [_read_excerpt(project_root, rel) for rel in CONSTRAINT_DOCS],
         "operating_envelope": [
@@ -234,6 +248,7 @@ def run(arguments: dict) -> dict:
             "Docker tag/push and Kubernetes live apply require explicit confirmation.",
             "Audit secret surfaces before packaging, pushing, or exporting.",
             "Use runtime_artifact_cleaner dry-run before deleting generated artifacts.",
+            "Use git_private_workspace for agent checkpoints; do not use the user's origin by default.",
             "Write optional bootstrap exports only under ignored runtime paths.",
         ],
     }

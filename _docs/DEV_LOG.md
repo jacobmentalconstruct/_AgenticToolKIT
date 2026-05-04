@@ -1108,6 +1108,56 @@ Current read: Tranche 7 is complete. Tranche 8 should implement
 
 ---
 
+## 2026-05-04 — Tranche 8 Private Git Workspace Operations implementation
+
+- Added `git_private_workspace`, a guarded sidecar-owned Git wrapper with
+  `status`, `init`, `add`, `commit`, `branch`, `checkout`, `pull`, and `push`
+  actions.
+- The private Git workspace stores its gitdir under ignored
+  `.dev-tools/runtime/private_git/` while using the chosen project root as the
+  worktree.
+- Mutating actions require `confirm: true`; commits require a non-empty
+  message; push/pull require explicit private-remote configuration; `origin`
+  is blocked unless explicitly allowed.
+- Pathspecs resolve under the chosen project root and reject outside-root
+  escapes, `.git/`, `.dev-tools/runtime/`, and risky secret surfaces such as
+  `.env`, key, certificate, and credential files.
+- Registered `git_private_workspace` in `tool_manifest.json` and
+  `src/mcp_server.py`.
+- Extended `local_agent_bootstrap` so launch packets include private Git status
+  and the operating envelope names private checkpointing.
+- Extended `src/smoke_test.py` with Tranche 8 fixtures covering confirmation
+  gates, sidecar gitdir initialization, no project-root `.git` creation,
+  outside-root rejection, risky path rejection, add/commit, branch/checkout,
+  and local-bare-remote push/pull without network.
+- Updated README, agent guide, architecture, northstars, TODO,
+  WE_ARE_HERE_NOW, and onboarding pages so Tranche 8 is satisfied and Tranche 9
+  Local Sidecar Agent Runtime is the active horizon.
+
+Validation:
+
+- `python src/smoke_test.py` -> 92/92 pass; MCP lists 45 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` -> 5/5
+  suites passed, including `_ollama-prompt-lab`.
+
+Classification: spiral.
+
+- Capability increased: a future local agent can now save, branch, and sync its
+  own checkpoints without taking over the operator's main repository by
+  default.
+- Uncertainty decreased: smoke fixtures prove the sidecar Git path does not
+  create a project-root `.git`, blocks risky pathspecs, and can push/pull
+  against an explicit local bare remote.
+- Boundary clarified: private Git is an agent checkpoint layer, not raw Git
+  terminal parity and not silent use of the user's `origin`.
+
+Current read: Tranche 8 is complete. Tranche 9 should implement the
+Ollama-backed local sidecar agent runtime on top of sys-ops, safe text, and
+private Git tools.
+
+---
+
 ## Template for future entries
 
 - Files changed:
