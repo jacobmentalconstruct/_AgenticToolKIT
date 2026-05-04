@@ -27,7 +27,7 @@ If you want the friendliest onboarding path from a copied folder, open:
 | Wanting the lived workflow behind the mechanics | `_docs/EXPERIENTIAL_WORKFLOW.md` |
 | Wanting the setup-first doctrine for new projects | `_docs/SETUP_DOCTRINE.md` |
 | Wanting the tranche closeout and handoff regimen | `_docs/PARKING_WORKFLOW.md` |
-| Wanting the remaining northstars and local-agent ops roadmap | `_docs/NORTHSTARS.md` |
+| Wanting the remaining northstars and active local-agent roadmap | `_docs/NORTHSTARS.md` |
 | Looking for the dev history | `_docs/DEV_LOG.md` |
 
 ---
@@ -98,6 +98,12 @@ can inspect host capabilities, workspace boundaries, declared project commands,
 processes/ports, dependency readiness, dev servers, Docker/Kubernetes surfaces,
 secrets, runtime artifacts, and emit a bootstrap packet without adding raw
 unrestricted terminal parity. See `_docs/NORTHSTARS.md` for closure details.
+
+The active next horizon is **Safe Text Workspace Operations**: bounded text
+read/write/scaffold/validate/move/quarantine-delete primitives under a chosen
+project root. This is the missing bridge between the sys-ops launch packet and
+an Ollama-backed local sidecar agent that can create and maintain text-based
+project files without raw filesystem or terminal parity.
 
 ### Tier 2: Vendable Packages (`packages/`)
 
@@ -215,7 +221,7 @@ python src/smoke_test.py
 | `_docs/EXPERIENTIAL_WORKFLOW.md` | Human-agent workflow rhythm and onboarding doctrine |
 | `_docs/SETUP_DOCTRINE.md` | Project setup-first doctrine for freshly armed agents |
 | `_docs/PARKING_WORKFLOW.md` | Practical tranche parking and handoff workflow |
-| `_docs/NORTHSTARS.md` | Release closure and local-agent sys-ops roadmap |
+| `_docs/NORTHSTARS.md` | Release closure and active local-agent roadmap |
 | `_docs/DEV_LOG.md` | Development history and change log |
 | `_docs/ARCHITECTURE.md` | Current sidecar architecture |
 | `LICENSE.md` | Source-available reference license |

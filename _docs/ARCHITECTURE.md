@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 2026-04-30._
+_Last updated: 2026-05-04._
 
 `.dev-tools` is a self-contained sidecar toolbox. Its job is to help a human
 install the toolbox into a project and help a builder agent orient, set up,
@@ -29,11 +29,10 @@ surfaces are not part of the current architecture.
 The toolbox should remain project-agnostic and should not depend on sibling
 folders, old project roots, generated caches, or hidden runtime state.
 
-The next source-shaped architecture layer is local-agent system operations:
-small MCP-visible wrappers that expose host/project operational truth without
-giving an agent raw unrestricted terminal parity. These tools should prefer
-structured read-only inspection first, then guarded mutations through declared
-command profiles and explicit confirmations.
+The local-agent system operations layer is now closed. The next source-shaped
+architecture layer is Safe Text Workspace Operations: small MCP-visible file
+primitives that let a local agent create and maintain text project assets under
+a user-chosen project root without raw filesystem or terminal parity.
 
 ## Agent Flow
 
@@ -77,3 +76,27 @@ The sys-ops layer now closes the local-agent northstar in stages:
    dependency, journal, tool-manifest, and constraint-doc context, returning
    the packet by default and writing only to ignored runtime exports when
    requested.
+
+## Safe Text Workspace Operations
+
+Tranche 7 is the planned bridge between sys-ops bootstrap and a future
+Ollama-backed local agent runtime. The agent can already learn where it is,
+which commands exist, and which operational boundaries apply. It still needs a
+bounded way to touch text files.
+
+The planned layer should add:
+
+- `text_file_reader` for bounded reads under `project_root`.
+- `text_file_writer` for confirmed create/overwrite/append operations.
+- `directory_scaffold` for declarative folder/file creation, dry-run first.
+- `text_file_validator` for stdlib validation of Python, JSON, TOML, and basic
+  text-like surfaces.
+- `file_move_guarded` for confirmed move/rename operations with tracked-file
+  protection.
+- `file_delete_guarded` for quarantine delete under ignored
+  `.dev-tools/runtime/trash/` with receipts.
+
+`project_setup` remains the authority for the builder-contract scaffold. Safe
+Text Workspace Operations should not reinvent setup doctrine; it should give
+the later local agent the basic text/file hand tools needed after setup has
+been audited or applied.

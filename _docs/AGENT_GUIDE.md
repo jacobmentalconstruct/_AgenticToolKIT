@@ -230,6 +230,42 @@ Use `local_agent_bootstrap` when a local or podded agent needs a compact launch
 packet. It returns JSON or Markdown by default; optional writes go only under
 ignored `.dev-tools/runtime/local_agent_bootstrap/`.
 
+### Loop 7: Root → Setup → File Ops → Validate → Park
+
+_The planned local-agent file-operations cycle. Use after Tranche 7 lands, when
+an agent needs to create or maintain text-based project files safely._
+
+```
+ROOT
+  workspace_boundary_audit   → confirm project root, sidecar root, git root, and unsafe targets
+  local_agent_bootstrap      → load the safe operating packet for the chosen root
+
+SETUP
+  project_setup audit        → see whether required builder-contract scaffold exists
+  project_setup apply        → create required setup surfaces when explicitly requested
+  project_setup verify       → confirm setup doctrine before feature work
+
+FILE OPS
+  text_file_reader           → inspect bounded text files under the project root
+  text_file_writer           → create/overwrite/append text payloads with confirmation
+  directory_scaffold         → create multiple folders/files from a declarative manifest
+  file_move_guarded          → move/rename only with confirmation and a reason
+  file_delete_guarded        → quarantine instead of permanently deleting by default
+
+VALIDATE
+  text_file_validator        → check Python, JSON, TOML, and basic text-like files
+  smoke_test_runner          → run available verification after meaningful edits
+
+PARK
+  journal_write              → record what changed and why
+  update continuity docs     → leave the next agent a current handoff
+```
+
+This loop keeps scaffold intelligence out of the model prompt. The agent should
+not invent the builder-contract project shape; it should call `project_setup`
+for setup doctrine, then use Safe Text Workspace Operations for bounded
+text/file work inside the chosen root.
+
 ---
 
 ## Tool Selection Cheat Sheet

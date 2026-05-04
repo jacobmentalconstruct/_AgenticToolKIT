@@ -1,6 +1,6 @@
 # Project Backlog
 
-_Last updated: 2026-04-30._
+_Last updated: 2026-05-04._
 
 ---
 
@@ -14,23 +14,73 @@ _Last updated: 2026-04-30._
   orchestration, and an onboarding-site integrity check.
 - The prototype northstars are collapsed into current release truth; deferred
   expansion is intentionally out of scope for this release candidate.
-- The active post-RC source horizon is local-agent sys-ops tooling: safe,
-  structured host/project operations for a desktop-first agent.
+- The local-agent sys-ops northstar is closed. The active post-sys-ops source
+  horizon is Safe Text Workspace Operations: bounded text/file primitives for a
+  desktop-first local agent.
 
 ---
 
 ## Current state
 
-**Local-agent sys-ops northstar closed.**
+**Tranche 7 selected: Safe Text Workspace Operations.**
 
-Tranche 6 is implemented and in the parking path. The local-agent sys-ops
-northstar now has a complete tool chain: probe, audit, profile, dependency
-check, process/port inspection, dev-server management, Docker/Kubernetes
-wrappers, secret audit, runtime cleanup, and bootstrap packet generation.
+Tranche 6 closed the local-agent sys-ops northstar. Tranche 7 is now the active
+source-shaped horizon: safe text workspace primitives that let a local agent
+read, create, scaffold, validate, move, and quarantine-delete text project
+files under a user-chosen project root.
+
+`project_setup` remains the builder-contract scaffold authority. Tranche 7
+should not ask an agent to infer the required setup scaffold; it should provide
+bounded file primitives that operate after the project root and setup doctrine
+are known.
 
 ### Active tasks
 
-- [ ] Decide the next post-sys-ops capability horizon.
+- [ ] Add `text_file_reader`.
+- [ ] Add `text_file_writer`.
+- [ ] Add `directory_scaffold`.
+- [ ] Add `text_file_validator`.
+- [ ] Add `file_move_guarded`.
+- [ ] Add `file_delete_guarded`.
+- [ ] Register the new tools in `tool_manifest.json` and `src/mcp_server.py`.
+- [ ] Extend `src/smoke_test.py` with temp-fixture coverage for read, write,
+      scaffold, validate, guarded move, and quarantine delete behavior.
+- [ ] Update README, agent guide, architecture, northstars, TODO, and dev log.
+- [ ] Write a Tranche 7 journal entry and export the journal for operator
+      visibility.
+- [ ] Run final verification and commit the implementation tranche.
+
+### Tranche 7 tool contract
+
+- `text_file_reader`: bounded text reads under `project_root`; report size,
+  line count, newline style, and content/excerpt while rejecting outside-root,
+  binary, or oversized files unless explicitly bounded.
+- `text_file_writer`: create, overwrite, or append text payloads with
+  `confirm: true`; require `overwrite: true` for replacement; support
+  `create_dirs: true`; block `.dev-tools/` internals by default.
+- `directory_scaffold`: apply a declarative directory/file manifest; dry-run by
+  default; require `confirm: true` to write; keep every entry under the project
+  root; skip existing files unless `overwrite: true`.
+- `text_file_validator`: validate text surfaces without third-party
+  dependencies: Python via `ast.parse`, JSON via `json.loads`, TOML via
+  `tomllib`, and basic readability/size/null-byte checks for markdown, text,
+  shell, batch, CSS, HTML, and YAML-like files.
+- `file_move_guarded`: move or rename files/directories under the project root
+  with `confirm: true` plus a non-empty `reason`; refuse overwrites unless
+  explicitly enabled; protect `.dev-tools/` and tracked files by default.
+- `file_delete_guarded`: quarantine instead of permanently deleting by moving
+  targets to ignored `.dev-tools/runtime/trash/`; require `confirm: true` plus
+  a non-empty `reason`; write a receipt with original path, timestamp, reason,
+  actor, and tracked status.
+
+### Tranche 7 non-goals
+
+- [ ] Do not introduce raw arbitrary command execution.
+- [ ] Do not install dependencies.
+- [ ] Do not replace `project_setup` as the builder-contract scaffold authority.
+- [ ] Do not permanently delete files by default.
+- [ ] Do not mutate `.dev-tools/` internals unless a future tool explicitly
+      supports that maintenance mode.
 
 ### Previous source tranche (parked)
 

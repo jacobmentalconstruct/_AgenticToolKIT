@@ -1,6 +1,6 @@
 # Northstars
 
-_Last updated: 2026-04-30._
+_Last updated: 2026-05-04._
 
 This file records the release-scope northstar for `.dev-tools` and the next
 post-release capability horizon.
@@ -77,6 +77,33 @@ This is the foundation for a local agent using the toolset directly. The agent
 can inspect the host, run declared workflows, manage servers, operate
 Docker/Kubernetes wrappers, audit safety surfaces, clean generated state, and
 emit a launch packet without improvising shell behavior.
+
+## Active Northstar: Safe Text Workspace Operations
+
+The next post-sys-ops horizon is Safe Text Workspace Operations. This is the
+file-primitive layer a local sidecar agent needs before it can safely scaffold
+multiple folders or generate code/text assets through the toolbox.
+
+The northstar is deliberately narrower than full filesystem or terminal parity:
+all paths resolve under the user-chosen project root, `.dev-tools/` internals
+stay protected by default, and mutating tools require explicit confirmation.
+`project_setup` remains the builder-contract scaffold authority; the new tools
+support project work after that setup contract is known rather than asking an
+agent to infer the scaffold.
+
+| Capability | Purpose | Planned tool surface |
+|---|---|---|
+| Bounded text read | Inspect text files without leaking outside the root or loading unsafe/binary payloads. | `text_file_reader` |
+| Guarded text write | Create, overwrite, or append text payloads with confirmation and optional validation. | `text_file_writer` |
+| Directory/file scaffold | Create multiple folders and starter text files from a declarative manifest. | `directory_scaffold` |
+| Text validation | Validate Python, JSON, TOML, and basic text-like files without third-party dependencies. | `text_file_validator` |
+| Guarded move/rename | Move or rename files and directories under the project root with explicit reason and tracked-file protection. | `file_move_guarded` |
+| Quarantine delete | Move deleted targets into ignored runtime trash with a receipt instead of permanently deleting by default. | `file_delete_guarded` |
+
+This layer is the bridge from "the local agent understands the workspace" to
+"the local agent can create and maintain project text safely." It should become
+the substrate for a later Ollama-backed local agent loop using Qwen-class models
+for structured task JSON and human-facing responses.
 
 ## Later Expansion
 

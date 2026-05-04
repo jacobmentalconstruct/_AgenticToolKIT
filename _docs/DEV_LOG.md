@@ -955,6 +955,46 @@ chosen deliberately rather than inferred from this sys-ops plan.
 
 ---
 
+## 2026-05-04 — Tranche 7 Safe Text Workspace Operations selected
+
+- Documented Safe Text Workspace Operations as the active post-sys-ops source
+  horizon.
+- The planned tranche bridges the closed local-agent sys-ops layer and a future
+  Ollama-backed local sidecar agent by adding bounded text/file primitives.
+- The planned tool set is `text_file_reader`, `text_file_writer`,
+  `directory_scaffold`, `text_file_validator`, `file_move_guarded`, and
+  `file_delete_guarded`.
+- `project_setup` remains the builder-contract scaffold authority; Tranche 7
+  should not ask the model to infer or recreate the required setup scaffold.
+- Mutating file operations should require explicit confirmation. Move/delete
+  should carry a non-empty reason, and delete should quarantine into ignored
+  `.dev-tools/runtime/trash/` with receipts rather than permanently removing
+  files by default.
+- This was a documentation-only parking pass. No tool registration,
+  implementation files, or MCP surfaces were changed.
+- Runtime journal entry written with `journal_write`:
+  `journal_03c3a371dc47`.
+- Local markdown journal export created under the gitignored
+  `_docs/_AppJOURNAL/exports/` runtime area for operator visibility.
+
+Validation:
+
+- `git diff --check` -> pass.
+- `python src/smoke_test.py` -> 62/62 pass; MCP lists 38 tools.
+
+Classification: spiral.
+
+- Capability direction increased: the next local-agent layer is now explicit
+  instead of implied.
+- Uncertainty decreased: the missing basic file primitives are named, bounded,
+  and sequenced after sys-ops closure.
+- Boundary clarified: no raw terminal parity, no dependency installs, no
+  replacement of `project_setup`, and no permanent delete by default.
+
+Current read: Tranche 7 is documented and ready for implementation.
+
+---
+
 ## Template for future entries
 
 - Files changed:
