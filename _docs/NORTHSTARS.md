@@ -177,12 +177,43 @@ The implemented surface:
 This closes the first human testing surface for the local agent. The next
 horizon should use it to harden the agent loop rather than broaden authority.
 
+## Satisfied Northstar: Bag of Evidence and Evidence Shelf
+
+Bag of Evidence and Evidence Shelf is now satisfied. Tranche 11 gives the local
+sidecar agent a visible, auditable session memory layer without inventing a
+hidden memory channel.
+
+The implemented surface is `session_evidence_store`, backed by ignored SQLite
+state under `.dev-tools/runtime/local_agent/evidence/evidence.sqlite3`. It
+supports `status`, `init`, `append`, `archive_window`, `shelf`, `search`,
+`get`, and `export`. Mutating and export actions require explicit
+confirmation. Verbatim bodies are stored in SHA-256 keyed blobs and referenced
+by stable evidence IDs such as `E000001`.
+
+The design split is intentional:
+
+- the active sliding window is immediate conversation context
+- the Bag of Evidence is contained session STM archive for turns and tool
+  outputs that fall out of that window
+- the Evidence Shelf is the summary, open-loop list, decisions, and item index
+  shown back to the agent
+- the App Journal remains durable project LTM for tranche outcomes,
+  architectural decisions, and session records worth preserving across work
+  days
+
+`local_sidecar_agent` now loads the Evidence Shelf before model work and
+archives overflow turns after runs when `confirm_evidence` is true.
+`local_agent_bootstrap` can include the shelf in launch packets, and
+`agent_ui.py` exposes a human Evidence Shelf tab for init, shelf, search, get,
+and export. This makes memory inspectable: every stored item has an ID,
+summary, timestamp, and retrievable verbatim body.
+
 ## Next Hardening Horizon
 
 The first agent floor is intentionally narrower than the external reference
 plan. The operator UI makes that floor easier to exercise. The next useful
 horizon is hardening rather than broader authority:
-recovery-pattern detection, evidence passes, filesystem-claim guardrails,
+recovery-pattern detection, filesystem-claim guardrails over cited evidence,
 disposable run workspaces, richer multiple-choice approvals, and optional
 interactive streaming for live Ollama turns.
 

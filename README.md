@@ -75,6 +75,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `secret_surface_audit` | security | Scan for obvious committed secrets and risky env exposure with redacted output |
 | `runtime_artifact_cleaner` | cleanup | Dry-run-first cleanup of allowlisted generated artifacts with tracked-file protection |
 | `local_agent_bootstrap` | bootstrap | Aggregate host, workspace, command, dependency, journal, and constraint context into a launch packet |
+| `session_evidence_store` | memory | Manage the local-agent Bag of Evidence SQLite store and Evidence Shelf for sliding-window overflow |
 | `text_file_reader` | introspection | Read bounded text files under a project root with binary, size, and sidecar protections |
 | `text_file_writer` | write | Create, overwrite, or append text payloads with confirmation and optional validation |
 | `directory_scaffold` | scaffold | Dry-run-first declarative directory and text-file scaffolding under a project root |
@@ -96,7 +97,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 46 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 47 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
@@ -136,6 +137,15 @@ tool contracts, and sanitizes displayed paths as `<project_root>`,
 `<toolbox_root>`, or relative paths so committed docs and normal UI output do
 not expose private machine details.
 
+**Bag of Evidence and Evidence Shelf are now implemented.**
+`session_evidence_store` gives the local sidecar agent a project-scoped,
+ignored SQLite store for material that falls out of the active sliding window.
+The Evidence Shelf is the compact summary, open-loop list, decisions, and item
+index the agent can see on each turn. The App Journal remains durable project
+long-term memory; the bag is session short-term-memory archive, with explicit
+promotion into journal entries when a decision or outcome should become project
+history.
+
 The queued local-agent implementation runway is now:
 
 1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
@@ -151,6 +161,10 @@ The queued local-agent implementation runway is now:
    testing surface; the operator can open `chat.bat`/`chat.sh`, run the agent,
    pick models from dropdowns, test manifest-listed tools, and review
    privacy-sanitized output.
+5. **Tranche 11 — Bag of Evidence and Evidence Shelf:** complete as a session
+   coherence layer; the sidecar agent can hydrate from a visible shelf, archive
+   overflow turns into ignored SQLite state, search/retrieve evidence, and
+   connect evidence IDs to normal journaled project memory.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

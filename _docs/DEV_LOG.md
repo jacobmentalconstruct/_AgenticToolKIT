@@ -1,6 +1,6 @@
 # Dev Log
 
-_Last updated: 2026-04-29. This file is the authoritative human-readable
+_Last updated: 2026-05-04. This file is the authoritative human-readable
 project log. The runtime SQLite at `_docs/_journalDB/app_journal.sqlite3`
 is gitignored and not maintained as a mirror._
 
@@ -1258,6 +1258,69 @@ Classification: spiral.
 Current read: Tranche 10 is implemented. The next work should use the operator
 UI to harden the local sidecar agent with recovery, evidence/claim validation,
 disposable run workspaces, richer approvals, and optional live streaming.
+
+---
+
+## 2026-05-04 — Tranche 11 Bag of Evidence and Evidence Shelf
+
+- Added `src/lib/session_evidence_store.py`, the shared SQLite implementation
+  for the project-scoped Bag of Evidence and Evidence Shelf.
+- Added `session_evidence_store` with `status`, `init`, `append`,
+  `archive_window`, `shelf`, `search`, `get`, and `export` actions.
+- The evidence database lives under ignored runtime state at
+  `.dev-tools/runtime/local_agent/evidence/evidence.sqlite3`.
+- Evidence items use stable IDs such as `E000001`; verbatim bodies are stored
+  in SHA-256 keyed blobs so duplicate bodies are only stored once.
+- Mutating actions and exports require confirmation; summary, shelf, search,
+  and retrieval actions are read-only by default.
+- Integrated `local_sidecar_agent` with `session_id`, `window_turns`,
+  `use_evidence_shelf`, and `confirm_evidence` inputs.
+- The sidecar agent now loads the Evidence Shelf before model work, archives
+  sliding-window overflow when confirmed, and records evidence archive status
+  plus evidence IDs in the normal App Journal turn entry.
+- Integrated `local_agent_bootstrap` so launch packets can include Evidence
+  Shelf context.
+- Extended `agent_ui.py` with an Evidence Shelf tab for init, shelf, search,
+  get, and export, while preserving privacy-sanitized display output.
+- Registered the tool in `tool_manifest.json` and `src/mcp_server.py`.
+- Extended `src/smoke_test.py` with coverage for init/append/CAS/shelf/search/
+  get/export, sidecar evidence archive integration, UI helper behavior, and
+  MCP registration.
+- Updated README, toolbox manifest, agent guide, architecture, northstars,
+  TODO, WE_ARE_HERE_NOW, and onboarding so the memory layer is discoverable.
+
+Validation:
+
+- `python -m py_compile src\lib\session_evidence_store.py
+  src\tools\session_evidence_store.py src\tools\local_sidecar_agent.py
+  src\tools\local_agent_bootstrap.py agent_ui.py src\mcp_server.py
+  src\smoke_test.py` -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\smoke_test.py` -> 113/113 pass; MCP lists 47 tools.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `python src\tools\smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` -> 5/5
+  suites passed.
+- `git diff --check` -> pass.
+- Privacy scan across committed/new text surfaces -> pass.
+- App journal entry written and journal export run for operator visibility.
+
+Classification: spiral.
+
+- Capability increased: the local sidecar agent now has visible session memory
+  with searchable evidence IDs and retrievable verbatim bodies.
+- Uncertainty decreased: smoke fixtures prove SQLite init, CAS deduplication,
+  shelf generation, search, retrieval, export, sidecar archiving, and UI helper
+  behavior.
+- Boundary clarified: the Bag of Evidence is contained session STM archive;
+  the App Journal remains durable project LTM, with important evidence promoted
+  deliberately rather than copied wholesale.
+
+Current read: Tranche 11 is implemented. The next work should harden the local
+sidecar agent with recovery-pattern detection, filesystem-claim guardrails
+over cited evidence, disposable run workspaces, richer approvals, and optional
+interactive streaming.
 
 ---
 

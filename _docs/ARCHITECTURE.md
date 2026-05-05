@@ -31,11 +31,12 @@ The toolbox should remain project-agnostic and should not depend on sibling
 folders, old project roots, generated caches, or hidden runtime state.
 
 The local-agent system operations layer, Safe Text Workspace Operations layer,
-Private Git Workspace Operations layer, and Local Sidecar Agent Runtime safe
-floor are implemented. Tranche 10 adds a human operator UI over that floor. The
-current architecture now has an Ollama-backed loop that uses the guarded
-toolbox, checkpoints through private Git, can be exercised from a desktop
-prototype, and avoids raw shell or unrestricted filesystem parity.
+Private Git Workspace Operations layer, Local Sidecar Agent Runtime safe floor,
+Local Agent Operator UI prototype, and Bag of Evidence / Evidence Shelf layer
+are implemented. The current architecture now has an Ollama-backed loop that
+uses the guarded toolbox, checkpoints through private Git, hydrates from a
+visible session evidence shelf, can be exercised from a desktop prototype, and
+avoids raw shell or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -140,8 +141,9 @@ Instead, its loop is fixed by the sidecar:
 6. call only allowlisted tools with schema-validated JSON arguments
 7. stop with `approval_required` before unconfirmed mutations
 8. verify touched file surfaces
-9. checkpoint through private Git when confirmed
-10. journal and park runtime state under `.dev-tools/runtime/local_agent/`
+9. archive sliding-window overflow into the Bag of Evidence when confirmed
+10. checkpoint through private Git when confirmed
+11. journal and park runtime state under `.dev-tools/runtime/local_agent/`
 
 Qwen coder-family models are the preferred planning/JSON generators. Qwen
 human-interface models are the preferred conversational response layer. Model
@@ -177,3 +179,38 @@ are rendered as relative paths or placeholders such as `<project_root>` and
 The friendliest human entrypoints are `chat.bat` on Windows and `chat.sh` on
 Linux/macOS. `agent_ui.py` remains the direct Python launcher and supports
 `--self-test` for headless verification.
+
+## Bag of Evidence and Evidence Shelf
+
+Tranche 11 implements the session coherence layer for the local sidecar agent.
+It sits between the active prompt window and durable project memory.
+
+`session_evidence_store` owns the shared SQLite path under ignored runtime
+state:
+
+```
+.dev-tools/runtime/local_agent/evidence/evidence.sqlite3
+```
+
+The SQLite shape is explicit: evidence items carry stable IDs, session IDs,
+sequence ranges, kind/source metadata, summaries, tags, paths, tools,
+importance, timestamps, and a SHA-256 reference to verbatim body storage.
+Shelves store the rolling summary, open loops, decisions, and last archived
+sequence for a session.
+
+The architecture intentionally separates memory layers:
+
+- live context: the current prompt and last `window_turns` turns
+- Bag of Evidence: ignored session STM archive with searchable summaries and
+  retrievable verbatim bodies
+- Evidence Shelf: compact session summary and item index injected into agent
+  context
+- App Journal: durable project LTM for decisions, tranche outcomes, and
+  important handoff records
+
+`local_sidecar_agent` now accepts `session_id`, `window_turns`,
+`use_evidence_shelf`, and `confirm_evidence`. It loads the shelf before model
+work, archives overflow turns after a run when confirmed, and records archive
+status into the normal journal entry metadata. `local_agent_bootstrap` can add
+the shelf to launch packets, and the operator UI has an Evidence Shelf tab for
+init, shelf, search, get, and export.

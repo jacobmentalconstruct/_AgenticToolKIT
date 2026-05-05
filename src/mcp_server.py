@@ -135,6 +135,11 @@ except ImportError:
     LOCAL_SIDECAR_AGENT_METADATA, run_local_sidecar_agent = None, None
 
 try:
+    from tools.session_evidence_store import FILE_METADATA as SESSION_EVIDENCE_METADATA, run as run_session_evidence_store
+except ImportError:
+    SESSION_EVIDENCE_METADATA, run_session_evidence_store = None, None
+
+try:
     from tools.text_file_reader import FILE_METADATA as TEXT_FILE_READER_METADATA, run as run_text_file_reader
 except ImportError:
     TEXT_FILE_READER_METADATA, run_text_file_reader = None, None
@@ -265,6 +270,7 @@ for meta, runner in [
     (RUNTIME_CLEANER_METADATA, run_runtime_artifact_cleaner),
     (LOCAL_AGENT_BOOTSTRAP_METADATA, run_local_agent_bootstrap),
     (LOCAL_SIDECAR_AGENT_METADATA, run_local_sidecar_agent),
+    (SESSION_EVIDENCE_METADATA, run_session_evidence_store),
     (TEXT_FILE_READER_METADATA, run_text_file_reader),
     (TEXT_FILE_WRITER_METADATA, run_text_file_writer),
     (DIRECTORY_SCAFFOLD_METADATA, run_directory_scaffold),

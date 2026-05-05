@@ -22,6 +22,7 @@ from tools.git_private_workspace import FILE_METADATA as GIT_PRIVATE_METADATA, r
 from tools.journal_write import FILE_METADATA as JOURNAL_WRITE_METADATA, run as run_journal_write
 from tools.local_agent_bootstrap import run as run_local_agent_bootstrap
 from tools.project_setup import run as run_project_setup
+from tools.session_evidence_store import FILE_METADATA as SESSION_EVIDENCE_METADATA, run as run_session_evidence_store
 from tools.text_file_reader import FILE_METADATA as TEXT_FILE_READER_METADATA, run as run_text_file_reader
 from tools.text_file_validator import FILE_METADATA as TEXT_FILE_VALIDATOR_METADATA, run as run_text_file_validator
 from tools.text_file_writer import FILE_METADATA as TEXT_FILE_WRITER_METADATA, run as run_text_file_writer
@@ -50,6 +51,10 @@ FILE_METADATA = {
             "confirm_mutations": {"type": "boolean", "default": False},
             "confirm_checkpoint": {"type": "boolean", "default": False},
             "checkpoint": {"type": "boolean", "default": True},
+            "confirm_evidence": {"type": "boolean", "default": False},
+            "session_id": {"type": "string"},
+            "window_turns": {"type": "integer", "default": 8},
+            "use_evidence_shelf": {"type": "boolean", "default": True},
             "mock_ollama_responses": {
                 "type": "array",
                 "items": {"type": "string"},
@@ -71,8 +76,10 @@ DEFAULT_ALLOWED_TOOLS = [
     "text_file_validator",
     "git_private_workspace",
     "journal_write",
+    "session_evidence_store",
 ]
 MUTATING_TOOLS = {"text_file_writer", "directory_scaffold", "journal_write"}
+MUTATING_EVIDENCE_ACTIONS = {"init", "append", "archive_window", "export"}
 RISKY_GIT_ACTIONS = {"init", "add", "commit", "checkout", "pull", "push"}
 
 
@@ -88,6 +95,10 @@ class AgentConfig:
     confirm_mutations: bool = False
     confirm_checkpoint: bool = False
     checkpoint: bool = True
+    confirm_evidence: bool = False
+    session_id: str = ""
+    window_turns: int = 8
+    use_evidence_shelf: bool = True
 
 
 TOOL_REGISTRY: dict[str, tuple[dict[str, Any], Callable[[dict[str, Any]], dict[str, Any]]]] = {
@@ -97,6 +108,7 @@ TOOL_REGISTRY: dict[str, tuple[dict[str, Any], Callable[[dict[str, Any]], dict[s
     "text_file_validator": (TEXT_FILE_VALIDATOR_METADATA, run_text_file_validator),
     "git_private_workspace": (GIT_PRIVATE_METADATA, run_git_private_workspace),
     "journal_write": (JOURNAL_WRITE_METADATA, run_journal_write),
+    "session_evidence_store": (SESSION_EVIDENCE_METADATA, run_session_evidence_store),
 }
 
 
@@ -164,6 +176,10 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         max_rounds = int(arguments.get("max_tool_rounds", 4))
     except (TypeError, ValueError):
         max_rounds = 4
+    try:
+        window_turns = int(arguments.get("window_turns", 8))
+    except (TypeError, ValueError):
+        window_turns = 8
     return AgentConfig(
         project_root=str(project_root),
         ollama_base_url=str(arguments.get("ollama_base_url", "http://localhost:11434")).rstrip("/"),
@@ -175,6 +191,10 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         confirm_mutations=arguments.get("confirm_mutations") is True,
         confirm_checkpoint=arguments.get("confirm_checkpoint") is True,
         checkpoint=arguments.get("checkpoint", True) is not False,
+        confirm_evidence=arguments.get("confirm_evidence") is True,
+        session_id=str(arguments.get("session_id", "")).strip(),
+        window_turns=max(0, min(window_turns, 50)),
+        use_evidence_shelf=arguments.get("use_evidence_shelf", True) is not False,
     )
 
 
@@ -228,7 +248,7 @@ def _tool_catalog_text(allowed_tools: list[str]) -> str:
     return "\n".join(lines)
 
 
-def _system_prompt(config: AgentConfig, bootstrap_summary: str) -> str:
+def _system_prompt(config: AgentConfig, bootstrap_summary: str, evidence_summary: str) -> str:
     return (
         "You are a local sidecar agent. Use only the listed toolbox tools.\n"
         "Never claim a file was created, modified, or validated unless a tool result proves it.\n"
@@ -238,7 +258,8 @@ def _system_prompt(config: AgentConfig, bootstrap_summary: str) -> str:
         "All paths are relative to the project root; the runtime injects project_root.\n\n"
         f"Project root: {config.project_root}\n"
         f"Allowed tools:\n{_tool_catalog_text(config.allowed_tools)}\n\n"
-        f"Bootstrap summary:\n{bootstrap_summary[:3000]}"
+        f"Bootstrap summary:\n{bootstrap_summary[:3000]}\n\n"
+        f"Evidence Shelf:\n{evidence_summary[:2000]}"
     )
 
 
@@ -295,12 +316,14 @@ def _validate_schema(metadata: dict[str, Any], args: dict[str, Any]) -> list[str
 def _is_mutating(tool_name: str, args: dict[str, Any]) -> bool:
     if tool_name == "git_private_workspace":
         return str(args.get("action", "status")) in RISKY_GIT_ACTIONS
+    if tool_name == "session_evidence_store":
+        return str(args.get("action", "status")) in MUTATING_EVIDENCE_ACTIONS
     return tool_name in MUTATING_TOOLS
 
 
 def _inject_confirm(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
     updated = dict(args)
-    if tool_name in {"text_file_writer", "directory_scaffold", "git_private_workspace"}:
+    if tool_name in {"text_file_writer", "directory_scaffold", "git_private_workspace", "session_evidence_store"}:
         updated["confirm"] = True
     return updated
 
@@ -433,6 +456,95 @@ def _model_response(
     return _ollama_chat(config, messages, model)
 
 
+def _evidence_shelf_text(evidence_shelf: dict[str, Any]) -> str:
+    payload = evidence_shelf.get("result", {}) if isinstance(evidence_shelf, dict) else {}
+    if not isinstance(payload, dict) or not payload:
+        return "No Evidence Shelf available."
+    lines = [
+        f"Session: {payload.get('session_id', '')}",
+        f"Items: {payload.get('item_count', 0)}",
+    ]
+    if payload.get("rolling_summary"):
+        lines.append(f"Summary: {payload.get('rolling_summary')}")
+    for label in ["open_loops", "decisions"]:
+        values = payload.get(label, [])
+        if isinstance(values, list) and values:
+            lines.append(f"{label.replace('_', ' ').title()}:")
+            lines.extend(f"- {item}" for item in values[:8])
+    index = payload.get("item_index", [])
+    if isinstance(index, list) and index:
+        lines.append("Evidence Index:")
+        for item in index[:12]:
+            if isinstance(item, dict):
+                lines.append(f"- {item.get('item_id')}: {item.get('summary')}")
+    return "\n".join(lines)
+
+
+def _evidence_turns(prompt: str, rounds: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    turns: list[dict[str, Any]] = [{
+        "sequence": 1,
+        "role": "user",
+        "kind": "user_turn",
+        "content": prompt,
+        "summary": f"User prompt: {prompt[:160]}",
+        "tags": ["local-agent", "user-turn"],
+    }]
+    sequence = 2
+    for round_item in rounds:
+        response = str(round_item.get("response", ""))
+        if response:
+            turns.append({
+                "sequence": sequence,
+                "role": "assistant",
+                "kind": "agent_round",
+                "content": response,
+                "summary": f"Agent round {round_item.get('round')}: {response[:160]}",
+                "tags": ["local-agent", "agent-round"],
+            })
+            sequence += 1
+        results = round_item.get("results", [])
+        if isinstance(results, list) and results:
+            tools = [str(result.get("tool", "")) for result in results if isinstance(result, dict) and result.get("tool")]
+            turns.append({
+                "sequence": sequence,
+                "role": "tool",
+                "kind": "tool_result",
+                "content": json.dumps(results, indent=2, sort_keys=False),
+                "summary": f"Tool results for round {round_item.get('round')}: {', '.join(tools) or 'none'}",
+                "tags": ["local-agent", "tool-result"],
+                "tools": tools,
+            })
+            sequence += 1
+    return turns
+
+
+def _archive_evidence(
+    project_root: Path,
+    *,
+    session_id: str,
+    prompt: str,
+    rounds: list[dict[str, Any]],
+    config: AgentConfig,
+    approval_required: bool,
+) -> dict[str, Any]:
+    if not config.use_evidence_shelf:
+        return {"skipped": True, "reason": "use_evidence_shelf=false"}
+    if not config.confirm_evidence:
+        return {"skipped": True, "approval_required": True, "reason": "evidence archive requires confirm_evidence=true"}
+    turns = _evidence_turns(prompt, rounds)
+    return run_session_evidence_store({
+        "project_root": str(project_root),
+        "action": "archive_window",
+        "confirm": True,
+        "session_id": session_id,
+        "turns": turns,
+        "window_turns": config.window_turns,
+        "rolling_summary": f"Local agent session evidence for latest prompt: {prompt[:160]}",
+        "open_loops": ["Approval required before continuing."] if approval_required else [],
+        "tags": ["local-agent", "bag-of-evidence"],
+    })
+
+
 def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
     config = _config(arguments, project_root)
     prompt = str(arguments.get("prompt", "")).strip()
@@ -440,7 +552,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         return tool_error(FILE_METADATA["tool_name"], arguments, "prompt is required for action=run")
 
     runtime_paths = _ensure_runtime(project_root)
-    session_id = f"{_stamp()}_{uuid.uuid4().hex[:8]}"
+    session_id = config.session_id or f"{_stamp()}_{uuid.uuid4().hex[:8]}"
     mock_responses = arguments.get("mock_ollama_responses")
     if not isinstance(mock_responses, list):
         mock_responses = []
@@ -452,13 +564,23 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "include_markdown": True,
         "journal_limit": 5,
         "timeout_seconds": min(config.timeout_seconds, 10),
+        "include_evidence_shelf": config.use_evidence_shelf,
+        "evidence_session_id": session_id,
+        "evidence_limit": 12,
     })
     boundary = run_workspace_boundary_audit({"project_root": str(project_root), "max_depth": 2})
     setup = run_project_setup({"project_root": str(project_root), "action": "audit"})
 
+    evidence_shelf = run_session_evidence_store({
+        "project_root": str(project_root),
+        "action": "shelf",
+        "session_id": session_id,
+        "limit": 12,
+    }) if config.use_evidence_shelf else {"status": "skipped", "result": {"reason": "use_evidence_shelf=false"}}
+    evidence_summary = _evidence_shelf_text(evidence_shelf)
     bootstrap_summary = str(bootstrap.get("result", {}).get("rendered", ""))[:3000]
     messages = [
-        {"role": "system", "content": _system_prompt(config, bootstrap_summary)},
+        {"role": "system", "content": _system_prompt(config, bootstrap_summary, evidence_summary)},
         {"role": "user", "content": prompt},
     ]
 
@@ -504,24 +626,52 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         halted_reason = "max_tool_rounds_exhausted"
 
     validation = _validate_touched(project_root, touched_paths)
+    evidence_archive = _archive_evidence(
+        project_root,
+        session_id=session_id,
+        prompt=prompt,
+        rounds=rounds,
+        config=config,
+        approval_required=approval_required,
+    )
     checkpoint = _checkpoint(project_root, touched_paths, config, prompt) if not approval_required else {
         "skipped": True,
         "approval_required": True,
         "reason": "turn stopped before checkpoint",
     }
+    evidence_payload = evidence_archive.get("result", evidence_archive)
+    evidence_items = evidence_payload.get("archived_items", []) if isinstance(evidence_payload, dict) else []
+    evidence_ids = [
+        str(item.get("item_id"))
+        for item in evidence_items
+        if isinstance(item, dict) and item.get("item_id")
+    ]
+    evidence_status = evidence_archive.get("status", "skipped")
 
     journal = run_journal_write({
         "project_root": str(project_root),
         "action": "create",
         "title": "Local sidecar agent turn",
-        "body": f"Prompt: {prompt}\n\nTouched paths: {', '.join(sorted(set(touched_paths))) or 'none'}\n\nHalted: {halted_reason or 'no'}",
+        "body": (
+            f"Prompt: {prompt}\n\n"
+            f"Touched paths: {', '.join(sorted(set(touched_paths))) or 'none'}\n\n"
+            f"Evidence archive: {evidence_status}"
+            f"{' (' + ', '.join(evidence_ids) + ')' if evidence_ids else ''}\n\n"
+            f"Halted: {halted_reason or 'no'}"
+        ),
         "kind": "agent-turn",
         "source": "local_sidecar_agent",
         "author": "local_sidecar_agent",
-        "tags": ["local-agent", "sidecar", "tranche-9"],
+        "tags": ["local-agent", "sidecar", "evidence", "tranche-9", "tranche-11"],
         "status": "active" if not approval_required else "blocked",
         "related_path": ".dev-tools/runtime/local_agent",
-        "metadata": {"session_id": session_id, "halted_reason": halted_reason},
+        "metadata": {
+            "session_id": session_id,
+            "halted_reason": halted_reason,
+            "evidence_archive_status": evidence_status,
+            "evidence_item_ids": evidence_ids,
+            "evidence_archive": evidence_payload,
+        },
     })
 
     session = {
@@ -532,6 +682,8 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "bootstrap_status": bootstrap.get("status"),
         "boundary_status": boundary.get("status"),
         "setup_status": setup.get("status"),
+        "evidence_shelf": evidence_shelf,
+        "evidence_archive": evidence_archive,
         "rounds": rounds,
         "validation": validation,
         "checkpoint": checkpoint,
@@ -561,6 +713,8 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "round_count": len(rounds),
             "touched_paths": sorted(set(touched_paths)),
             "validation": validation,
+            "evidence_shelf": evidence_shelf.get("result", {}),
+            "evidence_archive": evidence_archive.get("result", evidence_archive),
             "checkpoint": checkpoint,
             "journal_entry_uid": journal.get("result", {}).get("entry", {}).get("entry_uid"),
             "halted_reason": halted_reason,

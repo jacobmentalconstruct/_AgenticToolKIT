@@ -194,6 +194,12 @@
       "category": "agent-runtime"
     },
     {
+      "tool_name": "session_evidence_store",
+      "script": "src/tools/session_evidence_store.py",
+      "mcp_name": "session_evidence_store",
+      "category": "memory"
+    },
+    {
       "tool_name": "text_file_reader",
       "script": "src/tools/text_file_reader.py",
       "mcp_name": "text_file_reader",

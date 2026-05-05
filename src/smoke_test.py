@@ -1277,6 +1277,154 @@ def test_git_private_workspace() -> None:
         _fail("git_private_workspace push/pull", f"{push} {pull}")
 
 
+def test_session_evidence_store() -> None:
+    print("\n── Tranche 11: Bag of Evidence / Evidence Shelf ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="session_evidence_"))
+
+    status_before = _tool("session_evidence_store", {"project_root": str(target_root), "action": "status"})
+    if status_before["status"] == "ok" and not status_before["result"]["exists"]:
+        _ok("session_evidence_store reports missing store before init")
+    else:
+        _fail("session_evidence_store initial status", str(status_before))
+
+    init_gate = _tool("session_evidence_store", {"project_root": str(target_root), "action": "init"})
+    if init_gate["status"] == "approval_required":
+        _ok("session_evidence_store requires confirmation before init")
+    else:
+        _fail("session_evidence_store init gate", str(init_gate))
+
+    init = _tool("session_evidence_store", {"project_root": str(target_root), "action": "init", "confirm": True})
+    if init["status"] == "ok" and init["result"]["exists"]:
+        _ok("session_evidence_store initializes SQLite bag")
+    else:
+        _fail("session_evidence_store init", str(init))
+
+    append_gate = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "append",
+        "session_id": "smoke",
+        "summary": "approval policy",
+        "body": "User approved guarded evidence testing.",
+    })
+    if append_gate["status"] == "approval_required":
+        _ok("session_evidence_store requires confirmation before append")
+    else:
+        _fail("session_evidence_store append gate", str(append_gate))
+
+    append_one = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "append",
+        "confirm": True,
+        "session_id": "smoke",
+        "sequence": 1,
+        "kind": "decision",
+        "role": "user",
+        "summary": "approval policy",
+        "body": "User approved guarded evidence testing.",
+        "tags": ["approval", "evidence"],
+        "paths": [str(target_root / "README.md")],
+        "tools": ["session_evidence_store"],
+        "importance": 8,
+        "rolling_summary": "Evidence smoke test is proving the bag and shelf.",
+        "open_loops": ["Verify export."],
+        "decisions": ["Evidence bag is a tool, not hidden memory."],
+    })
+    append_two = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "append",
+        "confirm": True,
+        "session_id": "smoke",
+        "sequence": 2,
+        "kind": "decision",
+        "role": "user",
+        "summary": "duplicate body",
+        "body": "User approved guarded evidence testing.",
+        "tags": ["approval"],
+    })
+    item_id = append_one["result"]["item_id"]
+    status_after_append = _tool("session_evidence_store", {"project_root": str(target_root), "action": "status"})
+    if append_one["status"] == "ok" and append_two["status"] == "ok" and status_after_append["result"]["blob_count"] == 1:
+        _ok("session_evidence_store appends evidence with CAS deduplication")
+    else:
+        _fail("session_evidence_store append/CAS", str(status_after_append))
+
+    shelf = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "shelf",
+        "session_id": "smoke",
+        "limit": 10,
+    })
+    if shelf["status"] == "ok" and shelf["result"]["item_count"] == 2 and shelf["result"]["open_loops"] and shelf["result"]["decisions"] and shelf["result"]["item_index"]:
+        _ok("session_evidence_store returns Evidence Shelf summary and index")
+    else:
+        _fail("session_evidence_store shelf", str(shelf))
+
+    search = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "search",
+        "session_id": "smoke",
+        "query": "approval",
+        "limit": 5,
+    })
+    if search["status"] == "ok" and search["result"]["match_count"] >= 1:
+        _ok("session_evidence_store searches evidence bag")
+    else:
+        _fail("session_evidence_store search", str(search))
+
+    get_summary = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "get",
+        "item_id": item_id,
+        "mode": "summary",
+    })
+    get_verbatim = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "get",
+        "item_id": item_id,
+        "mode": "verbatim",
+    })
+    if (
+        get_summary["status"] == "ok"
+        and "verbatim_text" not in get_summary["result"]
+        and "User approved guarded evidence testing." in get_verbatim["result"]["verbatim_text"]
+        and "<project_root>" in get_verbatim["result"]["paths"][0]
+    ):
+        _ok("session_evidence_store retrieves summary or verbatim evidence with redacted paths")
+    else:
+        _fail("session_evidence_store get", str(get_verbatim))
+
+    archive = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "archive_window",
+        "confirm": True,
+        "session_id": "smoke",
+        "window_turns": 1,
+        "turns": [
+            {"sequence": 3, "role": "user", "content": "first falling turn", "summary": "first"},
+            {"sequence": 4, "role": "assistant", "content": "second falling turn", "summary": "second"},
+            {"sequence": 5, "role": "assistant", "content": "kept active", "summary": "kept"},
+        ],
+    })
+    if archive["status"] == "ok" and archive["result"]["archived_count"] == 2:
+        _ok("session_evidence_store archives sliding-window overflow")
+    else:
+        _fail("session_evidence_store archive_window", str(archive))
+
+    export = _tool("session_evidence_store", {
+        "project_root": str(target_root),
+        "action": "export",
+        "confirm": True,
+        "session_id": "smoke",
+        "format": "markdown",
+    })
+    export_path = target_root / export["result"]["export_path"]
+    if export["status"] == "ok" and export_path.exists():
+        _ok("session_evidence_store exports readable Evidence Shelf")
+    else:
+        _fail("session_evidence_store export", str(export))
+
+
 def test_local_sidecar_agent() -> None:
     print("\n── Tranche 9: Local Sidecar Agent Runtime ──")
 
@@ -1323,8 +1471,11 @@ def test_local_sidecar_agent() -> None:
         "mock_ollama_responses": [mock_write, "Done."],
         "confirm_mutations": True,
         "confirm_checkpoint": git_available,
+        "confirm_evidence": True,
         "checkpoint": git_available,
         "max_tool_rounds": 2,
+        "session_id": "smoke-session",
+        "window_turns": 1,
     }
     run_result = _tool("local_sidecar_agent", run_args)
     session_dir = target_root / ".dev-tools" / "runtime" / "local_agent" / "sessions"
@@ -1339,9 +1490,10 @@ def test_local_sidecar_agent() -> None:
         and "src/agent_note.py" in run_result["result"]["touched_paths"]
         and session_dir.exists()
         and checkpoint_ok
+        and run_result["result"]["evidence_archive"]["archived_count"] >= 1
         and not (target_root / ".git").exists()
     ):
-        _ok("local_sidecar_agent runs mock plan, writes, validates, journals, and checkpoints")
+        _ok("local_sidecar_agent runs mock plan, writes, validates, journals, archives evidence, and checkpoints")
     else:
         _fail("local_sidecar_agent mock run", str(run_result))
 
@@ -1364,7 +1516,7 @@ def test_operator_ui_support() -> None:
 
     toolbox_root = ROOT.parent
     tools = tool_index(toolbox_root)
-    if "local_sidecar_agent" in tools and "journal_manifest" in tools:
+    if "local_sidecar_agent" in tools and "session_evidence_store" in tools and "journal_manifest" in tools:
         _ok("operator UI loads tool manifest")
     else:
         _fail("operator UI manifest load", str(sorted(tools)[:10]))
@@ -1473,6 +1625,7 @@ def test_mcp(project_root: Path) -> None:
             "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
             "secret_surface_audit", "runtime_artifact_cleaner",
             "local_agent_bootstrap", "local_sidecar_agent",
+            "session_evidence_store",
             "text_file_reader", "text_file_writer", "directory_scaffold",
             "text_file_validator", "file_move_guarded", "file_delete_guarded",
             "git_private_workspace",
@@ -1529,6 +1682,7 @@ def main() -> int:
     test_sys_ops_introspection()
     test_safe_text_workspace_operations()
     test_git_private_workspace()
+    test_session_evidence_store()
     test_local_sidecar_agent()
     test_operator_ui_support()
     test_mcp(project_root)

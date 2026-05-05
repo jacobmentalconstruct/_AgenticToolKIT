@@ -34,6 +34,7 @@ MUTATING_TOOLS = {
     "k8s_ops",
     "runtime_artifact_cleaner",
     "local_sidecar_agent",
+    "session_evidence_store",
 }
 
 
@@ -122,8 +123,12 @@ def agent_payload(
     confirm_mutations: bool,
     confirm_checkpoint: bool,
     checkpoint: bool,
+    confirm_evidence: bool = False,
+    use_evidence_shelf: bool = True,
+    window_turns: int = 8,
+    session_id: str = "",
 ) -> dict[str, Any]:
-    return {
+    payload = {
         "action": "run",
         "project_root": project_root,
         "prompt": prompt,
@@ -136,8 +141,14 @@ def agent_payload(
         "confirm_mutations": confirm_mutations,
         "confirm_checkpoint": confirm_checkpoint,
         "checkpoint": checkpoint,
+        "confirm_evidence": confirm_evidence,
+        "use_evidence_shelf": use_evidence_shelf,
+        "window_turns": window_turns,
         "write_session": True,
     }
+    if session_id:
+        payload["session_id"] = session_id
+    return payload
 
 
 def dispatch_tool(toolbox_root: str | Path, tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:

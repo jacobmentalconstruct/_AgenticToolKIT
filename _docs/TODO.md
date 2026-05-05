@@ -15,17 +15,17 @@ _Last updated: 2026-05-04._
 - The prototype northstars are collapsed into current release truth; deferred
   expansion is intentionally out of scope for this release candidate.
 - The local-agent sys-ops northstar, Safe Text Workspace Operations, Private
-  Git Workspace Operations, Tranche 9 local sidecar agent safe floor, and
-  Tranche 10 operator UI prototype are closed. The active source horizon is now
-  hardening the local agent with evidence checks, recovery, run workspaces, and
-  richer approvals.
+  Git Workspace Operations, Tranche 9 local sidecar agent safe floor, Tranche
+  10 operator UI prototype, and Tranche 11 Bag of Evidence / Evidence Shelf are
+  closed. The active source horizon is now hardening the local agent with
+  recovery, filesystem-claim checks, run workspaces, and richer approvals.
 
 ---
 
 ## Current state
 
-**Tranche 10 complete as an operator prototype. Next: harden the local sidecar
-agent with the UI available for human testing.**
+**Tranche 11 complete as the session coherence layer. Next: harden the local
+sidecar agent with the UI and Evidence Shelf available for human testing.**
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -42,20 +42,54 @@ authority; it lets the human run `local_sidecar_agent`, choose Ollama models
 from dropdowns, test individual tools from `tool_manifest.json`, and review
 privacy-sanitized output.
 
+Tranche 11 added `session_evidence_store`, a project-scoped ignored SQLite Bag
+of Evidence plus visible Evidence Shelf. The sidecar agent now loads the shelf
+before model work, archives sliding-window overflow after runs when confirmed,
+and records evidence archive status in the normal App Journal turn metadata.
+The bag is session STM archive; the App Journal remains durable project LTM.
+
 ### Active tasks
 
 - [ ] Add richer recovery-pattern detection and a recovery model role.
-- [ ] Add evidence pass and filesystem-claim guardrails for final summaries.
+- [ ] Add filesystem-claim guardrails and final-summary evidence verification
+      using `session_evidence_store`.
 - [ ] Add disposable run-workspace support for future verification tools.
 - [ ] Expand human decision UX beyond booleans into named multiple-choice
       approvals.
 - [ ] Add optional interactive/streaming CLI mode for long-running live Ollama
       turns.
 - [ ] Use the operator UI with live local models to collect practical approval
-      and Tool Lab friction before the next agent-hardening tranche.
+      Tool Lab, and Evidence Shelf friction before the next agent-hardening
+      tranche.
 - [ ] Evaluate whether any dependency-install or CLI-in-sandbox features belong
       in a later, separate tranche; keep them out of the default agent floor.
 - [ ] Keep docs and smoke coverage aligned as the agent hardens.
+
+### Previous source tranche (parked): Tranche 11 Bag of Evidence and Evidence Shelf
+
+- [x] Add `session_evidence_store` with `status`, `init`, `append`,
+      `archive_window`, `shelf`, `search`, `get`, and `export` actions.
+- [x] Store the Bag of Evidence under ignored
+      `.dev-tools/runtime/local_agent/evidence/evidence.sqlite3`.
+- [x] Add `src/lib/session_evidence_store.py` so CLI, MCP, agent, bootstrap,
+      and UI use the same SQLite code path.
+- [x] Use stable human-citable evidence IDs such as `E000001`.
+- [x] Store verbatim bodies in SHA-256 keyed CAS blobs and deduplicate duplicate
+      bodies.
+- [x] Return the Evidence Shelf as rolling summary, open loops, decisions, and
+      item index.
+- [x] Support summary and verbatim retrieval with path redaction by default.
+- [x] Integrate `local_sidecar_agent` with `session_id`, `window_turns`,
+      `use_evidence_shelf`, and `confirm_evidence`.
+- [x] Integrate `local_agent_bootstrap` so launch packets can include the
+      Evidence Shelf.
+- [x] Add an Evidence Shelf tab to `agent_ui.py` for init, shelf, search, get,
+      and export.
+- [x] Register the tool in `tool_manifest.json` and `src/mcp_server.py`.
+- [x] Extend smoke coverage for store init/append/CAS/shelf/search/get/export,
+      sidecar archive integration, UI helper behavior, and MCP registration.
+- [x] Update README, agent guide, architecture, northstars, TODO,
+      WE_ARE_HERE_NOW, onboarding, and dev log.
 
 ### Previous source tranche (parked): Tranche 10 Local Agent Operator UI Prototype
 

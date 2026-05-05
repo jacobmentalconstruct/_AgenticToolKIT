@@ -25,6 +25,7 @@ from tools.git_private_workspace import run as run_git_private_workspace
 from tools.host_capability_probe import run as run_host_capability_probe
 from tools.journal_query import run as run_journal_query
 from tools.project_command_profile import run as run_project_command_profile
+from tools.session_evidence_store import run as run_session_evidence_store
 from tools.workspace_boundary_audit import run as run_workspace_boundary_audit
 
 
@@ -43,6 +44,9 @@ FILE_METADATA = {
             "write": {"type": "boolean", "default": False},
             "journal_limit": {"type": "integer", "default": 5},
             "include_markdown": {"type": "boolean", "default": True},
+            "include_evidence_shelf": {"type": "boolean", "default": True},
+            "evidence_session_id": {"type": "string", "default": "default"},
+            "evidence_limit": {"type": "integer", "default": 10},
             "timeout_seconds": {"type": "number", "default": 5},
         },
         "additionalProperties": False,
@@ -200,6 +204,23 @@ def _packet_to_markdown(packet: dict[str, Any]) -> str:
             lines.append(f"- `{entry.get('entry_uid')}` {entry.get('created_at')}: {entry.get('title')}")
     else:
         lines.append("- No journal entries returned.")
+    lines.extend(["", "## Evidence Shelf", ""])
+    evidence = packet.get("evidence_shelf", {}).get("result", {})
+    if evidence:
+        lines.append(f"- Session: `{evidence.get('session_id', '')}`")
+        lines.append(f"- Items: `{evidence.get('item_count', 0)}`")
+        summary = evidence.get("rolling_summary", "")
+        if summary:
+            lines.append(f"- Summary: {summary}")
+        index = evidence.get("item_index", [])
+        if index:
+            lines.append("")
+            for item in index[:10]:
+                lines.append(f"- `{item.get('item_id')}` {item.get('kind')}: {item.get('summary')}")
+        else:
+            lines.append("- No evidence items returned.")
+    else:
+        lines.append("- No evidence shelf returned.")
     lines.extend(["", "## Constraint Docs", ""])
     for doc in packet["constraints"]:
         status = "present" if doc.get("exists") else "missing"
@@ -228,6 +249,8 @@ def run(arguments: dict) -> dict:
     fmt = str(arguments.get("format", "json"))
     write = bool(arguments.get("write", False))
     journal_limit = max(0, int(arguments.get("journal_limit", 5)))
+    evidence_limit = max(0, int(arguments.get("evidence_limit", 10)))
+    evidence_session_id = str(arguments.get("evidence_session_id", "default")).strip() or "default"
     timeout = float(arguments.get("timeout_seconds", 5))
 
     packet: dict[str, Any] = {
@@ -240,6 +263,16 @@ def run(arguments: dict) -> dict:
         "dependency_check": _safe_tool_call("dependency_env_check", run_dependency_env_check, {"project_root": str(project_root), "timeout_seconds": timeout}),
         "private_git": _safe_tool_call("git_private_workspace", run_git_private_workspace, {"project_root": str(project_root), "action": "status", "timeout_seconds": timeout}),
         "journal": _journal_entries(project_root, journal_limit),
+        "evidence_shelf": _safe_tool_call(
+            "session_evidence_store",
+            run_session_evidence_store,
+            {
+                "project_root": str(project_root),
+                "action": "shelf",
+                "session_id": evidence_session_id,
+                "limit": evidence_limit,
+            },
+        ) if arguments.get("include_evidence_shelf", True) is not False else {"status": "skipped", "result": {"reason": "include_evidence_shelf=false"}},
         "constraints": [_read_excerpt(project_root, rel) for rel in CONSTRAINT_DOCS],
         "operating_envelope": [
             "Inspect before mutating: probe, audit, profile, check dependencies, then operate.",

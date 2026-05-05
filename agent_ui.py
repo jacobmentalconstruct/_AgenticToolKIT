@@ -109,10 +109,13 @@ class OperatorUI:
         notebook.pack(fill=tk.BOTH, expand=True)
         self.agent_tab = ttk.Frame(notebook, padding=12)
         self.tool_tab = ttk.Frame(notebook, padding=12)
+        self.evidence_tab = ttk.Frame(notebook, padding=12)
         notebook.add(self.agent_tab, text="Agent Console")
         notebook.add(self.tool_tab, text="Tool Lab")
+        notebook.add(self.evidence_tab, text="Evidence Shelf")
         self._build_agent_tab()
         self._build_tool_tab()
+        self._build_evidence_tab()
 
     def _build_agent_tab(self) -> None:
         left = ttk.Frame(self.agent_tab)
@@ -126,9 +129,13 @@ class OperatorUI:
         self.response_model_var = tk.StringVar()
         self.timeout_var = tk.StringVar(value="60")
         self.rounds_var = tk.StringVar(value="4")
+        self.session_id_var = tk.StringVar(value="default")
+        self.window_turns_var = tk.StringVar(value="8")
         self.confirm_mutations_var = tk.BooleanVar(value=False)
         self.confirm_checkpoint_var = tk.BooleanVar(value=False)
+        self.confirm_evidence_var = tk.BooleanVar(value=False)
         self.checkpoint_var = tk.BooleanVar(value=True)
+        self.use_evidence_var = tk.BooleanVar(value=True)
         self.agent_status_var = tk.StringVar(value="Refresh models to enable agent runs.")
         self.allowed_tool_vars: dict[str, tk.BooleanVar] = {}
 
@@ -144,9 +151,13 @@ class OperatorUI:
         self.response_combo = self._last_combo
         self._entry(left, "Timeout seconds", self.timeout_var)
         self._entry(left, "Max tool rounds", self.rounds_var)
+        self._entry(left, "Session ID", self.session_id_var)
+        self._entry(left, "Evidence window turns", self.window_turns_var)
         ttk.Checkbutton(left, text="Confirm mutations", variable=self.confirm_mutations_var).pack(anchor=tk.W, pady=(4, 0))
         ttk.Checkbutton(left, text="Confirm checkpoint", variable=self.confirm_checkpoint_var).pack(anchor=tk.W)
+        ttk.Checkbutton(left, text="Confirm evidence archive", variable=self.confirm_evidence_var).pack(anchor=tk.W)
         ttk.Checkbutton(left, text="Checkpoint after run", variable=self.checkpoint_var).pack(anchor=tk.W)
+        ttk.Checkbutton(left, text="Use Evidence Shelf", variable=self.use_evidence_var).pack(anchor=tk.W)
 
         ttk.Label(left, text="Allowed agent tools", style="Muted.TLabel").pack(anchor=tk.W, pady=(12, 4))
         tool_box = tk.Frame(left, bg=THEME["bg"])
@@ -198,6 +209,38 @@ class OperatorUI:
         if self.tools:
             self.tool_var.set(sorted(self.tools)[0])
             self._load_selected_tool()
+
+    def _build_evidence_tab(self) -> None:
+        left = ttk.Frame(self.evidence_tab)
+        left.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 12))
+        right = ttk.Frame(self.evidence_tab)
+        right.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        self.evidence_session_var = tk.StringVar(value="default")
+        self.evidence_query_var = tk.StringVar()
+        self.evidence_item_var = tk.StringVar()
+        self.evidence_mode_var = tk.StringVar(value="summary")
+        self.evidence_limit_var = tk.StringVar(value="10")
+        self.evidence_confirm_var = tk.BooleanVar(value=False)
+        self.evidence_status_var = tk.StringVar(value="Evidence Shelf is ready.")
+
+        self._entry(left, "Session ID", self.evidence_session_var)
+        self._entry(left, "Search query", self.evidence_query_var)
+        self._entry(left, "Evidence item ID", self.evidence_item_var)
+        self._entry(left, "Limit", self.evidence_limit_var)
+        self._combo(left, "Get mode", self.evidence_mode_var)
+        self.evidence_mode_combo = self._last_combo
+        self.evidence_mode_combo.configure(values=["summary", "verbatim"])
+        ttk.Checkbutton(left, text="Permit evidence writes/exports", variable=self.evidence_confirm_var).pack(anchor=tk.W, pady=(4, 8))
+        ttk.Button(left, text="Init Bag", command=lambda: self._run_evidence_action("init")).pack(fill=tk.X)
+        ttk.Button(left, text="Load Shelf", command=lambda: self._run_evidence_action("shelf")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Search Bag", command=lambda: self._run_evidence_action("search")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Get Item", command=lambda: self._run_evidence_action("get")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Export Shelf", style="Accent.TButton", command=lambda: self._run_evidence_action("export")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Label(left, textvariable=self.evidence_status_var, style="Muted.TLabel", wraplength=260).pack(anchor=tk.W, pady=(10, 0))
+
+        ttk.Label(right, text="Sanitized Evidence Shelf output", style="Muted.TLabel").pack(anchor=tk.W)
+        self.evidence_output = self._text(right, height=34)
 
     def _entry(self, parent: ttk.Frame, label: str, variable: tk.StringVar) -> None:
         ttk.Label(parent, text=label, style="Muted.TLabel").pack(anchor=tk.W)
@@ -314,6 +357,10 @@ class OperatorUI:
                 confirm_mutations=self.confirm_mutations_var.get(),
                 confirm_checkpoint=self.confirm_checkpoint_var.get(),
                 checkpoint=self.checkpoint_var.get(),
+                confirm_evidence=self.confirm_evidence_var.get(),
+                use_evidence_shelf=self.use_evidence_var.get(),
+                window_turns=int(self.window_turns_var.get() or "8"),
+                session_id=self.session_id_var.get().strip(),
             )
         except Exception as exc:
             messagebox.showerror(".dev-tools", str(exc))
@@ -394,6 +441,43 @@ class OperatorUI:
         self.tool_status_var.set(f"{name} finished: {result.get('status', 'unknown')}")
         self._set_text(self.tool_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
 
+    def _run_evidence_action(self, action: str) -> None:
+        if action in {"init", "export"} and not self.evidence_confirm_var.get():
+            messagebox.showwarning(".dev-tools", "Evidence writes and exports require the evidence confirmation box.")
+            return
+        try:
+            payload: dict[str, Any] = {
+                "project_root": self._project_root(),
+                "action": action,
+                "session_id": self.evidence_session_var.get().strip() or "default",
+                "limit": int(self.evidence_limit_var.get() or "10"),
+            }
+            if action in {"init", "export"}:
+                payload["confirm"] = True
+            if action == "search":
+                payload["query"] = self.evidence_query_var.get()
+            if action == "get":
+                payload["item_id"] = self.evidence_item_var.get()
+                payload["mode"] = self.evidence_mode_var.get()
+            if action == "export":
+                payload["format"] = "markdown"
+        except Exception as exc:
+            messagebox.showerror(".dev-tools", str(exc))
+            return
+        self.evidence_status_var.set(f"Running evidence {action}...")
+        self._threaded(lambda: self._run_evidence_worker(action, payload))
+
+    def _run_evidence_worker(self, action: str, payload: dict[str, Any]) -> None:
+        try:
+            result = dispatch_tool(self.toolbox_root, "session_evidence_store", payload)
+        except Exception as exc:
+            result = {"status": "error", "tool": "session_evidence_store", "result": {"message": str(exc)}}
+        self.root.after(0, lambda: self._finish_evidence_run(action, result))
+
+    def _finish_evidence_run(self, action: str, result: dict[str, Any]) -> None:
+        self.evidence_status_var.set(f"Evidence {action} finished: {result.get('status', 'unknown')}")
+        self._set_text(self.evidence_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
+
     def _desanitize_tool_input(self, value: Any) -> Any:
         if isinstance(value, str):
             return (
@@ -415,6 +499,7 @@ def self_test() -> int:
 
     tools = tool_index(ROOT)
     assert "local_sidecar_agent" in tools
+    assert "session_evidence_store" in tools
     assert choose_model(["tiny:1", "qwen2.5-coder:7b"], ["qwen2.5-coder"], "fallback") == "qwen2.5-coder:7b"
     payload = agent_payload(
         project_root=str(ROOT),
@@ -428,8 +513,13 @@ def self_test() -> int:
         confirm_mutations=False,
         confirm_checkpoint=False,
         checkpoint=True,
+        confirm_evidence=True,
+        use_evidence_shelf=True,
+        window_turns=8,
+        session_id="self-test",
     )
     assert payload["action"] == "run"
+    assert payload["session_id"] == "self-test"
     assert "<toolbox_root>" in sanitize_path_text(str(ROOT / "README.md"), toolbox_root=ROOT)
     docs = [ROOT / "README.md", ROOT / "_docs" / "TODO.md"]
     assert isinstance(scan_privacy_leaks(docs), list)

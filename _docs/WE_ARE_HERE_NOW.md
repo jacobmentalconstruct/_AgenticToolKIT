@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-04 (Tranche 10 Local Agent Operator UI prototype implemented)
+- 2026-05-04 (Tranche 11 Bag of Evidence and Evidence Shelf implemented)
 
 ## Fresh-thread start
 
@@ -23,7 +23,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     Tranche 6; Tranche 7 Safe Text Workspace Operations is implemented;
     Tranche 8 Private Git Workspace Operations is implemented; Tranche 9
     Local Sidecar Agent Runtime is implemented as a safe floor; Tranche 10
-    Local Agent Operator UI prototype is implemented
+    Local Agent Operator UI prototype is implemented; Tranche 11 Bag of
+    Evidence and Evidence Shelf are implemented
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -31,7 +32,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     toolbox root no longer pretends to be the original journal package
   - sidecar install, setup orchestration, onboarding-site verification, and the
     local agent operator UI are live human/operator surfaces; the root smoke
-    suite is current at Tranche 10 closeout
+    suite is current at Tranche 11 closeout
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
 - Current collaboration truth:
@@ -90,6 +91,11 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   dropdowns, run the local sidecar agent, test manifest-listed tools, and view
   privacy-sanitized output without adding raw terminal parity or a new
   MCP-visible tool.
+- Tranche 11 added `session_evidence_store`, a project-scoped ignored SQLite
+  Bag of Evidence plus Evidence Shelf. The sidecar agent now hydrates from a
+  visible shelf, archives sliding-window overflow when confirmed, records
+  evidence archive status into normal journal metadata, and exposes shelf,
+  search, get, and export through the operator UI. MCP now lists 47 tools.
 
 ## Current bottleneck
 
@@ -97,14 +103,16 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
 - The active source-shaped bottleneck is agent hardening after the prototype
-  UI: richer recovery, evidence passes, disposable run workspaces, and more
-  granular approval UX remain future upgrades.
+  UI and evidence layer: richer recovery, filesystem-claim guardrails,
+  disposable run workspaces, and more granular approval UX remain future
+  upgrades.
 
 ## Next best move
 
-- Use `agent_ui.py` to exercise the Tranche 9 safe floor with real local
-  Ollama models, then harden the local sidecar agent: recovery,
-  evidence/claim validation, run workspaces, and richer approval UX.
+- Use `agent_ui.py` to exercise the Tranche 9 safe floor and Tranche 11
+  Evidence Shelf with real local Ollama models, then harden the local sidecar
+  agent: recovery, filesystem-claim validation, run workspaces, and richer
+  approval UX.
 
 ## Current warnings
 
@@ -121,6 +129,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Private Git should not mutate the user's main `.git` by default.
 - The sidecar agent should not gain raw shell or unrestricted filesystem parity;
   it should use the guarded tool suite and human confirmation gates.
+- Treat the Bag of Evidence as session STM archive. The App Journal remains
+  durable project LTM, and important evidence should be promoted into journal
+  entries deliberately rather than copied wholesale.
 - Committed docs and onboarding surfaces should use relative paths or
   placeholders such as `<project_root>` and `<toolbox_root>`. `LICENSE.md` is
   the intentional exception for copyright holder identity.

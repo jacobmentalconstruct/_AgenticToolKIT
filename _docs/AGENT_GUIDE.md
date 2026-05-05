@@ -303,6 +303,7 @@ allowed to work through the guarded toolbox._
 ```
 BOOTSTRAP
   local_agent_bootstrap      → collect host, workspace, commands, constraints, and journal context
+  session_evidence_store     → load the visible Evidence Shelf for this session
   workspace_boundary_audit   → re-check project and write boundaries
   project_setup audit        → remove scaffold inference from the model
 
@@ -321,6 +322,7 @@ ACT
 
 CHECKPOINT
   text_file_validator        → validate changed text/code
+  session_evidence_store     → archive confirmed sliding-window overflow
   smoke_test_runner          → run available verification
   git_private_workspace      → commit the agent-owned checkpoint
   journal_write              → park the session result
@@ -368,6 +370,39 @@ drive names, usernames, or workspace ancestry. Use placeholders like
 `<project_root>` and `<toolbox_root>`; `LICENSE.md` is the copyright identity
 exception.
 
+### Loop 11: Window → Archive → Shelf → Retrieve → Promote
+
+_The session evidence loop. Use when a local agent needs coherent session
+memory without hidden state or unbounded prompt growth._
+
+```
+WINDOW
+  local_sidecar_agent        → keep the last N turns in live context
+  window_turns               → choose the visible sliding-window size
+
+ARCHIVE
+  session_evidence_store archive_window → store overflow turns when confirmed
+  session_evidence_store append         → add explicit evidence items
+
+SHELF
+  session_evidence_store shelf          → load rolling summary, open loops, decisions, and index
+  local_agent_bootstrap                 → include shelf context in launch packets
+
+RETRIEVE
+  session_evidence_store search         → find relevant prior session evidence
+  session_evidence_store get            → retrieve summary or verbatim by evidence ID
+
+PROMOTE
+  journal_write                         → promote durable decisions into project LTM
+  _docs/DEV_LOG.md                      → mirror tranche-level project truth
+```
+
+The Bag of Evidence is contained session STM archive. The Evidence Shelf is the
+visible summary/index the agent may see each turn. The App Journal is durable
+project LTM. Do not copy all verbatim evidence into the journal; promote only
+the decisions, outcomes, or evidence IDs that should survive as project
+history.
+
 ---
 
 ## Tool Selection Cheat Sheet
@@ -389,6 +424,7 @@ _"I need to…" → use this tool._
 | Audit likely committed secrets and risky env files | `secret_surface_audit` |
 | Dry-run and clean allowlisted runtime artifacts | `runtime_artifact_cleaner` |
 | Emit a local-agent launch packet | `local_agent_bootstrap` |
+| Manage the Bag of Evidence or Evidence Shelf | `session_evidence_store` |
 | Open the local agent operator UI | `chat.bat`, `chat.sh`, or `agent_ui.py` |
 | Read a bounded text file safely | `text_file_reader` |
 | Create, overwrite, or append text safely | `text_file_writer` |
