@@ -165,6 +165,11 @@ The queued local-agent implementation runway is now:
    coherence layer; the sidecar agent can hydrate from a visible shelf, archive
    overflow turns into ignored SQLite state, search/retrieve evidence, and
    connect evidence IDs to normal journaled project memory.
+6. **Tranche 12 — Local Agent Runtime Recovery and Live Model Hardening:**
+   selected as the next source tranche; it should turn live Ollama failures
+   such as request timeouts into structured recovery classes, UI retry/status
+   actions, Evidence Shelf parking, journaled recovery metadata, and
+   filesystem-claim guardrails without adding raw terminal parity.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

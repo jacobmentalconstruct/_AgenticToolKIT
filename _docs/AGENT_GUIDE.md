@@ -403,6 +403,38 @@ project LTM. Do not copy all verbatim evidence into the journal; promote only
 the decisions, outcomes, or evidence IDs that should survive as project
 history.
 
+### Loop 12: Preflight → Run → Recover → Cite → Park
+
+_The selected next local-agent hardening loop. Use when live Ollama turns or
+operator UI runs fail, stall, or produce claims that need evidence._
+
+```
+PREFLIGHT
+  local_sidecar_agent models/status → check Ollama reachability and selected models
+  agent_ui.py Refresh Models        → refresh dropdowns before a live run
+
+RUN
+  local_sidecar_agent run           → execute through allowlisted guarded tools
+  timeout_seconds/window_turns      → choose explicit runtime limits
+
+RECOVER
+  recovery classification           → timeout, missing model, malformed tool call, schema error, approval stop
+  operator action                   → refresh models, retry with longer timeout, inspect details, or stop
+
+CITE
+  session_evidence_store shelf      → cite evidence IDs for session memory
+  touched_paths                     → cite changed files for filesystem claims
+
+PARK
+  session_evidence_store archive_window → archive failed/recovered turns when confirmed
+  journal_write                         → record recovery class, models, timeout, and evidence IDs
+```
+
+The recovery loop is a hardening layer, not a new authority layer. It should
+make live-model failures understandable and recoverable while keeping all work
+inside the existing guarded toolbox, Evidence Shelf, App Journal, and explicit
+operator choices.
+
 ---
 
 ## Tool Selection Cheat Sheet

@@ -208,14 +208,35 @@ archives overflow turns after runs when `confirm_evidence` is true.
 and export. This makes memory inspectable: every stored item has an ID,
 summary, timestamp, and retrievable verbatim body.
 
-## Next Hardening Horizon
+## Active Northstar: Local Agent Runtime Recovery and Live Model Hardening
 
 The first agent floor is intentionally narrower than the external reference
-plan. The operator UI makes that floor easier to exercise. The next useful
-horizon is hardening rather than broader authority:
-recovery-pattern detection, filesystem-claim guardrails over cited evidence,
-disposable run workspaces, richer multiple-choice approvals, and optional
-interactive streaming for live Ollama turns.
+plan. The operator UI and Evidence Shelf make that floor easier to exercise.
+The active next horizon is Tranche 12: harden live local-model operation rather
+than broaden authority.
+
+The concrete trigger is an operator-visible Ollama timeout in the Agent Console.
+The current behavior is mechanically safe but too raw: the UI can show an error
+envelope such as `Ollama request failed: timed out` without a clear recovery
+path. The next northstar is to make those failures structured, recoverable,
+evidence-aware, and journaled.
+
+Target capabilities:
+
+| Capability | Purpose | Expected surface |
+|---|---|---|
+| Model readiness preflight | Check Ollama reachability, selected model availability, and obvious timeout risk before a run. | `local_sidecar_agent`, `agent_ui.py` |
+| Recovery classification | Normalize failures such as timeout, missing model, malformed tool call, schema error, approval stop, and exhausted rounds. | `local_sidecar_agent` |
+| Operator recovery UX | Show concise status and safe next actions such as refresh models, retry with longer timeout, or inspect details. | `agent_ui.py` |
+| Streaming or heartbeat path | Keep long-running Ollama turns visible instead of feeling frozen, while preserving deterministic smoke tests. | `local_sidecar_agent`, UI helpers |
+| Evidence parking | Archive failed/recovered turns into the Bag of Evidence when confirmed. | `session_evidence_store` integration |
+| Journal recovery metadata | Record recovery class, selected models, timeout settings, and evidence IDs in durable project LTM. | `journal_write` metadata |
+| Claim guardrails | Make final summaries cite touched paths or evidence IDs before claiming work happened. | `local_sidecar_agent` |
+
+Non-goals remain important: do not add raw terminal parity, unrestricted CLI
+execution, dependency installation, or hidden memory. Recovery should happen
+through existing guarded tool contracts, explicit operator choices, and visible
+Evidence Shelf/App Journal state.
 
 ## Later Expansion
 

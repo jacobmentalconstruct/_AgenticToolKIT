@@ -1,6 +1,6 @@
 # Project Backlog
 
-_Last updated: 2026-05-04._
+_Last updated: 2026-05-05._
 
 ---
 
@@ -17,15 +17,15 @@ _Last updated: 2026-05-04._
 - The local-agent sys-ops northstar, Safe Text Workspace Operations, Private
   Git Workspace Operations, Tranche 9 local sidecar agent safe floor, Tranche
   10 operator UI prototype, and Tranche 11 Bag of Evidence / Evidence Shelf are
-  closed. The active source horizon is now hardening the local agent with
-  recovery, filesystem-claim checks, run workspaces, and richer approvals.
+  closed. The active source horizon is Tranche 12: Local Agent Runtime Recovery
+  and Live Model Hardening.
 
 ---
 
 ## Current state
 
-**Tranche 11 complete as the session coherence layer. Next: harden the local
-sidecar agent with the UI and Evidence Shelf available for human testing.**
+**Tranche 11 complete as the session coherence layer. Next: Tranche 12 Local
+Agent Runtime Recovery and Live Model Hardening.**
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -48,22 +48,47 @@ before model work, archives sliding-window overflow after runs when confirmed,
 and records evidence archive status in the normal App Journal turn metadata.
 The bag is session STM archive; the App Journal remains durable project LTM.
 
+The Tranche 12 trigger is live operator friction from the UI: Ollama-backed
+runs can currently end in a raw timeout envelope such as `Ollama request failed:
+timed out`. That is an acceptable floor behavior, but the next tranche should
+make live model failures recoverable, visible, and journaled without widening
+the agent's authority.
+
 ### Active tasks
 
-- [ ] Add richer recovery-pattern detection and a recovery model role.
+### Active source tranche: Tranche 12 Local Agent Runtime Recovery and Live Model Hardening
+
+- [ ] Add structured recovery classification for live-model failures:
+      `ollama_unreachable`, `model_missing`, `request_timeout`,
+      `malformed_tool_call`, `tool_schema_error`, `tool_runtime_error`,
+      `approval_required`, and `max_rounds_exhausted`.
+- [ ] Add a recovery model role or deterministic recovery planner that turns
+      failure classes into operator-facing next actions without inventing new
+      authority.
+- [ ] Improve `local_sidecar_agent` model readiness checks before `run`:
+      validate Ollama reachability, selected model availability, and likely
+      timeout risk before spending a tool round.
+- [ ] Add operator UI recovery UX for failed runs: concise status, retry with
+      longer timeout, refresh models, disable run when models are unavailable,
+      and preserve the sanitized JSON details for inspection.
+- [ ] Add optional streaming or heartbeat support for long-running Ollama turns,
+      while keeping the existing non-streaming path as the smoke-test default.
+- [ ] Archive failed live-model runs into `session_evidence_store` when
+      confirmed and write App Journal metadata that links recovery status,
+      evidence IDs, selected models, and timeout settings.
 - [ ] Add filesystem-claim guardrails and final-summary evidence verification
-      using `session_evidence_store`.
-- [ ] Add disposable run-workspace support for future verification tools.
-- [ ] Expand human decision UX beyond booleans into named multiple-choice
-      approvals.
-- [ ] Add optional interactive/streaming CLI mode for long-running live Ollama
-      turns.
-- [ ] Use the operator UI with live local models to collect practical approval
-      Tool Lab, and Evidence Shelf friction before the next agent-hardening
-      tranche.
-- [ ] Evaluate whether any dependency-install or CLI-in-sandbox features belong
-      in a later, separate tranche; keep them out of the default agent floor.
-- [ ] Keep docs and smoke coverage aligned as the agent hardens.
+      using `session_evidence_store`, so agent-facing summaries cite touched
+      paths or evidence IDs when claiming work was done.
+- [ ] Add disposable run-workspace planning hooks for future verification tools,
+      but keep dependency installation and broad CLI-in-sandbox behavior out of
+      Tranche 12.
+- [ ] Expand approval UX from booleans toward named decisions where the current
+      tool contracts already expose safe choices.
+- [ ] Extend smoke coverage with mocked Ollama timeout/unreachable/model-missing
+      cases, mocked malformed tool-call recovery, UI helper tests, and
+      evidence/journal parking assertions.
+- [ ] Update README, agent guide, architecture, northstars, TODO,
+      WE_ARE_HERE_NOW, onboarding, and dev log after implementation.
 
 ### Previous source tranche (parked): Tranche 11 Bag of Evidence and Evidence Shelf
 

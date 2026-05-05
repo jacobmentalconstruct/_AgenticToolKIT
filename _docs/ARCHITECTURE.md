@@ -156,6 +156,33 @@ guarded tools. Future hardening should add recovery-pattern detection, evidence
 passes, filesystem-claim guardrails, disposable run workspaces, and richer
 approval UX.
 
+## Runtime Recovery and Live Model Hardening
+
+Tranche 12 is the selected next architecture step. It should harden the
+Ollama-backed runtime and operator UI around live-model failure modes without
+expanding the agent's authority.
+
+The observed floor issue is a raw timeout envelope from a live Agent Console
+run. Architecturally, that belongs to a recovery layer between model transport,
+tool execution, Evidence Shelf parking, and operator UX:
+
+1. preflight selected models before a run
+2. classify transport/model/tool/approval failures into stable recovery classes
+3. return structured recovery status in the normal JSON envelope
+4. present concise retry/status actions in `agent_ui.py`
+5. archive confirmed failed/recovered turns into `session_evidence_store`
+6. write App Journal metadata linking recovery class, evidence IDs, models, and
+   timeout settings
+7. require final summaries to cite touched paths or evidence IDs for claims
+
+Likely recovery classes include `ollama_unreachable`, `model_missing`,
+`request_timeout`, `malformed_tool_call`, `tool_schema_error`,
+`tool_runtime_error`, `approval_required`, and `max_rounds_exhausted`.
+
+This layer should preserve deterministic mocked-model smoke tests and keep
+streaming or heartbeat behavior optional. It should not add raw command
+execution, dependency installation, or hidden memory.
+
 ## Local Agent Operator UI
 
 Tranche 10 adds the first human-facing operator prototype for the local sidecar

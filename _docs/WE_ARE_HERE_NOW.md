@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-04 (Tranche 11 Bag of Evidence and Evidence Shelf implemented)
+- 2026-05-05 (Tranche 12 Local Agent Runtime Recovery and Live Model Hardening selected)
 
 ## Fresh-thread start
 
@@ -24,7 +24,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     Tranche 8 Private Git Workspace Operations is implemented; Tranche 9
     Local Sidecar Agent Runtime is implemented as a safe floor; Tranche 10
     Local Agent Operator UI prototype is implemented; Tranche 11 Bag of
-    Evidence and Evidence Shelf are implemented
+    Evidence and Evidence Shelf are implemented; Tranche 12 Local Agent
+    Runtime Recovery and Live Model Hardening is selected as the next source
+    tranche
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -102,17 +104,18 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck is agent hardening after the prototype
-  UI and evidence layer: richer recovery, filesystem-claim guardrails,
-  disposable run workspaces, and more granular approval UX remain future
-  upgrades.
+- The active source-shaped bottleneck is live-model hardening after the
+  prototype UI and evidence layer. The observed operator failure mode is a raw
+  Ollama timeout envelope in the Agent Console; Tranche 12 should turn that
+  class of failure into structured recovery status, clear UI actions, evidence
+  parking, and journaled recovery metadata.
 
 ## Next best move
 
-- Use `agent_ui.py` to exercise the Tranche 9 safe floor and Tranche 11
-  Evidence Shelf with real local Ollama models, then harden the local sidecar
-  agent: recovery, filesystem-claim validation, run workspaces, and richer
-  approval UX.
+- Implement Tranche 12: add live-model readiness checks, timeout recovery,
+  operator retry/status UX, failure evidence archiving, journaled recovery
+  metadata, and filesystem-claim guardrails while keeping the guarded toolbox
+  boundary intact.
 
 ## Current warnings
 
@@ -132,6 +135,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Treat the Bag of Evidence as session STM archive. The App Journal remains
   durable project LTM, and important evidence should be promoted into journal
   entries deliberately rather than copied wholesale.
+- Tranche 12 should not add raw terminal parity, dependency installation, or
+  unrestricted model authority. Recovery should route through existing tool
+  contracts, Evidence Shelf state, and explicit operator choices.
 - Committed docs and onboarding surfaces should use relative paths or
   placeholders such as `<project_root>` and `<toolbox_root>`. `LICENSE.md` is
   the intentional exception for copyright holder identity.

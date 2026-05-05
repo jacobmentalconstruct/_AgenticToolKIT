@@ -1324,6 +1324,44 @@ interactive streaming.
 
 ---
 
+## 2026-05-05 — Tranche 12 recovery hardening planning park
+
+- Normalized the next source tranche as Tranche 12: Local Agent Runtime
+  Recovery and Live Model Hardening.
+- The planning trigger is an operator-visible Agent Console failure where a
+  live Ollama run returned a raw timeout envelope. The failure is safe but not
+  yet ergonomic.
+- Updated TODO, NORTHSTARS, WE_ARE_HERE_NOW, AGENT_GUIDE, ARCHITECTURE, README,
+  and onboarding so the next session can proceed without re-deriving scope.
+- Defined the next work as recovery and live-model hardening rather than a
+  broader authority expansion.
+- Named likely recovery classes: `ollama_unreachable`, `model_missing`,
+  `request_timeout`, `malformed_tool_call`, `tool_schema_error`,
+  `tool_runtime_error`, `approval_required`, and `max_rounds_exhausted`.
+- Preserved the boundary: no raw terminal parity, dependency installation, or
+  hidden memory. Recovery should route through existing guarded tool contracts,
+  Evidence Shelf state, App Journal metadata, and explicit operator choices.
+
+Validation:
+
+- Documentation-only planning park.
+- `git diff --check` -> pass.
+- App journal entry written and journal export run for operator visibility.
+
+Classification: spiral.
+
+- Capability increased: the next implementation tranche is now named and
+  scoped.
+- Uncertainty decreased: the UI timeout is treated as a recoverable runtime
+  class, not an ambiguous product bug.
+- Boundary clarified: model recovery hardens the existing agent loop without
+  widening execution authority.
+
+Current read: when implementation resumes, start with Tranche 12 in
+`_docs/TODO.md`.
+
+---
+
 ## Template for future entries
 
 - Files changed:
