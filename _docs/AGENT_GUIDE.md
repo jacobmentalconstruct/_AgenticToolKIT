@@ -297,8 +297,8 @@ confirmation gates, and blocks `origin` unless explicitly allowed.
 
 ### Loop 9: Bootstrap → Plan → Ask → Act → Checkpoint
 
-_The planned local sidecar agent cycle. Use after Tranche 9 lands, when an
-Ollama-backed agent is allowed to work through the guarded toolbox._
+_The implemented local sidecar agent floor. Use when an Ollama-backed agent is
+allowed to work through the guarded toolbox._
 
 ```
 BOOTSTRAP
@@ -307,11 +307,11 @@ BOOTSTRAP
   project_setup audit        → remove scaffold inference from the model
 
 PLAN
-  local_sidecar_agent        → produce a structured task list through the configured model
+  local_sidecar_agent        → run the configured model or mock response
   text_file_reader           → gather only bounded file context
 
 ASK
-  binary/multiple choice     → resolve risk, ambiguity, or confirmation gates
+  approval_required status   → resolve risk, ambiguity, or confirmation gates
 
 ACT
   text_file_writer           → create or update text files
@@ -326,8 +326,11 @@ CHECKPOINT
   journal_write              → park the session result
 ```
 
-The local agent should not have a raw command channel. Its intelligence belongs
-in planning, asking, and choosing from the safe tool suite.
+The local sidecar agent should not have a raw command channel. Its intelligence
+belongs in planning, asking, and choosing from the safe tool suite. The runtime
+parses fenced `tool_call` JSON blocks, validates them against schemas and an
+allowlist, stops before unconfirmed mutations, and writes ignored session/audit
+state under `.dev-tools/runtime/local_agent/`.
 
 ---
 

@@ -30,10 +30,10 @@ The toolbox should remain project-agnostic and should not depend on sibling
 folders, old project roots, generated caches, or hidden runtime state.
 
 The local-agent system operations layer, Safe Text Workspace Operations layer,
-and Private Git Workspace Operations layer are implemented. The next
-source-shaped architecture layer is Local Sidecar Agent Runtime: an
-Ollama-backed loop that uses the guarded toolbox, checkpoints through private
-Git, and avoids raw shell or unrestricted filesystem parity.
+Private Git Workspace Operations layer, and Local Sidecar Agent Runtime safe
+floor are implemented. The current architecture now has an Ollama-backed loop
+that uses the guarded toolbox, checkpoints through private Git, and avoids raw
+shell or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -123,24 +123,31 @@ history out of the default blast radius.
 
 ## Local Sidecar Agent Runtime
 
-Tranche 9 is the next real local desktop agent runtime. It should be
-Ollama-backed and stdlib-first, using the toolbox's own MCP-visible tools and
-CLI contracts as its action surface.
+Tranche 9 implements the first real local desktop agent runtime as a safe
+floor. It is Ollama-backed and stdlib-first, using the toolbox's own
+MCP-visible tools and CLI contracts as its action surface.
 
 The agent should not plan the scaffold required by the builder contract.
-Instead, its loop should be fixed by the sidecar:
+Instead, its loop is fixed by the sidecar:
 
 1. choose and audit the project root
 2. load `local_agent_bootstrap`
 3. run `project_setup audit` or `verify`
-4. produce a structured task list
-5. ask binary or multiple-choice questions for ambiguous or risky decisions
+4. get model output through the configured Ollama role or a mock response
+5. parse fenced `tool_call` JSON blocks
 6. call only allowlisted tools with schema-validated JSON arguments
-7. verify changed surfaces
-8. checkpoint through private Git
-9. journal and park
+7. stop with `approval_required` before unconfirmed mutations
+8. verify touched file surfaces
+9. checkpoint through private Git when confirmed
+10. journal and park runtime state under `.dev-tools/runtime/local_agent/`
 
 Qwen coder-family models are the preferred planning/JSON generators. Qwen
 human-interface models are the preferred conversational response layer. Model
 names, endpoint, and timeouts should be configurable, with localhost Ollama as
 the first target.
+
+The safe floor deliberately does not add raw CLI parity, dependency
+installation, or a duplicate file/VCS stack. It routes through the existing
+guarded tools. Future hardening should add recovery-pattern detection, evidence
+passes, filesystem-claim guardrails, disposable run workspaces, and richer
+approval UX.

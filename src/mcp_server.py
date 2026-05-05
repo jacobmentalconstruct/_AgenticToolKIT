@@ -130,6 +130,11 @@ except ImportError:
     LOCAL_AGENT_BOOTSTRAP_METADATA, run_local_agent_bootstrap = None, None
 
 try:
+    from tools.local_sidecar_agent import FILE_METADATA as LOCAL_SIDECAR_AGENT_METADATA, run as run_local_sidecar_agent
+except ImportError:
+    LOCAL_SIDECAR_AGENT_METADATA, run_local_sidecar_agent = None, None
+
+try:
     from tools.text_file_reader import FILE_METADATA as TEXT_FILE_READER_METADATA, run as run_text_file_reader
 except ImportError:
     TEXT_FILE_READER_METADATA, run_text_file_reader = None, None
@@ -259,6 +264,7 @@ for meta, runner in [
     (SECRET_SURFACE_METADATA, run_secret_surface_audit),
     (RUNTIME_CLEANER_METADATA, run_runtime_artifact_cleaner),
     (LOCAL_AGENT_BOOTSTRAP_METADATA, run_local_agent_bootstrap),
+    (LOCAL_SIDECAR_AGENT_METADATA, run_local_sidecar_agent),
     (TEXT_FILE_READER_METADATA, run_text_file_reader),
     (TEXT_FILE_WRITER_METADATA, run_text_file_writer),
     (DIRECTORY_SCAFFOLD_METADATA, run_directory_scaffold),

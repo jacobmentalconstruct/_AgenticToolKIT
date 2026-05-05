@@ -1158,6 +1158,58 @@ private Git tools.
 
 ---
 
+## 2026-05-04 — Tranche 9 Local Sidecar Agent Runtime safe floor
+
+- Added `local_sidecar_agent`, a stdlib-first Ollama-backed local agent floor
+  with `status`, `models`, and `run` actions.
+- The runtime creates ignored state under `.dev-tools/runtime/local_agent/`
+  with sessions, logs, state, runs, outputs, parts, ref, and tools subfolders.
+- Added configurable model roles, Ollama base URL, timeout, max tool rounds,
+  allowed tools, mutation confirmation, checkpoint confirmation, and deterministic
+  mock responses for smoke tests.
+- Implemented fenced `tool_call` JSON parsing, schema validation,
+  allowlist enforcement, malformed-call feedback, mutation approval stops, and
+  result round-tripping.
+- The agent floor calls `local_agent_bootstrap`, `workspace_boundary_audit`, and
+  `project_setup audit` before model tool execution.
+- The runtime routes through existing guarded toolbox tools rather than
+  duplicating file, scaffold, journal, or private Git primitives.
+- Added touched-file validation, JSONL audit/action logs, turn journaling, and
+  optional private Git checkpointing through `git_private_workspace`.
+- Registered `local_sidecar_agent` in `tool_manifest.json` and
+  `src/mcp_server.py`.
+- Extended `src/smoke_test.py` with Tranche 9 fixtures covering runtime layout,
+  approval-required stops before unconfirmed mutation, mock-Ollama tool calls,
+  safe text writes, validation, journaling, and private Git checkpointing.
+- Updated README, agent guide, architecture, northstars, TODO,
+  WE_ARE_HERE_NOW, and onboarding pages so Tranche 9 is satisfied as a safe
+  floor and future work is framed as agent hardening.
+
+Validation:
+
+- `python -m py_compile src/tools/local_sidecar_agent.py src/mcp_server.py
+  src/smoke_test.py` -> pass.
+- `python src/smoke_test.py` -> 95/95 pass; MCP lists 46 tools.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` -> 5/5
+  suites passed, including `_ollama-prompt-lab`.
+
+Classification: spiral.
+
+- Capability increased: the toolbox can now run a local Ollama-backed agent
+  turn that acts only through allowlisted guarded tools.
+- Uncertainty decreased: mock-model smoke coverage proves the core loop can
+  stop for approval, write through safe text primitives, validate touched files,
+  journal state, and checkpoint through private Git.
+- Boundary clarified: Tranche 9 is a safe floor, not raw shell parity,
+  dependency installation, or a duplicate file/VCS stack.
+
+Current read: Tranche 9 is complete as an initial runtime. The next work should
+harden the local sidecar agent with recovery, evidence/claim validation,
+disposable run workspaces, richer approval UX, and optional live streaming.
+
+---
+
 ## Template for future entries
 
 - Files changed:

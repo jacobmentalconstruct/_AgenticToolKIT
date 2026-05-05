@@ -1277,6 +1277,75 @@ def test_git_private_workspace() -> None:
         _fail("git_private_workspace push/pull", f"{push} {pull}")
 
 
+def test_local_sidecar_agent() -> None:
+    print("\n── Tranche 9: Local Sidecar Agent Runtime ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="local_sidecar_agent_"))
+    mock_write = (
+        "```tool_call\n"
+        "{\"tool\":\"text_file_writer\",\"arguments\":{\"path\":\"src/agent_note.py\","
+        "\"content\":\"print(\\\"agent ok\\\")\\n\",\"create_dirs\":true,"
+        "\"validate_after_write\":true,\"file_type\":\"python\"}}\n"
+        "```"
+    )
+
+    status = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "status",
+    })
+    if status["status"] == "ok" and status["result"]["runtime"]["base"] == ".dev-tools/runtime/local_agent":
+        _ok("local_sidecar_agent reports runtime layout")
+    else:
+        _fail("local_sidecar_agent status", str(status))
+
+    approval = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "create a note",
+        "mock_ollama_responses": [mock_write],
+        "checkpoint": False,
+    })
+    if approval["status"] == "approval_required" and not (target_root / "src" / "agent_note.py").exists():
+        _ok("local_sidecar_agent stops before unconfirmed mutation")
+    else:
+        _fail("local_sidecar_agent approval gate", str(approval))
+
+    git_available = subprocess.run(
+        ["git", "--version"],
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).returncode == 0
+    run_args = {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "create a note",
+        "mock_ollama_responses": [mock_write, "Done."],
+        "confirm_mutations": True,
+        "confirm_checkpoint": git_available,
+        "checkpoint": git_available,
+        "max_tool_rounds": 2,
+    }
+    run_result = _tool("local_sidecar_agent", run_args)
+    session_dir = target_root / ".dev-tools" / "runtime" / "local_agent" / "sessions"
+    private_gitdir = target_root / ".dev-tools" / "runtime" / "private_git" / "repo.git"
+    checkpoint_ok = (
+        (not git_available and run_result["result"]["checkpoint"]["skipped"])
+        or (git_available and run_result["result"]["checkpoint"].get("status") == "ok" and private_gitdir.exists())
+    )
+    if (
+        run_result["status"] == "ok"
+        and (target_root / "src" / "agent_note.py").exists()
+        and "src/agent_note.py" in run_result["result"]["touched_paths"]
+        and session_dir.exists()
+        and checkpoint_ok
+        and not (target_root / ".git").exists()
+    ):
+        _ok("local_sidecar_agent runs mock plan, writes, validates, journals, and checkpoints")
+    else:
+        _fail("local_sidecar_agent mock run", str(run_result))
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -1317,7 +1386,7 @@ def test_mcp(project_root: Path) -> None:
             "project_command_profile", "process_port_inspector",
             "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
             "secret_surface_audit", "runtime_artifact_cleaner",
-            "local_agent_bootstrap",
+            "local_agent_bootstrap", "local_sidecar_agent",
             "text_file_reader", "text_file_writer", "directory_scaffold",
             "text_file_validator", "file_move_guarded", "file_delete_guarded",
             "git_private_workspace",
@@ -1374,6 +1443,7 @@ def main() -> int:
     test_sys_ops_introspection()
     test_safe_text_workspace_operations()
     test_git_private_workspace()
+    test_local_sidecar_agent()
     test_mcp(project_root)
 
     print(f"\n═══ Results: {PASS} passed, {FAIL} failed ═══")

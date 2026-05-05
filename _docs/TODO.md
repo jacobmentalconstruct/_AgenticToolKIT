@@ -14,52 +14,61 @@ _Last updated: 2026-05-04._
   orchestration, and an onboarding-site integrity check.
 - The prototype northstars are collapsed into current release truth; deferred
   expansion is intentionally out of scope for this release candidate.
-- The local-agent sys-ops northstar, Safe Text Workspace Operations, and
-  Private Git Workspace Operations are closed. The active source horizon is now
-  Tranche 9: a desktop-first Ollama-backed local sidecar agent that acts only
-  through the guarded toolbox.
+- The local-agent sys-ops northstar, Safe Text Workspace Operations, Private
+  Git Workspace Operations, and the Tranche 9 local sidecar agent safe floor
+  are closed. The active source horizon is now hardening the local agent:
+  richer recovery, evidence checks, run workspaces, and human UX polish.
 
 ---
 
 ## Current state
 
-**Tranche 8 complete. Tranche 9 is next: Local Sidecar Agent Runtime.**
+**Tranche 9 complete as a safe floor. Next: harden the local sidecar agent.**
 
-Tranche 8 implemented Private Git Workspace Operations: a local agent can now
-create an agent-owned private Git history under ignored runtime state, stage
-bounded project-root pathspecs, commit with explicit messages, branch, checkout,
-and push/pull only against explicitly configured private remotes.
+Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
+runtime that bootstraps project context, routes model-produced tool calls
+through an allowlisted catalog, validates schemas, stops before unconfirmed
+mutations, writes ignored runtime session/audit state, validates touched files,
+journals turns, and checkpoints through `git_private_workspace`.
 
-`project_setup` remains the builder-contract scaffold authority. The next
-missing layer is the sidecar agent runtime itself: a fixed, schema-validated,
-Ollama-backed loop that uses the sys-ops, safe text, and private Git layers
-without raw terminal or unrestricted filesystem parity.
+`project_setup` remains the builder-contract scaffold authority. The local
+agent floor deliberately avoids raw terminal or unrestricted filesystem parity;
+future work should harden the agent loop rather than widen authority.
 
 ### Active tasks
 
-- [ ] Add a stdlib-first local sidecar agent entrypoint.
-- [ ] Use Ollama over localhost HTTP with configurable model names, endpoint,
+- [ ] Add richer recovery-pattern detection and a recovery model role.
+- [ ] Add evidence pass and filesystem-claim guardrails for final summaries.
+- [ ] Add disposable run-workspace support for future verification tools.
+- [ ] Expand human decision UX beyond booleans into named multiple-choice
+      approvals.
+- [ ] Add optional interactive/streaming CLI mode for long-running live Ollama
+      turns.
+- [ ] Evaluate whether any dependency-install or CLI-in-sandbox features belong
+      in a later, separate tranche; keep them out of the default agent floor.
+- [ ] Keep docs and smoke coverage aligned as the agent hardens.
+
+### Previous source tranche (parked): Tranche 9 Local Sidecar Agent Runtime
+
+- [x] Add a stdlib-first local sidecar agent entrypoint.
+- [x] Use Ollama over localhost HTTP with configurable model names, endpoint,
       and timeouts.
-- [ ] Prefer Qwen coder-family models for structured JSON/tool-call planning
+- [x] Prefer Qwen coder-family models for structured JSON/tool-call planning
       and Qwen human-interface models for user-facing responses.
-- [ ] Load `local_agent_bootstrap` before planning.
-- [ ] Use only allowlisted toolbox tools; do not expose raw shell execution.
-- [ ] Resolve all paths under the chosen `project_root`.
-- [ ] Use a fixed loop: probe, audit, setup, plan, ask, act, verify,
-      checkpoint, park.
-- [ ] Validate model-produced tool calls against schemas before execution.
-- [ ] Use binary or multiple-choice human prompts for high-risk or ambiguous
-      steps.
-- [ ] Require human confirmation before mutating tools, private Git push/pull,
-      delete/quarantine, dev-server lifecycle changes, Docker/Kubernetes side
-      effects, or broad cleanup.
-- [ ] Store session state under ignored `.dev-tools/runtime/local_agent/`.
-- [ ] Add mock-Ollama and temp-project smoke coverage proving the agent can
-      plan, call safe text tools, validate output, checkpoint through private
-      Git, and stop for human approval when required.
-- [ ] Update README, agent guide, architecture, northstars, TODO, onboarding,
+- [x] Load `local_agent_bootstrap` before planning.
+- [x] Use only allowlisted toolbox tools; do not expose raw shell execution.
+- [x] Resolve all paths under the chosen `project_root`.
+- [x] Use a fixed floor loop: bootstrap, boundary audit, setup audit, model
+      turn, guarded tool execution, validation, checkpoint, journal.
+- [x] Validate model-produced tool calls against schemas before execution.
+- [x] Stop for approval before unconfirmed mutating tools.
+- [x] Store session state under ignored `.dev-tools/runtime/local_agent/`.
+- [x] Add mock-Ollama and temp-project smoke coverage proving the agent can
+      call safe text tools, validate output, checkpoint through private Git,
+      and stop for human approval when required.
+- [x] Update README, agent guide, architecture, northstars, TODO, onboarding,
       and dev log.
-- [ ] Write/export the Tranche 9 journal entry and commit the tranche.
+- [x] Write/export the Tranche 9 journal entry and commit the tranche.
 
 ### Previous source tranche (parked): Tranche 8 Private Git Workspace Operations
 
@@ -164,36 +173,35 @@ Satisfied tool surface:
       and dev log.
 - [x] Write/export the Tranche 8 journal entry and commit the tranche.
 
-### Active Tranche 9: Local Sidecar Agent Runtime
+### Satisfied Tranche 9: Local Sidecar Agent Runtime
 
 Purpose: implement the first local desktop sidecar agent after it has the
 operating envelope, safe file primitives, and private Git checkpoints it needs.
 
-Planned runtime:
+Implemented safe floor:
 
-- [ ] Add a stdlib-first local agent entrypoint, likely `local_sidecar_agent`,
+- [x] Add a stdlib-first local agent entrypoint, `local_sidecar_agent`,
       runnable from the installed sidecar.
-- [ ] Use Ollama over localhost HTTP; default models should be configurable,
+- [x] Use Ollama over localhost HTTP; default models should be configurable,
       with Qwen coder-family models favored for structured JSON/tool planning
       and Qwen human-interface models favored for user-facing responses.
-- [ ] Load `local_agent_bootstrap` before planning.
-- [ ] Use only allowlisted toolbox tools; do not expose raw terminal execution.
-- [ ] Resolve all project paths under the chosen `project_root`.
-- [ ] Use a fixed scaffolded loop so the model does not infer the builder
-      contract: probe, audit, setup, plan, ask, act, verify, checkpoint, park.
-- [ ] Validate model-produced tool calls against schemas before execution.
-- [ ] Use binary or multiple-choice human prompts for high-risk steps and
-      ambiguous decisions.
-- [ ] Require human confirmation before mutating tools, private Git push/pull,
+- [x] Load `local_agent_bootstrap` before planning.
+- [x] Use only allowlisted toolbox tools; do not expose raw terminal execution.
+- [x] Resolve all project paths under the chosen `project_root`.
+- [x] Use a fixed scaffolded loop so the model does not infer the builder
+      contract: bootstrap, audit, setup, plan, act, verify, checkpoint, park.
+- [x] Validate model-produced tool calls against schemas before execution.
+- [x] Use approval-required status for high-risk steps and ambiguous decisions.
+- [x] Require human confirmation before mutating tools, private Git push/pull,
       delete/quarantine, dev-server lifecycle changes, Docker/Kubernetes
       side effects, or broad cleanup.
-- [ ] Store session state under ignored `.dev-tools/runtime/local_agent/`.
-- [ ] Add mock-Ollama and temp-project smoke coverage proving the agent can
+- [x] Store session state under ignored `.dev-tools/runtime/local_agent/`.
+- [x] Add mock-Ollama and temp-project smoke coverage proving the agent can
       plan, call safe text tools, validate output, checkpoint through private
       Git, and stop for human approval when required.
-- [ ] Update README, agent guide, architecture, northstars, TODO, onboarding,
+- [x] Update README, agent guide, architecture, northstars, TODO, onboarding,
       and dev log.
-- [ ] Write/export the Tranche 9 journal entry and commit the tranche.
+- [x] Write/export the Tranche 9 journal entry and commit the tranche.
 
 ### Previous source tranche (parked)
 
@@ -317,8 +325,8 @@ Planned runtime:
 - [x] Implement Tranche 5: secret audit and runtime artifact cleanup.
 - [x] Implement Tranche 6: local-agent bootstrap and sys-ops northstar closeout.
 - [x] Implement Tranche 7: safe text workspace operations.
-- [ ] Implement Tranche 8: private Git workspace operations.
-- [ ] Implement Tranche 9: local sidecar agent runtime.
+- [x] Implement Tranche 8: private Git workspace operations.
+- [x] Implement Tranche 9: local sidecar agent runtime.
 
 ---
 

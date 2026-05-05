@@ -95,7 +95,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 45 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 46 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
@@ -119,6 +119,14 @@ uses the chosen project root as the worktree, requires confirmation for
 mutations, blocks risky pathspecs, and does not create or mutate the user's main
 project `.git` by default.
 
+**Local Sidecar Agent Runtime now has a safe floor.** `local_sidecar_agent`
+adds a stdlib-first, Ollama-backed runtime that can bootstrap, route model
+tool calls through an allowlisted toolbox catalog, stop for approval before
+mutations, write ignored session/audit state under
+`.dev-tools/runtime/local_agent/`, validate touched files, journal turns, and
+checkpoint work through `git_private_workspace`. Smoke coverage uses a mocked
+Ollama response so the contract is verifiable without depending on a live model.
+
 The queued local-agent implementation runway is now:
 
 1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
@@ -127,9 +135,9 @@ The queued local-agent implementation runway is now:
    checkpoints using a private gitdir under ignored runtime state, with
    init/add/commit/branch/checkout/pull/push wrappers that never touch the
    user's main `.git` by default.
-3. **Tranche 9 — Local Sidecar Agent Runtime:** next; an Ollama-backed agent loop
-   that uses the guarded toolbox only, with Qwen-class models for structured
-   task JSON and human-facing responses.
+3. **Tranche 9 — Local Sidecar Agent Runtime:** complete as a safe floor;
+   `local_sidecar_agent` uses the guarded toolbox only, with configurable
+   Qwen-class model roles for structured task JSON and human-facing responses.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

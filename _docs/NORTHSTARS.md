@@ -125,29 +125,39 @@ before it becomes more independent, without handing it broad authority over the
 operator's real repository history. `local_agent_bootstrap` now includes private
 Git status so the next agent launch packet can see checkpoint state.
 
-## Active Northstar: Local Sidecar Agent Runtime
+## Satisfied Northstar: Local Sidecar Agent Runtime
 
-The next tranche should implement the first local sidecar agent. The target
-runtime is desktop-first and Ollama-backed, using the existing toolbox rather
-than inventing a parallel execution surface.
+Local Sidecar Agent Runtime is now satisfied as a safe floor. Tranche 9 adds
+`local_sidecar_agent`, a desktop-first and Ollama-backed runtime that uses the
+existing toolbox rather than inventing a parallel execution surface.
 
-The planned agent should:
+The implemented floor:
 
-- call `local_agent_bootstrap` before planning
-- use only allowlisted toolbox tools
-- resolve all paths under the chosen project root
-- avoid raw terminal parity
-- use Qwen coder-family models for structured JSON/tool planning
-- use Qwen human-interface models for user-facing responses
-- validate model-produced tool calls against schemas
-- ask binary or multiple-choice questions when risk or ambiguity rises
-- require human confirmation before mutations, Git push/pull, delete,
+- calls `local_agent_bootstrap` before model work
+- uses only allowlisted toolbox tools
+- resolves all paths under the chosen project root
+- avoids raw terminal parity
+- uses configurable Qwen-class model roles for structured JSON/tool planning
+  and human-facing responses
+- validates model-produced tool calls against schemas
+- returns `approval_required` before unconfirmed risky actions
+- requires human confirmation before mutations, Git push/pull, delete,
   dev-server lifecycle changes, Docker/Kubernetes side effects, or cleanup
-- checkpoint meaningful work through the private Git layer
+- checkpoints meaningful work through the private Git layer when confirmed
+- writes ignored session, audit, and action-journal state under
+  `.dev-tools/runtime/local_agent/`
 
 The important design move is to eliminate unnecessary inference. The agent loop
-should be scaffolded by contract: probe, audit, setup, plan, ask, act, verify,
+is scaffolded by contract: bootstrap, audit, setup, plan, act, verify,
 checkpoint, and park.
+
+## Next Hardening Horizon
+
+The first agent floor is intentionally narrower than the external reference
+plan. The next useful horizon is hardening rather than broader authority:
+recovery-pattern detection, evidence passes, filesystem-claim guardrails,
+disposable run workspaces, richer multiple-choice approvals, and optional
+interactive streaming for live Ollama turns.
 
 ## Later Expansion
 

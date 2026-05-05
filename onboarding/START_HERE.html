@@ -196,14 +196,15 @@
     <section class="section">
       <h2>The Current Local-Agent Runway</h2>
       <p class="small">
-        The toolbox has closed the local-agent sys-ops layer. The next planned
-        phases are adding the safe action surfaces a local Ollama-backed
-        sidecar agent needs before it can work with less hand-holding.
+        The toolbox has closed the local-agent sys-ops layer, safe text
+        workspace layer, private Git layer, and first local sidecar agent floor.
+        The next planned phases harden that agent rather than widening it into
+        raw terminal parity.
       </p>
       <div class="flow">
         <div class="step"><strong>Tranche 7:</strong> complete — Safe Text Workspace Operations for bounded read, write, scaffold, validate, move, and quarantine delete.</div>
       <div class="step"><strong>Tranche 8:</strong> complete — Private Git Workspace Operations so the agent can checkpoint its own work without touching the user's main <code>.git</code> by default.</div>
-      <div class="step"><strong>Tranche 9:</strong> next — Local Sidecar Agent Runtime using Ollama and only the guarded toolbox surface.</div>
+      <div class="step"><strong>Tranche 9:</strong> complete — Local Sidecar Agent Runtime safe floor using Ollama and only the guarded toolbox surface.</div>
       </div>
     </section>
 

@@ -188,6 +188,12 @@
       "category": "bootstrap"
     },
     {
+      "tool_name": "local_sidecar_agent",
+      "script": "src/tools/local_sidecar_agent.py",
+      "mcp_name": "local_sidecar_agent",
+      "category": "agent-runtime"
+    },
+    {
       "tool_name": "text_file_reader",
       "script": "src/tools/text_file_reader.py",
       "mcp_name": "text_file_reader",
