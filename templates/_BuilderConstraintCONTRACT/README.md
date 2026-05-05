@@ -32,4 +32,4 @@ This repository is an example of a "Lead Developer" prompt strategy. To encourag
 *Make your own laws. Own your own architecture.*
 
 ---
-*Created by Jacob Lambert*
+*Created by the .dev-tools maintainer*

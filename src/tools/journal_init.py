@@ -5,7 +5,7 @@ WHAT IT DOES: Creates the SQLite journal database, project-local folders, seeds 
     contract, and optionally scaffolds the standard project layout.
 HOW TO USE:
   - Metadata: python src/tools/journal_init.py metadata
-  - Run: python src/tools/journal_init.py run --input-json '{"project_root":"C:/path"}'
+  - Run: python src/tools/journal_init.py run --input-json '{"project_root":"<project_root>"}'
 """
 
 from __future__ import annotations

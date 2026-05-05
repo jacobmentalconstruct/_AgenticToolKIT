@@ -1346,6 +1346,92 @@ def test_local_sidecar_agent() -> None:
         _fail("local_sidecar_agent mock run", str(run_result))
 
 
+def test_operator_ui_support() -> None:
+    print("\n── Tranche 10: Local Agent Operator UI Support ──")
+
+    from lib.operator_ui_support import (
+        agent_payload,
+        choose_model,
+        default_input_from_schema,
+        dispatch_tool,
+        format_json,
+        is_mutating_tool,
+        load_tool_metadata,
+        scan_privacy_leaks,
+        sanitize_path_text,
+        tool_index,
+    )
+
+    toolbox_root = ROOT.parent
+    tools = tool_index(toolbox_root)
+    if "local_sidecar_agent" in tools and "journal_manifest" in tools:
+        _ok("operator UI loads tool manifest")
+    else:
+        _fail("operator UI manifest load", str(sorted(tools)[:10]))
+
+    planner = choose_model(["llama3:8b", "qwen2.5-coder:7b"], ["qwen2.5-coder"], "fallback")
+    response = choose_model(["qwen3.5:4b", "qwen2.5-coder:7b"], ["qwen3.5"], "fallback")
+    if planner == "qwen2.5-coder:7b" and response == "qwen3.5:4b":
+        _ok("operator UI chooses preferred model dropdown defaults")
+    else:
+        _fail("operator UI model choice", f"{planner} / {response}")
+
+    metadata = load_tool_metadata(toolbox_root, tools["journal_manifest"])
+    default_input = default_input_from_schema(metadata.get("input_schema", {}), toolbox_root)
+    if default_input.get("project_root") == str(toolbox_root):
+        _ok("operator UI builds schema-derived default input")
+    else:
+        _fail("operator UI default input", str(default_input))
+
+    result = dispatch_tool(toolbox_root, "journal_manifest", {"project_root": str(toolbox_root)})
+    if result.get("status") == "ok":
+        _ok("operator UI dispatches a harmless tool in-process")
+    else:
+        _fail("operator UI dispatch", str(result))
+
+    payload = agent_payload(
+        project_root=str(toolbox_root),
+        prompt="hello",
+        ollama_base_url="http://localhost:11434",
+        planner_model="qwen2.5-coder:7b",
+        response_model="qwen3.5:4b",
+        allowed_tools=["text_file_reader"],
+        timeout_seconds=10,
+        max_tool_rounds=1,
+        confirm_mutations=False,
+        confirm_checkpoint=False,
+        checkpoint=True,
+    )
+    if payload["action"] == "run" and payload["allowed_tools"] == ["text_file_reader"]:
+        _ok("operator UI builds agent payload")
+    else:
+        _fail("operator UI agent payload", str(payload))
+
+    if is_mutating_tool(tools["local_sidecar_agent"]) and not is_mutating_tool(tools["journal_manifest"]):
+        _ok("operator UI identifies side-effecting tools")
+    else:
+        _fail("operator UI mutation classification")
+
+    sanitized = sanitize_path_text(str(toolbox_root / "README.md"), toolbox_root=toolbox_root)
+    rendered = format_json({"path": str(toolbox_root / "README.md")}, toolbox_root=toolbox_root)
+    if "<toolbox_root>" in sanitized and "<toolbox_root>" in rendered and str(toolbox_root) not in rendered:
+        _ok("operator UI sanitizes displayed paths")
+    else:
+        _fail("operator UI path sanitization", rendered)
+
+    scanned = [
+        toolbox_root / "README.md",
+        toolbox_root / "_docs" / "TODO.md",
+        toolbox_root / "_docs" / "DEV_LOG.md",
+        toolbox_root / "onboarding" / "START_HERE.html",
+    ]
+    findings = scan_privacy_leaks(scanned)
+    if not findings:
+        _ok("operator UI privacy scan passes committed public surfaces")
+    else:
+        _fail("operator UI privacy scan", str(findings[:3]))
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -1444,6 +1530,7 @@ def main() -> int:
     test_safe_text_workspace_operations()
     test_git_private_workspace()
     test_local_sidecar_agent()
+    test_operator_ui_support()
     test_mcp(project_root)
 
     print(f"\n═══ Results: {PASS} passed, {FAIL} failed ═══")

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 FROM python:3.11-slim
 
-LABEL org.opencontainers.image.source="https://github.com/jacobmentalconstruct/_AgenticToolKIT"
+LABEL org.opencontainers.image.source="https://github.com/<owner>/<repository>"
 LABEL org.opencontainers.image.description=".dev-tools agentic toolkit, packaged for Kubernetes pod use"
 LABEL org.opencontainers.image.licenses="Source-Available-Reference"
 

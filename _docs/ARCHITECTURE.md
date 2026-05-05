@@ -11,6 +11,7 @@ inspect, patch, verify, and park work from inside that project.
 | Surface | Purpose |
 |---|---|
 | `install.py` and `src/tools/sidecar_install.py` | Manual and CLI sidecar installation into `<target>/.dev-tools`. |
+| `chat.bat`, `chat.sh`, `agent_ui.py` | Desktop operator prototype for running the local sidecar agent and testing toolbox tools. |
 | `onboarding/` and `START_HERE.html` | Offline human onboarding microsite. |
 | `src/tools/` | Builder tools that stay inside the toolbox and operate on projects. |
 | `src/mcp_server.py` | MCP stdio exposure for builder tools. |
@@ -31,9 +32,10 @@ folders, old project roots, generated caches, or hidden runtime state.
 
 The local-agent system operations layer, Safe Text Workspace Operations layer,
 Private Git Workspace Operations layer, and Local Sidecar Agent Runtime safe
-floor are implemented. The current architecture now has an Ollama-backed loop
-that uses the guarded toolbox, checkpoints through private Git, and avoids raw
-shell or unrestricted filesystem parity.
+floor are implemented. Tranche 10 adds a human operator UI over that floor. The
+current architecture now has an Ollama-backed loop that uses the guarded
+toolbox, checkpoints through private Git, can be exercised from a desktop
+prototype, and avoids raw shell or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -151,3 +153,27 @@ installation, or a duplicate file/VCS stack. It routes through the existing
 guarded tools. Future hardening should add recovery-pattern detection, evidence
 passes, filesystem-claim guardrails, disposable run workspaces, and richer
 approval UX.
+
+## Local Agent Operator UI
+
+Tranche 10 adds the first human-facing operator prototype for the local sidecar
+agent. It is deliberately a UI layer, not a new authority layer.
+
+The UI has two surfaces:
+
+- Agent Console: project picker, Ollama base URL, planner and response model
+  dropdowns, prompt input, allowed-tool checklist, confirmation toggles, status,
+  run, and sanitized output.
+- Tool Lab: manifest-backed tool picker, metadata/schema display, editable JSON
+  input, side-effect confirmation gate, and sanitized result pane.
+
+The implementation calls existing `run(arguments)` functions in process and
+loads tool metadata from `tool_manifest.json`. It does not introduce arbitrary
+shell execution, a web server, or a parallel MCP surface. Public display paths
+are rendered as relative paths or placeholders such as `<project_root>` and
+`<toolbox_root>`; committed docs should follow the same rule, with
+`LICENSE.md` as the copyright identity exception.
+
+The friendliest human entrypoints are `chat.bat` on Windows and `chat.sh` on
+Linux/macOS. `agent_ui.py` remains the direct Python launcher and supports
+`--self-test` for headless verification.

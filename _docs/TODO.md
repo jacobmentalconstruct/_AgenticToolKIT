@@ -15,15 +15,17 @@ _Last updated: 2026-05-04._
 - The prototype northstars are collapsed into current release truth; deferred
   expansion is intentionally out of scope for this release candidate.
 - The local-agent sys-ops northstar, Safe Text Workspace Operations, Private
-  Git Workspace Operations, and the Tranche 9 local sidecar agent safe floor
-  are closed. The active source horizon is now hardening the local agent:
-  richer recovery, evidence checks, run workspaces, and human UX polish.
+  Git Workspace Operations, Tranche 9 local sidecar agent safe floor, and
+  Tranche 10 operator UI prototype are closed. The active source horizon is now
+  hardening the local agent with evidence checks, recovery, run workspaces, and
+  richer approvals.
 
 ---
 
 ## Current state
 
-**Tranche 9 complete as a safe floor. Next: harden the local sidecar agent.**
+**Tranche 10 complete as an operator prototype. Next: harden the local sidecar
+agent with the UI available for human testing.**
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -35,6 +37,11 @@ journals turns, and checkpoints through `git_private_workspace`.
 agent floor deliberately avoids raw terminal or unrestricted filesystem parity;
 future work should harden the agent loop rather than widen authority.
 
+Tranche 10 added a stdlib Tkinter operator surface. It does not add MCP-visible
+authority; it lets the human run `local_sidecar_agent`, choose Ollama models
+from dropdowns, test individual tools from `tool_manifest.json`, and review
+privacy-sanitized output.
+
 ### Active tasks
 
 - [ ] Add richer recovery-pattern detection and a recovery model role.
@@ -44,9 +51,33 @@ future work should harden the agent loop rather than widen authority.
       approvals.
 - [ ] Add optional interactive/streaming CLI mode for long-running live Ollama
       turns.
+- [ ] Use the operator UI with live local models to collect practical approval
+      and Tool Lab friction before the next agent-hardening tranche.
 - [ ] Evaluate whether any dependency-install or CLI-in-sandbox features belong
       in a later, separate tranche; keep them out of the default agent floor.
 - [ ] Keep docs and smoke coverage aligned as the agent hardens.
+
+### Previous source tranche (parked): Tranche 10 Local Agent Operator UI Prototype
+
+- [x] Add `agent_ui.py` as a stdlib Tkinter desktop prototype.
+- [x] Add `chat.bat` and `chat.sh` as the friendliest root launchers, with
+      `agent_ui.bat` and `agent_ui.sh` as explicit operator UI aliases.
+- [x] Add `src/lib/operator_ui_support.py` for manifest loading, tool dispatch,
+      model selection, default payload generation, JSON formatting, and
+      privacy-safe path rendering.
+- [x] Build an Agent Console with project picker, Ollama base URL, model
+      dropdowns, prompt input, allowed-tool checklist, confirmation toggles,
+      status, run, and sanitized output panes.
+- [x] Build a Tool Lab with a manifest-backed tool dropdown, schema display,
+      editable JSON input, side-effect confirmation gate, and sanitized result
+      pane.
+- [x] Keep model choices dropdown-only and disable agent runs when Ollama models
+      are unavailable.
+- [x] Add a privacy verification scan for public committed surfaces, with
+      `LICENSE.md` as the intended identity exception.
+- [x] Extend smoke coverage for UI helpers and run `agent_ui.py --self-test`.
+- [x] Update README, agent guide, architecture, northstars, TODO,
+      WE_ARE_HERE_NOW, onboarding, and dev log.
 
 ### Previous source tranche (parked): Tranche 9 Local Sidecar Agent Runtime
 
@@ -284,7 +315,7 @@ Implemented safe floor:
 - [ ] Push `devtools-pod:v2` to a registry (Docker Hub or GHCR) so the
       image can be pulled by clusters other than the build host. Image
       reference in `k8s/deployment.yaml` will need updating from
-      `devtools-pod:v2` to e.g. `ghcr.io/jacobmentalconstruct/devtools-pod:v2`
+      `devtools-pod:v2` to e.g. `ghcr.io/<owner>/devtools-pod:v2`
       at that point.
 
 ### Explicit non-goals for this tranche

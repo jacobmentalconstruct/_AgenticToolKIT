@@ -205,6 +205,7 @@
         <div class="step"><strong>Tranche 7:</strong> complete — Safe Text Workspace Operations for bounded read, write, scaffold, validate, move, and quarantine delete.</div>
       <div class="step"><strong>Tranche 8:</strong> complete — Private Git Workspace Operations so the agent can checkpoint its own work without touching the user's main <code>.git</code> by default.</div>
       <div class="step"><strong>Tranche 9:</strong> complete — Local Sidecar Agent Runtime safe floor using Ollama and only the guarded toolbox surface.</div>
+      <div class="step"><strong>Tranche 10:</strong> complete — Local Agent Operator UI prototype with <code>chat.bat</code>, <code>chat.sh</code>, model dropdowns, an Agent Console, Tool Lab, and privacy-sanitized output.</div>
       </div>
     </section>
 
@@ -278,9 +279,11 @@
       </p>
       <pre>Windows: OPEN_ME_FIRST.bat
 Windows: run.bat
+Windows: chat.bat
+Linux/macOS: ./chat.sh
 Python:  python src/mcp_server.py
 Python:  python src/smoke_test.py
-Python:  python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
+Python:  python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"&lt;project_root&gt;\"}"
 Python:  python src/tools/project_setup.py run --input-json "{\"action\": \"audit\", \"project_root\": \".\"}"</pre>
       <p class="small">
         The microsite is the friendly front door. The actual tool use still

@@ -22,6 +22,7 @@ If you want the friendliest onboarding path from a copied folder, open:
 | A human seeing this toolbox for the first time | `START_HERE.html` → then this file |
 | An agent entering for the first time | `toolbox_manifest.json` → then `_docs/AGENT_GUIDE.md` |
 | A human wanting the full picture | This file, then `CONTRACT.md` and `VENDORING.md` |
+| A human testing the local agent | `chat.bat`, `chat.sh`, or `agent_ui.py` for the operator UI |
 | An agent about to build a project | `_docs/AGENT_GUIDE.md` — workflow loops and tool selection |
 | Looking to vend tools into a project | `VENDORING.md` — vendoring guide for the sidecar, packages, and templates |
 | Wanting the lived workflow behind the mechanics | `_docs/EXPERIENTIAL_WORKFLOW.md` |
@@ -127,6 +128,14 @@ mutations, write ignored session/audit state under
 checkpoint work through `git_private_workspace`. Smoke coverage uses a mocked
 Ollama response so the contract is verifiable without depending on a live model.
 
+**Local Agent Operator UI is now available as a prototype.** `chat.bat`,
+`chat.sh`, and `agent_ui.py` launch a stdlib Tkinter desktop surface for
+humans to run the local sidecar agent and test individual toolbox tools. It
+uses Ollama model dropdowns, routes through existing guarded `run(arguments)`
+tool contracts, and sanitizes displayed paths as `<project_root>`,
+`<toolbox_root>`, or relative paths so committed docs and normal UI output do
+not expose private machine details.
+
 The queued local-agent implementation runway is now:
 
 1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
@@ -138,6 +147,10 @@ The queued local-agent implementation runway is now:
 3. **Tranche 9 — Local Sidecar Agent Runtime:** complete as a safe floor;
    `local_sidecar_agent` uses the guarded toolbox only, with configurable
    Qwen-class model roles for structured task JSON and human-facing responses.
+4. **Tranche 10 — Local Agent Operator UI Prototype:** complete as a human
+   testing surface; the operator can open `chat.bat`/`chat.sh`, run the agent,
+   pick models from dropdowns, test manifest-listed tools, and review
+   privacy-sanitized output.
 
 ### Tier 2: Vendable Packages (`packages/`)
 
@@ -195,6 +208,20 @@ run.bat          # Windows — launches the installer GUI
 python install.py  # equivalent direct invocation
 ```
 
+To test the local sidecar agent and toolbox tools from a desktop prototype:
+
+```powershell
+chat.bat                # Windows, friendliest chat/operator entry
+./chat.sh               # Linux/macOS, friendliest chat/operator entry
+agent_ui.bat             # Windows
+./agent_ui.sh            # Linux/macOS
+python agent_ui.py       # equivalent direct invocation
+python agent_ui.py --self-test
+```
+
+The operator UI intentionally displays sanitized roots such as
+`<project_root>` and `<toolbox_root>` instead of private absolute paths.
+
 ## MCP Server
 
 ```powershell
@@ -220,7 +247,7 @@ python src/smoke_test.py
 
 2. **Install** the full sidecar from the CLI:
    ```
-   python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
+   python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"<project_root>\"}"
    ```
 
 3. **Audit or apply** project setup inside the target project:

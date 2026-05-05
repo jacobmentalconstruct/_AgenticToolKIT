@@ -1210,6 +1210,57 @@ disposable run workspaces, richer approval UX, and optional live streaming.
 
 ---
 
+## 2026-05-04 — Tranche 10 Local Agent Operator UI prototype
+
+- Added `agent_ui.py`, a stdlib Tkinter desktop prototype for running the local
+  sidecar agent and testing individual toolbox tools.
+- Added `chat.bat` and `chat.sh` as the friendly root entrypoints, plus
+  `agent_ui.bat` and `agent_ui.sh` as explicit operator UI launchers.
+- Added `src/lib/operator_ui_support.py` for manifest loading, metadata
+  loading, safe in-process tool dispatch, schema-derived default inputs,
+  agent payload generation, model dropdown defaults, JSON formatting, and
+  privacy-safe path rendering.
+- Built the Agent Console with a project picker, Ollama base URL, model
+  dropdowns, prompt entry, allowed-tool checklist, timeout/max-round controls,
+  confirmation toggles, status, run, and sanitized output.
+- Built the Tool Lab with a manifest-backed tool dropdown, schema/summary
+  display, editable JSON input, side-effect confirmation gate, and sanitized
+  result output.
+- Added privacy guardrails so committed docs and normal UI output use
+  placeholders such as `<project_root>` and `<toolbox_root>` instead of private
+  local machine paths. `LICENSE.md` remains the copyright identity exception.
+- Added Tranche 10 smoke coverage for UI helpers and a headless
+  `agent_ui.py --self-test` path.
+- Updated README, release payload manifest, toolbox manifest, agent guide,
+  architecture, northstars, TODO, WE_ARE_HERE_NOW, and onboarding so the new
+  human entrypoint is discoverable.
+
+Validation:
+
+- `python agent_ui.py --self-test` -> pass.
+- `python -m py_compile agent_ui.py src/lib/operator_ui_support.py` -> pass.
+- `python src/smoke_test.py` -> 103/103 pass; MCP lists 46 tools.
+- `python src/tools/onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `python src/tools/smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` -> 5/5
+  suites passed.
+
+Classification: spiral.
+
+- Capability increased: a human can now exercise the local sidecar agent and
+  Tool Lab from a desktop UI without hand-writing every JSON payload.
+- Uncertainty decreased: model selection, tool dispatch, payload building, and
+  privacy sanitization are covered by headless tests.
+- Boundary clarified: the UI is a review and control surface over existing
+  guarded tools, not a new shell, MCP, or unrestricted filesystem channel.
+
+Current read: Tranche 10 is implemented. The next work should use the operator
+UI to harden the local sidecar agent with recovery, evidence/claim validation,
+disposable run workspaces, richer approvals, and optional live streaming.
+
+---
+
 ## Template for future entries
 
 - Files changed:

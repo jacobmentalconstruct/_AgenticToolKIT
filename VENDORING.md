@@ -29,7 +29,7 @@ python install.py
 Or from the CLI:
 
 ```powershell
-python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
+python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"<project_root>\"}"
 ```
 
 This copies the current shipped `.dev-tools` payload into
@@ -85,5 +85,5 @@ and starter templates. Copy what you need into new projects.
 Install the full sidecar into a target project:
 
 ```powershell
-python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"C:\\path\\to\\project\"}"
+python src/tools/sidecar_install.py run --input-json "{\"target_project_root\": \"<project_root>\"}"
 ```

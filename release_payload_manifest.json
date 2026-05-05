@@ -8,6 +8,36 @@
   ],
   "top_level_entries": [
     {
+      "path": "agent_ui.py",
+      "role": "ship",
+      "install": true,
+      "notes": "Desktop operator UI for the local sidecar agent and Tool Lab."
+    },
+    {
+      "path": "agent_ui.bat",
+      "role": "ship",
+      "install": true,
+      "notes": "Windows explicit launcher for the agent operator UI."
+    },
+    {
+      "path": "agent_ui.sh",
+      "role": "ship",
+      "install": true,
+      "notes": "Unix explicit launcher for the agent operator UI."
+    },
+    {
+      "path": "chat.bat",
+      "role": "ship",
+      "install": true,
+      "notes": "Windows friendly launcher for the agent operator UI."
+    },
+    {
+      "path": "chat.sh",
+      "role": "ship",
+      "install": true,
+      "notes": "Unix friendly launcher for the agent operator UI."
+    },
+    {
       "path": ".gitignore",
       "role": "ship",
       "install": true,

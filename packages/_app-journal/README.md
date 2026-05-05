@@ -71,7 +71,7 @@ Inside `_docs/_AppJOURNAL/` it stores:
 Run:
 
 ```powershell
-python _app-journal\launch_ui.py --project-root C:\path\to\project
+python _app-journal\launch_ui.py --project-root <project_root>
 ```
 
 ## MCP First

@@ -4,7 +4,7 @@ ROLE: Bootstrap tool for _app-journal.
 WHAT IT DOES: Creates the SQLite journal database and project-local management folders under `_docs`.
 HOW TO USE:
   - Metadata: python _app-journal/tools/journal_init.py metadata
-  - Run: python _app-journal/tools/journal_init.py run --input-json "{\"project_root\":\"C:/path/to/project\"}"
+  - Run: python _app-journal/tools/journal_init.py run --input-json "{\"project_root\":\"<project_root>\"}"
 INPUT OBJECT:
   - project_root: optional project root, defaults to current working directory
   - db_path: optional explicit SQLite file path

@@ -1,5 +1,5 @@
 {
-  "project_root": "C:/path/to/project",
+  "project_root": "<project_root>",
   "action": "create",
   "title": "First app journal note",
   "body": "This replaces scattered markdown files with one SQLite-backed journal.",

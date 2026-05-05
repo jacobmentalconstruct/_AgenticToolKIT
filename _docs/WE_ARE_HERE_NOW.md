@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-04 (Tranche 9 Local Sidecar Agent Runtime safe floor implemented)
+- 2026-05-04 (Tranche 10 Local Agent Operator UI prototype implemented)
 
 ## Fresh-thread start
 
@@ -22,15 +22,16 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     Kubernetes-wrapped bridge; local-agent sys-ops tooling is closed through
     Tranche 6; Tranche 7 Safe Text Workspace Operations is implemented;
     Tranche 8 Private Git Workspace Operations is implemented; Tranche 9
-    Local Sidecar Agent Runtime is implemented as a safe floor
+    Local Sidecar Agent Runtime is implemented as a safe floor; Tranche 10
+    Local Agent Operator UI prototype is implemented
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
   - the journal UI lives only inside the vendable `_app-journal` package; the
     toolbox root no longer pretends to be the original journal package
-  - sidecar install, setup orchestration, and onboarding-site verification are
-    live builder-tool surfaces; the root smoke suite is current at 95 tests as
-    of Tranche 9 closeout
+  - sidecar install, setup orchestration, onboarding-site verification, and the
+    local agent operator UI are live human/operator surfaces; the root smoke
+    suite is current at Tranche 10 closeout
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
 - Current collaboration truth:
@@ -84,19 +85,25 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   only through allowlisted guarded toolbox tools, stops for approval before
   unconfirmed mutations, writes ignored runtime state, validates touched files,
   journals turns, and checkpoints through private Git. MCP now lists 46 tools.
+- Tranche 10 added `agent_ui.py`, a stdlib Tkinter operator prototype with an
+  Agent Console and Tool Lab. It lets the human pick Ollama models from
+  dropdowns, run the local sidecar agent, test manifest-listed tools, and view
+  privacy-sanitized output without adding raw terminal parity or a new
+  MCP-visible tool.
 
 ## Current bottleneck
 
-- No internal root bottleneck. Remaining container work is operational:
-  live-cluster `kubectl apply` / `kubectl attach`, plus registry publication.
-- The active source-shaped bottleneck is agent hardening, not initial runtime:
-  the toolbox now has a working local sidecar agent floor, but richer recovery,
-  evidence passes, disposable run workspaces, and human approval UX remain
-  future upgrades.
+- No internal root bottleneck for first-use local-agent testing. Remaining
+  container work is operational: live-cluster `kubectl apply` / `kubectl
+  attach`, plus registry publication.
+- The active source-shaped bottleneck is agent hardening after the prototype
+  UI: richer recovery, evidence passes, disposable run workspaces, and more
+  granular approval UX remain future upgrades.
 
 ## Next best move
 
-- Harden the local sidecar agent after the Tranche 9 safe floor: recovery,
+- Use `agent_ui.py` to exercise the Tranche 9 safe floor with real local
+  Ollama models, then harden the local sidecar agent: recovery,
   evidence/claim validation, run workspaces, and richer approval UX.
 
 ## Current warnings
@@ -114,6 +121,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Private Git should not mutate the user's main `.git` by default.
 - The sidecar agent should not gain raw shell or unrestricted filesystem parity;
   it should use the guarded tool suite and human confirmation gates.
+- Committed docs and onboarding surfaces should use relative paths or
+  placeholders such as `<project_root>` and `<toolbox_root>`. `LICENSE.md` is
+  the intentional exception for copyright holder identity.
 
 ## Read in this order if resuming cold
 

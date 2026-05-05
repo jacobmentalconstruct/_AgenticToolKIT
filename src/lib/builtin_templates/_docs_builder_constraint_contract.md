@@ -720,7 +720,7 @@ The builder may use the following sandbox sources for reference, analysis, and b
     other project-specific constraints
 
 - user-approved external read-only reference reservoirs
-  - example for this project: `E:\__________STORAGE__________\code_library\Corpus_BIN`
+  - example for a project: `<reference_corpus_root>`
   - this may be used as a large corpus / parts bin for reference, search,
     analysis, and bounded replication only when the user explicitly
     authorizes that location
@@ -748,11 +748,11 @@ The builder shall:
 The builder shall not treat a many-GB external reservoir as a prompt-time
 reading surface.
 
-For this project specifically, the builder shall treat
-`E:\__________STORAGE__________\code_library\Corpus_BIN` as a source bin rather
-than a transplant target. The builder may replicate only specific validated
-logic or data needed inside the current project root and shall not import or
-mirror `_PARTS` trees or other large source folders in their current form.
+For a project with an approved reference corpus, the builder shall treat
+`<reference_corpus_root>` as a source bin rather than a transplant target. The
+builder may replicate only specific validated logic or data needed inside the
+current project root and shall not import or mirror large source folders in
+their current form.
 
 ### 6.3 Project document location rule
 

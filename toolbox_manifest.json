@@ -6,6 +6,7 @@
     "Read toolbox_manifest.json first.",
     "Read _docs/AGENT_GUIDE.md for workflow loops, tool selection, and token efficiency patterns.",
     "Read release_payload_manifest.json before copying or installing the sidecar payload.",
+    "Use chat.bat, chat.sh, or agent_ui.py when a human wants to test the local sidecar agent from a desktop UI.",
     "Run journal_query to pick up context from the last session.",
     "Run constraint_query with your task profile to load relevant rules.",
     "Choose from builder_tools, vendable_packages, or vendable_documents based on the task."

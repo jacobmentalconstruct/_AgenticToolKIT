@@ -3,7 +3,7 @@ FILE: app_journal_ui.py
 ROLE: Tkinter manager UI for _app-journal.
 WHAT IT DOES: Opens a project-local SQLite journal, shows recent entries, supports search, and lets a user create, update, append, and export notes.
 HOW TO USE:
-  - python _app-journal/ui/app_journal_ui.py --project-root C:\\path\\to\\project
+  - python _app-journal/ui/app_journal_ui.py --project-root <project_root>
 """
 
 from __future__ import annotations

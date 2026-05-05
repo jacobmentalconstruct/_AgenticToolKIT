@@ -151,10 +151,37 @@ The important design move is to eliminate unnecessary inference. The agent loop
 is scaffolded by contract: bootstrap, audit, setup, plan, act, verify,
 checkpoint, and park.
 
+## Satisfied Northstar: Local Agent Operator UI Prototype
+
+Local Agent Operator UI Prototype is now satisfied. Tranche 10 adds a human
+desktop surface over the Tranche 9 agent floor without adding new agent
+authority.
+
+The implemented surface:
+
+- launches through `agent_ui.py`, `agent_ui.bat`, or `agent_ui.sh`
+- provides `chat.bat` and `chat.sh` as the easiest human entrypoints
+- uses stdlib Tkinter and the existing dark desktop style
+- gives the operator an Agent Console for project selection, Ollama endpoint,
+  planner/response model dropdowns, prompt entry, allowed-tool selection,
+  confirmation toggles, status, run, and sanitized output
+- gives the operator a Tool Lab for manifest-listed tools, metadata/schema
+  inspection, editable JSON input, a side-effect confirmation gate, and
+  sanitized results
+- calls existing `run(arguments)` functions directly instead of adding raw
+  shell execution
+- displays paths as placeholders such as `<project_root>` and `<toolbox_root>`
+  where possible, and adds smoke coverage for privacy-sanitized committed
+  surfaces
+
+This closes the first human testing surface for the local agent. The next
+horizon should use it to harden the agent loop rather than broaden authority.
+
 ## Next Hardening Horizon
 
 The first agent floor is intentionally narrower than the external reference
-plan. The next useful horizon is hardening rather than broader authority:
+plan. The operator UI makes that floor easier to exercise. The next useful
+horizon is hardening rather than broader authority:
 recovery-pattern detection, evidence passes, filesystem-claim guardrails,
 disposable run workspaces, richer multiple-choice approvals, and optional
 interactive streaming for live Ollama turns.

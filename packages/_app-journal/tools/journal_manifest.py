@@ -4,7 +4,7 @@ ROLE: Manifest inspection tool for _app-journal.
 WHAT IT DOES: Returns the vendored package manifest plus the embedded database manifest for a project journal.
 HOW TO USE:
   - Metadata: python _app-journal/tools/journal_manifest.py metadata
-  - Run: python _app-journal/tools/journal_manifest.py run --input-json "{\"project_root\":\"C:/path/to/project\"}"
+  - Run: python _app-journal/tools/journal_manifest.py run --input-json "{\"project_root\":\"<project_root>\"}"
 INPUT OBJECT:
   - project_root: optional project root
   - db_path: optional explicit SQLite file path

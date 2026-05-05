@@ -332,6 +332,42 @@ parses fenced `tool_call` JSON blocks, validates them against schemas and an
 allowlist, stops before unconfirmed mutations, and writes ignored session/audit
 state under `.dev-tools/runtime/local_agent/`.
 
+### Loop 10: Open UI → Select Models → Test Tools → Review
+
+_The human operator loop. Use when a person wants to exercise the local agent
+or inspect tool behavior without hand-writing every JSON payload._
+
+```
+OPEN UI
+  chat.bat / chat.sh       → easiest root launcher for the operator UI
+  agent_ui.py              → explicit Python launcher
+  agent_ui.py --self-test  → verify helper logic without opening a window
+
+SELECT MODELS
+  Refresh Models           → load Ollama model names into dropdowns
+  Planner model dropdown   → prefer a Qwen coder-family model
+  Response model dropdown  → prefer a Qwen human-interface model
+
+TEST TOOLS
+  Agent Console            → run local_sidecar_agent through guarded tools
+  Tool Lab                 → pick a manifest tool and run JSON input directly
+
+REVIEW
+  sanitized output         → confirm paths are placeholders or relative
+  approval_required        → rerun only with the explicit confirmation toggle
+  journal_write            → park meaningful findings after the session
+```
+
+The operator UI is not a bypass. It calls existing `run(arguments)` functions,
+does not add raw shell execution, and still depends on each tool's native
+confirmation fields. Treat UI output as the review surface and the underlying
+tool envelopes as the authority.
+
+Committed docs and onboarding pages should not include private local paths,
+drive names, usernames, or workspace ancestry. Use placeholders like
+`<project_root>` and `<toolbox_root>`; `LICENSE.md` is the copyright identity
+exception.
+
 ---
 
 ## Tool Selection Cheat Sheet
@@ -353,6 +389,7 @@ _"I need to…" → use this tool._
 | Audit likely committed secrets and risky env files | `secret_surface_audit` |
 | Dry-run and clean allowlisted runtime artifacts | `runtime_artifact_cleaner` |
 | Emit a local-agent launch packet | `local_agent_bootstrap` |
+| Open the local agent operator UI | `chat.bat`, `chat.sh`, or `agent_ui.py` |
 | Read a bounded text file safely | `text_file_reader` |
 | Create, overwrite, or append text safely | `text_file_writer` |
 | Create multiple directories/files from a manifest | `directory_scaffold` |

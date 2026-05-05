@@ -1,5 +1,5 @@
 {
-  "project_root": "C:/path/to/project",
+  "project_root": "<project_root>",
   "query": "journal",
   "limit": 25
 }
