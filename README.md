@@ -191,6 +191,10 @@ pre-scaffold failures to real artifact creation and partial scorecards.
 Tranche 16 expands the deterministic curriculum with five more small-app
 scenarios across static web, stdlib Python, and an edit-after-feedback variant;
 mocked baselines pass for all new scenarios.
+Tranche 17A starts trace tuning with a narrow control-file integrity hardening:
+Teaching Sandbox runs now code-protect `_docs/TASK_CARD.md` and
+`_docs/builder_constraint_contract.md`, and attempted writes surface as
+`control_file_tamper` safety signals.
 
 The queued local-agent implementation runway is now:
 
@@ -234,8 +238,11 @@ The queued local-agent implementation runway is now:
 10. **Tranche 16 — Curriculum Scenario Expansion:** complete; five additional
    deterministic scenarios now exercise calculator, markdown previewer,
    task-tracker filter, CSV cleaner, and config-validator builds.
-11. **Tranche 17-18 — Training Cycle:** active next; tune from traces/scorecards,
-   and run unseen graduation apps before closing the app-builder northstar.
+11. **Tranche 17-18 — Training Cycle:** active; Tranche 17A has encoded the
+   first trace lesson by protecting Teaching Sandbox control files, Tranche
+   17B should compare traces/scorecards and promote recurring lessons, and
+   Tranche 18 should run unseen graduation apps before closing the
+   app-builder northstar.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common import standard_main, tool_error, tool_result
 from lib.text_workspace import (
+    protected_path_error,
     read_text_bounded,
     resolve_project_path,
     resolve_project_root,
@@ -43,6 +44,7 @@ FILE_METADATA = {
             "validate_after_write": {"type": "boolean", "default": False},
             "file_type": {"type": "string"},
             "allow_toolbox": {"type": "boolean", "default": False},
+            "protected_paths": {"type": "array", "items": {"type": "string"}},
         },
         "additionalProperties": False,
     },
@@ -65,6 +67,17 @@ def run(arguments: dict) -> dict:
     if error:
         return tool_error(FILE_METADATA["tool_name"], arguments, error)
     assert path is not None
+    protected_paths = arguments.get("protected_paths", [])
+    if not isinstance(protected_paths, list):
+        return tool_error(FILE_METADATA["tool_name"], arguments, "protected_paths must be a list")
+    protection_error = protected_path_error(project_root, path, [str(item) for item in protected_paths], label="path")
+    if protection_error:
+        return tool_result(
+            FILE_METADATA["tool_name"],
+            arguments,
+            {"message": protection_error, "recovery_class": "control_file_tamper", "path": safe_relative(path, project_root)},
+            status="error",
+        )
 
     action = str(arguments.get("action", "create"))
     content = str(arguments.get("content", ""))

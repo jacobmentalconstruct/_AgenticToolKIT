@@ -34,13 +34,14 @@ folders, old project roots, generated caches, or hidden runtime state.
 The local-agent system operations layer, Safe Text Workspace Operations layer,
 Private Git Workspace Operations layer, Local Sidecar Agent Runtime safe floor,
 Local Agent Operator UI prototype, Bag of Evidence / Evidence Shelf layer,
-Tranche 12 recovery hardening layer, and Tranche 13 Teaching Sandbox Harness are
-implemented. Tranche 14 is selected as the active training runway. The current
-architecture now has an Ollama-backed loop that uses the guarded toolbox,
-checkpoints through private Git, hydrates from a visible session evidence
-shelf, records run traces for recovery/tuning data, can be exercised from a
-desktop prototype, can practice in disposable teaching sandboxes, and avoids
-raw shell or unrestricted filesystem parity.
+Tranche 12 recovery hardening layer, Tranche 13 Teaching Sandbox Harness, and
+Tranche 17A Teaching Sandbox control-file protection are implemented. Tranche
+17B remains selected as the active trace-tuning slice. The current architecture
+now has an Ollama-backed loop that uses the guarded toolbox, checkpoints
+through private Git, hydrates from a visible session evidence shelf, records
+run traces for recovery/tuning data, can be exercised from a desktop
+prototype, can practice in disposable teaching sandboxes, and avoids raw shell
+or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -296,6 +297,13 @@ The harness now includes five additional deterministic baselines across static
 web apps, stdlib Python CLIs, and an edit-after-feedback feature-addition
 scenario. Each new scenario has mocked fixture payloads and verifier checks so
 trace tuning can compare broader app-building behavior before graduation runs.
+
+Tranche 17A adds the first trace-tuning hardening lesson. The Teaching Sandbox
+control files `_docs/TASK_CARD.md` and
+`_docs/builder_constraint_contract.md` are inside the sandbox root but not
+safe-to-write. The harness now injects those paths into the sidecar as
+protected paths; `directory_scaffold` and `text_file_writer` reject attempted
+writes with `control_file_tamper`, and scorecards expose that safety signal.
 
 ## Local Agent Operator UI
 

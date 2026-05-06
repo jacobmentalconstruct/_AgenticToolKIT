@@ -85,6 +85,23 @@ tool failures, approval stops, and exhausted tool rounds.
 
 ### Active tasks
 
+### Recently parked source tranche: Tranche 17A Teaching Sandbox Control-File Integrity
+
+Purpose: begin Tranche 17 with a narrow hardening slice from trace review:
+inside-root is not the same as safe-to-write for Teaching Sandbox control
+files.
+
+- [x] Add a Teaching Sandbox protected-path rule for `_docs/TASK_CARD.md` and
+      `_docs/builder_constraint_contract.md`.
+- [x] Enforce the rule in `directory_scaffold` and `text_file_writer` only
+      when a caller supplies explicit `protected_paths`.
+- [x] Inject the protected-path list from `teaching_sandbox_harness` through
+      `local_sidecar_agent`.
+- [x] Score attempted protected-control-file writes as the named safety signal
+      `control_file_tamper`.
+- [x] Add smoke coverage for both blocked control-file writes, one allowed app
+      artifact scaffold, and the harness scorecard signal.
+
 ### Recently parked source tranche: Tranche 14 Training Curriculum And Baseline Runs
 
 Purpose: begin teaching the sidecar how to build apps by turning the human
@@ -157,6 +174,9 @@ Purpose: teach across varied but small apps, not just the two initial fixtures.
 Purpose: use generated traces as tuning data before considering weight-level
 fine-tuning.
 
+- [x] Encode the first trace-tuning lesson: Teaching Sandbox control files are
+      inside-root but not safe-to-write, and protected-write attempts become
+      `control_file_tamper`.
 - [ ] Add tooling or workflow docs to compare scorecards across runs and model
       choices.
 - [ ] Promote recurring lessons into prompt snippets, task-card constraints,

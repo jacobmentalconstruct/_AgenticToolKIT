@@ -41,6 +41,29 @@ def resolve_project_root(value: str | None = None) -> Path:
     return Path(value or ".").resolve()
 
 
+def normalized_project_relative(path: Path, root: Path) -> str:
+    return safe_relative(path.resolve(), root.resolve()).lower()
+
+
+def protected_path_error(
+    project_root: Path,
+    path: Path,
+    protected_paths: list[str] | tuple[str, ...],
+    *,
+    label: str = "path",
+) -> str:
+    if not protected_paths:
+        return ""
+    target = normalized_project_relative(path, project_root)
+    for value in protected_paths:
+        if not str(value).strip():
+            continue
+        protected = (project_root / str(value)).resolve()
+        if target == normalized_project_relative(protected, project_root):
+            return f"{label} targets protected control file: {target}"
+    return ""
+
+
 def is_inside(path: Path, root: Path) -> bool:
     try:
         path.resolve().relative_to(root)

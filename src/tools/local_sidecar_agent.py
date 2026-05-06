@@ -81,6 +81,11 @@ FILE_METADATA = {
                 "items": {"type": "string"},
                 "description": "Deterministic model responses for smoke tests.",
             },
+            "protected_paths": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Project-relative paths that mutating text tools must not write.",
+            },
             "write_session": {"type": "boolean", "default": True},
         },
         "additionalProperties": False,
@@ -128,6 +133,7 @@ class AgentConfig:
     use_evidence_shelf: bool = True
     write_trace: bool = True
     preflight: bool = True
+    protected_paths: list[str] = field(default_factory=list)
 
 
 TOOL_REGISTRY: dict[str, tuple[dict[str, Any], Callable[[dict[str, Any]], dict[str, Any]]]] = {
@@ -202,6 +208,11 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         allowed = list(DEFAULT_ALLOWED_TOOLS)
     else:
         allowed = [str(item) for item in allowed_tools]
+    protected_paths = arguments.get("protected_paths", [])
+    if not isinstance(protected_paths, list):
+        protected = []
+    else:
+        protected = [str(item) for item in protected_paths if str(item).strip()]
     try:
         max_rounds = int(arguments.get("max_tool_rounds", 4))
     except (TypeError, ValueError):
@@ -234,6 +245,7 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         use_evidence_shelf=arguments.get("use_evidence_shelf", True) is not False,
         write_trace=arguments.get("write_trace", True) is not False,
         preflight=arguments.get("preflight", True) is not False,
+        protected_paths=protected,
     )
 
 
@@ -492,6 +504,8 @@ def _execute_tool_call(
     metadata, runner = entry
     args = dict(call.get("arguments", {}))
     args["project_root"] = str(project_root)
+    if config.protected_paths and tool_name in {"text_file_writer", "directory_scaffold"}:
+        args["protected_paths"] = list(config.protected_paths)
     schema_errors = _validate_schema(metadata, args)
     if schema_errors:
         return tool_result(
@@ -781,6 +795,7 @@ def _recovery_from_class(
         "malformed_tool_call": ["inspect_tool_call_json", "retry_with_valid_json", "stop_for_operator_review"],
         "tool_schema_error": ["inspect_tool_schema", "retry_with_valid_arguments", "stop_for_operator_review"],
         "tool_runtime_error": ["inspect_tool_result", "retry_or_choose_safer_tool", "stop_for_operator_review"],
+        "control_file_tamper": ["inspect_tool_call", "preserve_control_files", "stop_for_operator_review"],
         "approval_required": ["review_output", "enable_named_confirmation", "rerun_if_safe"],
         "max_rounds_exhausted": ["increase_max_tool_rounds", "narrow_task_prompt", "inspect_trace"],
         "claim_guardrail_warning": ["inspect_final_text", "cite_touched_paths_or_evidence", "retry_summary"],

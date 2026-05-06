@@ -15,7 +15,7 @@ from typing import Any
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common import standard_main, tool_error, tool_result
-from lib.text_workspace import resolve_project_path, resolve_project_root, safe_relative, validate_text
+from lib.text_workspace import protected_path_error, resolve_project_path, resolve_project_root, safe_relative, validate_text
 
 
 FILE_METADATA = {
@@ -35,6 +35,7 @@ FILE_METADATA = {
             "create_parents": {"type": "boolean", "default": True},
             "validate_files": {"type": "boolean", "default": False},
             "allow_toolbox": {"type": "boolean", "default": False},
+            "protected_paths": {"type": "array", "items": {"type": "string"}},
         },
         "additionalProperties": False,
     },
@@ -45,6 +46,7 @@ def _entry_plan(
     project_root: Path,
     entry: dict[str, Any],
     allow_toolbox: bool,
+    protected_paths: list[str],
     validate_files: bool,
     create_parents: bool,
 ) -> dict[str, Any]:
@@ -63,6 +65,10 @@ def _entry_plan(
         return item
     assert path is not None
     item["path"] = safe_relative(path, project_root)
+    protection_error = protected_path_error(project_root, path, protected_paths, label="entry.path")
+    if protection_error:
+        item.update({"status": "blocked", "reason": protection_error, "recovery_class": "control_file_tamper"})
+        return item
 
     if entry_type == "directory":
         if not path.parent.exists() and not create_parents:
@@ -111,12 +117,22 @@ def run(arguments: dict) -> dict:
         return tool_error(FILE_METADATA["tool_name"], arguments, "scaffold writes require confirm: true when dry_run is false")
 
     allow_toolbox = bool(arguments.get("allow_toolbox", False))
+    protected_paths = arguments.get("protected_paths", [])
+    if not isinstance(protected_paths, list):
+        return tool_error(FILE_METADATA["tool_name"], arguments, "protected_paths must be a list")
+    protected_paths = [str(item) for item in protected_paths]
     validate_files = bool(arguments.get("validate_files", False))
     create_parents = bool(arguments.get("create_parents", True))
-    plans = [_entry_plan(project_root, dict(entry), allow_toolbox, validate_files, create_parents) for entry in entries]
+    plans = [_entry_plan(project_root, dict(entry), allow_toolbox, protected_paths, validate_files, create_parents) for entry in entries]
     blocked = [item for item in plans if item["status"] == "blocked"]
     if blocked and not dry_run:
-        return tool_error(FILE_METADATA["tool_name"], arguments, f"blocked scaffold entries: {blocked}")
+        recovery_class = "control_file_tamper" if any(item.get("recovery_class") == "control_file_tamper" for item in blocked) else "tool_schema_error"
+        return tool_result(
+            FILE_METADATA["tool_name"],
+            arguments,
+            {"message": f"blocked scaffold entries: {blocked}", "blocked": blocked, "recovery_class": recovery_class},
+            status="error",
+        )
 
     applied: list[dict[str, Any]] = []
     if not dry_run:

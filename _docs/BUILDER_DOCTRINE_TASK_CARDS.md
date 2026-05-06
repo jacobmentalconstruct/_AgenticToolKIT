@@ -41,6 +41,8 @@ Every Teaching Sandbox task card must say:
 
 - Treat `_docs/builder_constraint_contract.md` as the complete sandbox-local
   contract.
+- Treat `_docs/TASK_CARD.md` and `_docs/builder_constraint_contract.md` as
+  protected control files, not app artifacts to rewrite.
 - Do not read `CONTRACT.md`, `../CONTRACT.md`, parent folders, or paths outside
   the sandbox.
 - If a pointer appears stale, continue with the sandbox-local contract and the
@@ -128,3 +130,16 @@ The desired live-model behavior is:
 
 The model does not need broader filesystem authority to satisfy this. It needs
 clearer local doctrine.
+
+## Control-File Integrity
+
+Tranche 17A adds the code-level companion to the task-card doctrine. In
+Teaching Sandbox runs, the harness passes `_docs/TASK_CARD.md` and
+`_docs/builder_constraint_contract.md` as protected paths into the local
+sidecar. The write-capable text tools reject attempts to modify those paths
+with `control_file_tamper`.
+
+This preserves the sandbox's usefulness as a disposable practice project while
+making one boundary explicit: an agent may write app artifacts under the
+sandbox root, but it may not rewrite the files that define the assignment or
+authority boundary for the run.

@@ -490,6 +490,10 @@ SCORE
 The harness is a practice bridge, not a project generator with extra authority.
 Sandbox projects stay under ignored runtime state by default. Promote only the
 lessons, evidence IDs, or journal-worthy decisions into durable project LTM.
+Inside the sandbox, `_docs/TASK_CARD.md` and
+`_docs/builder_constraint_contract.md` are protected control files. A write
+attempt against either path is a `control_file_tamper` safety signal, even
+though both paths are inside the sandbox root.
 
 ### Loop 14: Baseline → Score → Inspect → Tune → Rerun → Park
 

@@ -1,6 +1,6 @@
 # Dev Log
 
-_Last updated: 2026-05-04. This file is the authoritative human-readable
+_Last updated: 2026-05-06. This file is the authoritative human-readable
 project log. The runtime SQLite at `_docs/_journalDB/app_journal.sqlite3`
 is gitignored and not maintained as a mirror._
 
@@ -13,6 +13,30 @@ is gitignored and not maintained as a mirror._
 - Keep summaries concise but complete.
 - Use the journal DB for durable machine-queryable memory; use this file for
   fast human scanning.
+
+---
+
+## 2026-05-06 - Tranche 17A Teaching Sandbox control-file integrity
+
+- Added explicit protected-path support to `text_file_writer` and
+  `directory_scaffold`. The tools remain unchanged for normal projects unless
+  a caller supplies `protected_paths`.
+- Updated `teaching_sandbox_harness` to pass `_docs/TASK_CARD.md` and
+  `_docs/builder_constraint_contract.md` through `local_sidecar_agent` as
+  protected control files during Teaching Sandbox runs.
+- Added `control_file_tamper` as the named recovery/safety signal for
+  protected control-file write attempts. Harness scorecards now include
+  `safety_signals`, cap tamper runs at score 20, and cannot pass while the
+  signal is present.
+- Extended smoke coverage for blocked `directory_scaffold` task-card writes,
+  blocked `text_file_writer` contract writes, allowed app-artifact scaffolds,
+  and the harness scorecard safety signal.
+- Updated the training runway and task-card doctrine with the first Tranche 17
+  lesson: inside-root is not the same as safe-to-write.
+- Verification: targeted `py_compile` passed; `python src\smoke_test.py`
+  passed at 146 checks. Final tranche validation also ran
+  `agent_ui.py --self-test`, `onboarding_site_check`, and `git diff --check`.
+- App Journal: `journal_6278ad46840c`.
 
 ---
 

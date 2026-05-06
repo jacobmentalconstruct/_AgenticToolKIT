@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 16 parked; Tranche 17 next)
+- 2026-05-06 (Tranche 17A parked; Tranche 17B next)
 
 ## Fresh-thread start
 
@@ -37,8 +37,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     first mocked/live baseline evidence; Tranche 15 Builder Doctrine Task Cards
     is parked with explicit project-birth task-card doctrine; Tranche 16
     Curriculum Scenario Expansion is parked with five additional deterministic
-    practice scenarios; Tranche 17 Trace Review And Loop Tuning is the next
-    source tranche
+    practice scenarios; Tranche 17A Teaching Sandbox Control-File Integrity is
+    parked as the first trace-tuning hardening slice; Tranche 17B Trace Review
+    And Loop Tuning is the next source slice
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -157,23 +158,31 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   `static_calculator`, `markdown_previewer`, `task_tracker_filter_update`,
   `csv_cleaner_cli`, and `config_validator_cli`; each has task-card metadata,
   mocked fixture payloads, deterministic verification, and smoke coverage.
+- Tranche 17A is parked and code-protects Teaching Sandbox control files.
+  The harness injects `_docs/TASK_CARD.md` and
+  `_docs/builder_constraint_contract.md` as protected paths into the local
+  sidecar, `directory_scaffold` and `text_file_writer` reject writes to those
+  paths with `control_file_tamper`, and scorecards expose the named safety
+  signal.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck has moved to Tranche 17 trace tuning: the
-  curriculum is broader, and the next step is to compare scorecards/traces
+- The active source-shaped bottleneck remains Tranche 17 trace tuning. The
+  first lesson is now encoded: inside-root is not the same as safe-to-write
+  for sandbox control files. The next step is to compare scorecards/traces
   across scenarios, then promote recurring lessons into prompt, task-card,
   schema, or recovery improvements.
 
 ## Next best move
 
-- Begin Tranche 17 Trace Review And Loop Tuning by comparing the Tranche 15
-  live partial passes and the Tranche 16 expanded mocked baselines, then choose
-  the smallest prompt/task-card/schema change that should improve live runs
-  without broadening authority.
+- Begin Tranche 17B by comparing the Tranche 15 live partial passes, the
+  Tranche 16 expanded mocked baselines, and the Tranche 17A
+  `control_file_tamper` safety path. Choose the smallest prompt, task-card,
+  schema, or recovery change that should improve live runs without broadening
+  authority.
 
 ## Current warnings
 
@@ -199,6 +208,10 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Teaching sandboxes are disposable ignored runtime projects. Do not promote
   sandbox artifacts into tracked source unless an operator explicitly asks for
   that promotion.
+- Teaching Sandbox `_docs/TASK_CARD.md` and
+  `_docs/builder_constraint_contract.md` are code-protected during sidecar
+  write tools. Treat any attempted rewrite as a `control_file_tamper` safety
+  signal, not normal app-artifact work.
 - Committed docs and onboarding surfaces should use relative paths or
   placeholders such as `<project_root>` and `<toolbox_root>`. `LICENSE.md` is
   the intentional exception for copyright holder identity.
