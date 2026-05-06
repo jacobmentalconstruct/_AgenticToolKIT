@@ -1,6 +1,6 @@
 # Project Backlog
 
-_Last updated: 2026-05-05._
+_Last updated: 2026-05-06._
 
 ---
 
@@ -16,9 +16,10 @@ _Last updated: 2026-05-05._
   expansion is intentionally out of scope for this release candidate.
 - The local-agent sys-ops northstar, Safe Text Workspace Operations, Private
   Git Workspace Operations, Tranche 9 local sidecar agent safe floor, Tranche
-  10 operator UI prototype, and Tranche 11 Bag of Evidence / Evidence Shelf are
-  closed. The active source horizon is Tranche 12: Local Agent Runtime Recovery
-  and Live Model Hardening.
+  10 operator UI prototype, Tranche 11 Bag of Evidence / Evidence Shelf, and
+  Tranche 13 Teaching Sandbox Harness support bridge are closed. The active
+  source horizon returns to Tranche 12: Local Agent Runtime Recovery and Live
+  Model Hardening.
 
 ---
 
@@ -30,6 +31,13 @@ stable recovery classes for transport/tool-loop failures, concise UI recovery
 status text, and initial claim guardrail warnings. Remaining work should harden
 heartbeat/streaming, named approvals, richer live recovery UX, and the
 popup/chat narrative cockpit without widening authority.
+
+**Tranche 13 is parked as a support tranche for Tranche 12.** The implemented
+surface is `teaching_sandbox_harness`, plus a Teaching Lab tab in `agent_ui.py`.
+It creates ignored runtime practice projects, runs the local sidecar through
+guarded scenarios, records trace/evidence/journal links, verifies deterministic
+outputs, scores runs, and exports scorecards. This gives the remaining recovery
+work realistic data without adding raw terminal parity.
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -63,6 +71,27 @@ or missing models, and classifies malformed tool calls, schema errors, runtime
 tool failures, approval stops, and exhausted tool rounds.
 
 ### Active tasks
+
+### Recently parked support tranche: Tranche 13 Teaching Sandbox Harness
+
+- [x] Add `teaching_sandbox_harness` with standard metadata, CLI, MCP, and
+      manifest registration.
+- [x] Store harness state under ignored `.dev-tools/runtime/teaching_sandbox/`.
+- [x] Add `src/lib/teaching_sandbox_harness.py` with scenario definitions,
+      SQLite run records, sandbox creation, verification, scoring, and export.
+- [x] Add initial scenarios: `static_task_tracker` and `python_notes_cli`.
+- [x] Support `status`, `init`, `list_scenarios`, `plan`, `create_project`,
+      `run_agent`, `verify_project`, `score`, `run_scenario`, and `export`.
+- [x] Require `confirm: true` for mutating or exporting actions.
+- [x] Run deterministic mocked sidecar flows without live Ollama dependency.
+- [x] Capture run traces, Evidence IDs, App Journal entry IDs, verification
+      checks, and scorecards.
+- [x] Add a Teaching Lab tab to the Tkinter operator UI.
+- [x] Extend smoke coverage for scenario listing/planning, confirmation gates,
+      sandbox creation, failed verification, mocked scenario runs, scoring,
+      export, MCP registration, and sanitized paths.
+- [x] Update README, AGENT_GUIDE, ARCHITECTURE, NORTHSTARS, TODO,
+      WE_ARE_HERE_NOW, onboarding, and DEV_LOG.
 
 ### Active source tranche: Tranche 12 Local Agent Runtime Recovery and Live Model Hardening
 

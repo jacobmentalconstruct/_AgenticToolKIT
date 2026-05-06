@@ -353,6 +353,7 @@ SELECT MODELS
 TEST TOOLS
   Agent Console            → run local_sidecar_agent through guarded tools
   Tool Lab                 → pick a manifest tool and run JSON input directly
+  Teaching Lab             → run disposable sandbox teaching scenarios
 
 REVIEW
   sanitized output         → confirm paths are placeholders or relative
@@ -449,6 +450,39 @@ should expose the project LTM, Evidence Shelf, and run traces as visible context
 so the sidecar learns the builder process one step at a time instead of
 inventing scaffolds, memory, or authority.
 
+### Loop 13: Scenario → Sandbox → Run → Verify → Score
+
+_The teaching/evaluation loop. Use when the sidecar needs to practice a builder
+step in a disposable project before the remaining recovery work is hardened._
+
+```
+SCENARIO
+  teaching_sandbox_harness list_scenarios → see available practice apps
+  teaching_sandbox_harness plan           → read the task card and checks
+
+SANDBOX
+  teaching_sandbox_harness create_project → create ignored runtime sandbox when confirmed
+  _docs/TASK_CARD.md                      → scenario-specific success criteria
+  _docs/builder_constraint_contract.md    → contract substrate for the run
+
+RUN
+  teaching_sandbox_harness run_agent      → invoke local_sidecar_agent through guarded tools
+  teaching_sandbox_harness run_scenario   → create, run, verify, and score in one confirmed path
+
+VERIFY
+  teaching_sandbox_harness verify_project → deterministic file/content/AST checks
+  agent_run_trace                         → inspect run and recovery/tuning data
+  session_evidence_store                  → inspect archived session evidence
+
+SCORE
+  teaching_sandbox_harness score          → score verification, trace, evidence, and journal capture
+  teaching_sandbox_harness export         → write ignored scorecard for operator review
+```
+
+The harness is a practice bridge, not a project generator with extra authority.
+Sandbox projects stay under ignored runtime state by default. Promote only the
+lessons, evidence IDs, or journal-worthy decisions into durable project LTM.
+
 ---
 
 ## Tool Selection Cheat Sheet
@@ -472,6 +506,7 @@ _"I need to…" → use this tool._
 | Emit a local-agent launch packet | `local_agent_bootstrap` |
 | Manage the Bag of Evidence or Evidence Shelf | `session_evidence_store` |
 | Inspect local-agent run traces and tuning-data records | `agent_run_trace` |
+| Run disposable local-agent teaching scenarios | `teaching_sandbox_harness` |
 | Open the local agent operator UI | `chat.bat`, `chat.sh`, or `agent_ui.py` |
 | Read a bounded text file safely | `text_file_reader` |
 | Create, overwrite, or append text safely | `text_file_writer` |

@@ -1481,6 +1481,62 @@ named approval decisions, and stronger evidence-backed claim enforcement.
 
 ---
 
+## 2026-05-06 — Tranche 13 teaching sandbox harness
+
+- Added `src/lib/teaching_sandbox_harness.py`, a shared stdlib SQLite-backed
+  harness layer for scenario definitions, ignored sandbox project creation,
+  deterministic verification, scorecards, and exports.
+- Added `teaching_sandbox_harness` with `status`, `init`, `list_scenarios`,
+  `plan`, `create_project`, `run_agent`, `verify_project`, `score`,
+  `run_scenario`, and `export` actions. Mutating/export actions require
+  `confirm: true`.
+- Registered the harness in `tool_manifest.json` and `src/mcp_server.py`; MCP
+  now lists 49 tools.
+- Added initial teaching scenarios:
+  `static_task_tracker` and `python_notes_cli`.
+- The harness creates disposable projects under ignored
+  `.dev-tools/runtime/teaching_sandbox/`, copies in a task card and builder
+  constraint contract, invokes `local_sidecar_agent`, verifies outputs, scores
+  the run, and exports sanitized scorecards.
+- Wired `agent_run_trace` into the sidecar's callable registry so it can appear
+  in agent allowlists without becoming a raw authority surface; mutating trace
+  actions remain confirmation-gated.
+- Added a Teaching Lab tab to `agent_ui.py` for scenario refresh, planning,
+  sandbox creation, agent run, verification, scoring, and export.
+- Extended UI helper classification so the harness is treated as
+  side-effecting in operator surfaces.
+- Extended `src/smoke_test.py` with temp-fixture coverage for scenario listing,
+  planning, confirmation gates, sandbox creation, failed verification,
+  deterministic mocked runs for both initial scenarios, trace/evidence/journal
+  capture, scorecard export, path sanitization, and MCP registration.
+- Updated README, TODO, WE_ARE_HERE_NOW, NORTHSTARS, ARCHITECTURE,
+  AGENT_GUIDE, onboarding, and this dev log.
+
+Validation:
+
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\teaching_sandbox_harness.py agent_ui.py src\smoke_test.py
+  src\mcp_server.py` -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\smoke_test.py` -> 134/134 pass; MCP lists 49 tools.
+
+Classification: spiral.
+
+- Capability increased: the sidecar can now practice full builder-loop
+  scenarios in ignored sandboxes and leave scoreable evidence.
+- Uncertainty decreased: deterministic mocked app-building runs prove the
+  local agent can scaffold, verify, journal, trace, and archive evidence
+  without live model dependency.
+- Boundary clarified: teaching/eval data is ignored runtime state, sandbox
+  projects are disposable, and no raw terminal parity or dependency
+  installation was added.
+
+Current read: Tranche 13 is parked as a support bridge. Return to Tranche 12
+with the teaching harness available for heartbeat, recovery UX, named approval,
+and evidence-backed claim hardening.
+
+---
+
 ## Template for future entries
 
 - Files changed:

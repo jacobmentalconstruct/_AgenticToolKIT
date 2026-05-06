@@ -1697,7 +1697,13 @@ def test_operator_ui_support() -> None:
 
     toolbox_root = ROOT.parent
     tools = tool_index(toolbox_root)
-    if "local_sidecar_agent" in tools and "session_evidence_store" in tools and "agent_run_trace" in tools and "journal_manifest" in tools:
+    if (
+        "local_sidecar_agent" in tools
+        and "session_evidence_store" in tools
+        and "agent_run_trace" in tools
+        and "teaching_sandbox_harness" in tools
+        and "journal_manifest" in tools
+    ):
         _ok("operator UI loads tool manifest")
     else:
         _fail("operator UI manifest load", str(sorted(tools)[:10]))
@@ -1774,6 +1780,125 @@ def test_operator_ui_support() -> None:
         _fail("operator UI privacy scan", str(findings[:3]))
 
 
+def test_teaching_sandbox_harness() -> None:
+    print("\n── Tranche 13: Teaching Sandbox Harness ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="teaching_sandbox_"))
+
+    status_before = _tool("teaching_sandbox_harness", {"project_root": str(target_root), "action": "status"})
+    if status_before["status"] == "ok" and not status_before["result"]["exists"]:
+        _ok("teaching_sandbox_harness reports missing store before init")
+    else:
+        _fail("teaching_sandbox_harness initial status", str(status_before))
+
+    scenarios = _tool("teaching_sandbox_harness", {"project_root": str(target_root), "action": "list_scenarios"})
+    scenario_ids = [item["scenario_id"] for item in scenarios["result"]["scenarios"]]
+    if scenarios["status"] == "ok" and {"static_task_tracker", "python_notes_cli"}.issubset(set(scenario_ids)):
+        _ok("teaching_sandbox_harness lists initial scenarios")
+    else:
+        _fail("teaching_sandbox_harness scenario list", str(scenarios))
+
+    plan = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "plan",
+        "scenario_id": "static_task_tracker",
+    })
+    if plan["status"] == "ok" and "Task Card" in plan["result"]["task_card"] and "directory_scaffold" in plan["result"]["allowed_tools"]:
+        _ok("teaching_sandbox_harness returns task card and allowed tool floor")
+    else:
+        _fail("teaching_sandbox_harness plan", str(plan))
+
+    create_gate = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "create_project",
+        "scenario_id": "static_task_tracker",
+    })
+    if create_gate["status"] == "approval_required":
+        _ok("teaching_sandbox_harness requires confirmation before sandbox creation")
+    else:
+        _fail("teaching_sandbox_harness create gate", str(create_gate))
+
+    created = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "create_project",
+        "confirm": True,
+        "scenario_id": "static_task_tracker",
+        "project_id": "static-fail-fixture",
+    })
+    verify_missing = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "verify_project",
+        "run_id": created["result"]["run_id"],
+    })
+    if (
+        created["status"] == "ok"
+        and created["result"]["sandbox_project_root"].startswith(".dev-tools/runtime/teaching_sandbox/projects/")
+        and verify_missing["status"] == "ok"
+        and verify_missing["result"]["failed"] >= 1
+    ):
+        _ok("teaching_sandbox_harness creates ignored sandbox and detects missing files")
+    else:
+        _fail("teaching_sandbox_harness create/verify missing", str(verify_missing))
+
+    static_run = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "run_scenario",
+        "confirm": True,
+        "scenario_id": "static_task_tracker",
+        "project_id": "static-pass-fixture",
+        "window_turns": 0,
+        "max_tool_rounds": 3,
+    })
+    if (
+        static_run["status"] == "ok"
+        and static_run["result"]["verification"]["failed"] == 0
+        and static_run["result"]["scorecard"]["passed"]
+        and static_run["result"]["scorecard"]["trace_ids"]
+        and static_run["result"]["scorecard"]["evidence_ids"]
+        and static_run["result"]["scorecard"]["journal_entry_uid"]
+    ):
+        _ok("teaching_sandbox_harness runs static scenario with trace/evidence/journal capture")
+    else:
+        _fail("teaching_sandbox_harness static run", str(static_run))
+
+    python_run = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "run_scenario",
+        "confirm": True,
+        "scenario_id": "python_notes_cli",
+        "project_id": "python-pass-fixture",
+        "window_turns": 0,
+        "max_tool_rounds": 3,
+    })
+    if (
+        python_run["status"] == "ok"
+        and python_run["result"]["verification"]["failed"] == 0
+        and python_run["result"]["scorecard"]["passed"]
+    ):
+        _ok("teaching_sandbox_harness runs Python CLI scenario with AST verification")
+    else:
+        _fail("teaching_sandbox_harness Python run", str(python_run))
+
+    export = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "export",
+        "confirm": True,
+        "run_id": static_run["result"]["run_id"],
+        "format": "markdown",
+    })
+    export_path = target_root / export["result"]["export_path"]
+    if export["status"] == "ok" and export_path.exists():
+        _ok("teaching_sandbox_harness exports a readable scorecard")
+    else:
+        _fail("teaching_sandbox_harness export", str(export))
+
+    rendered = json.dumps(static_run)
+    if str(target_root) not in rendered:
+        _ok("teaching_sandbox_harness returns repo-relative/sanitized paths")
+    else:
+        _fail("teaching_sandbox_harness path sanitization", rendered[:500])
+
+
 def test_mcp(project_root: Path) -> None:
     """MCP stdio server: initialize, tools/list."""
     print("\n── MCP Server ──")
@@ -1815,7 +1940,7 @@ def test_mcp(project_root: Path) -> None:
             "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
             "secret_surface_audit", "runtime_artifact_cleaner",
             "local_agent_bootstrap", "local_sidecar_agent",
-            "session_evidence_store", "agent_run_trace",
+            "session_evidence_store", "agent_run_trace", "teaching_sandbox_harness",
             "text_file_reader", "text_file_writer", "directory_scaffold",
             "text_file_validator", "file_move_guarded", "file_delete_guarded",
             "git_private_workspace",
@@ -1876,6 +2001,7 @@ def main() -> int:
     test_agent_run_trace()
     test_local_sidecar_agent()
     test_operator_ui_support()
+    test_teaching_sandbox_harness()
     test_mcp(project_root)
 
     print(f"\n═══ Results: {PASS} passed, {FAIL} failed ═══")

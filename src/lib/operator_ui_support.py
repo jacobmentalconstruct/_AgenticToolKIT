@@ -36,6 +36,7 @@ MUTATING_TOOLS = {
     "local_sidecar_agent",
     "session_evidence_store",
     "agent_run_trace",
+    "teaching_sandbox_harness",
 }
 
 

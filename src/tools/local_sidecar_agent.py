@@ -20,7 +20,7 @@ from lib.text_workspace import resolve_project_root, runtime_root, safe_relative
 from tools.directory_scaffold import FILE_METADATA as DIRECTORY_SCAFFOLD_METADATA, run as run_directory_scaffold
 from tools.git_private_workspace import FILE_METADATA as GIT_PRIVATE_METADATA, run as run_git_private_workspace
 from tools.journal_write import FILE_METADATA as JOURNAL_WRITE_METADATA, run as run_journal_write
-from tools.agent_run_trace import run as run_agent_run_trace
+from tools.agent_run_trace import FILE_METADATA as AGENT_RUN_TRACE_METADATA, run as run_agent_run_trace
 from tools.local_agent_bootstrap import run as run_local_agent_bootstrap
 from tools.project_setup import run as run_project_setup
 from tools.session_evidence_store import FILE_METADATA as SESSION_EVIDENCE_METADATA, run as run_session_evidence_store
@@ -88,6 +88,7 @@ DEFAULT_ALLOWED_TOOLS = [
 ]
 MUTATING_TOOLS = {"text_file_writer", "directory_scaffold", "journal_write"}
 MUTATING_EVIDENCE_ACTIONS = {"init", "append", "archive_window", "export"}
+MUTATING_TRACE_ACTIONS = {"init", "append", "export"}
 RISKY_GIT_ACTIONS = {"init", "add", "commit", "checkout", "pull", "push"}
 
 
@@ -119,6 +120,7 @@ TOOL_REGISTRY: dict[str, tuple[dict[str, Any], Callable[[dict[str, Any]], dict[s
     "git_private_workspace": (GIT_PRIVATE_METADATA, run_git_private_workspace),
     "journal_write": (JOURNAL_WRITE_METADATA, run_journal_write),
     "session_evidence_store": (SESSION_EVIDENCE_METADATA, run_session_evidence_store),
+    "agent_run_trace": (AGENT_RUN_TRACE_METADATA, run_agent_run_trace),
 }
 
 
@@ -365,12 +367,14 @@ def _is_mutating(tool_name: str, args: dict[str, Any]) -> bool:
         return str(args.get("action", "status")) in RISKY_GIT_ACTIONS
     if tool_name == "session_evidence_store":
         return str(args.get("action", "status")) in MUTATING_EVIDENCE_ACTIONS
+    if tool_name == "agent_run_trace":
+        return str(args.get("action", "status")) in MUTATING_TRACE_ACTIONS
     return tool_name in MUTATING_TOOLS
 
 
 def _inject_confirm(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
     updated = dict(args)
-    if tool_name in {"text_file_writer", "directory_scaffold", "git_private_workspace", "session_evidence_store"}:
+    if tool_name in {"text_file_writer", "directory_scaffold", "git_private_workspace", "session_evidence_store", "agent_run_trace"}:
         updated["confirm"] = True
     return updated
 

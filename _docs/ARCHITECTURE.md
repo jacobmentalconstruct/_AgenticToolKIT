@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 2026-05-05._
+_Last updated: 2026-05-06._
 
 `.dev-tools` is a self-contained sidecar toolbox. Its job is to help a human
 install the toolbox into a project and help a builder agent orient, set up,
@@ -12,6 +12,7 @@ inspect, patch, verify, and park work from inside that project.
 |---|---|
 | `install.py` and `src/tools/sidecar_install.py` | Manual and CLI sidecar installation into `<target>/.dev-tools`. |
 | `chat.bat`, `chat.sh`, `agent_ui.py` | Desktop operator prototype for running the local sidecar agent and testing toolbox tools. |
+| `teaching_sandbox_harness` | Ignored sandbox practice/evaluation bridge for local-agent builder-loop teaching runs. |
 | `onboarding/` and `START_HERE.html` | Offline human onboarding microsite. |
 | `src/tools/` | Builder tools that stay inside the toolbox and operate on projects. |
 | `src/mcp_server.py` | MCP stdio exposure for builder tools. |
@@ -32,12 +33,13 @@ folders, old project roots, generated caches, or hidden runtime state.
 
 The local-agent system operations layer, Safe Text Workspace Operations layer,
 Private Git Workspace Operations layer, Local Sidecar Agent Runtime safe floor,
-Local Agent Operator UI prototype, Bag of Evidence / Evidence Shelf layer, and
-Tranche 12 run-trace foundation are implemented. The current architecture now
-has an Ollama-backed loop that uses the guarded toolbox, checkpoints through
-private Git, hydrates from a visible session evidence shelf, records run traces
-for recovery/tuning data, can be exercised from a desktop prototype, and avoids
-raw shell or unrestricted filesystem parity.
+Local Agent Operator UI prototype, Bag of Evidence / Evidence Shelf layer,
+Tranche 12 run-trace foundation, and Tranche 13 Teaching Sandbox Harness are
+implemented. The current architecture now has an Ollama-backed loop that uses
+the guarded toolbox, checkpoints through private Git, hydrates from a visible
+session evidence shelf, records run traces for recovery/tuning data, can be
+exercised from a desktop prototype, can practice in disposable teaching
+sandboxes, and avoids raw shell or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -203,6 +205,41 @@ The popup/chat operator surface should become the narrative cockpit over
 project LTM, Evidence Shelf, and run traces. Its job is to help the user and
 sidecar agent move one builder step at a time, while each step leaves
 inspectable evidence that can later become evaluation or tuning data.
+
+## Teaching Sandbox Harness
+
+Tranche 13 adds the first repeatable practice/evaluation bridge for the local
+sidecar agent. The harness lives between the local-agent runtime, Evidence
+Shelf, run trace store, App Journal, and future tuning-data work.
+
+`teaching_sandbox_harness` owns ignored runtime state under:
+
+```
+.dev-tools/runtime/teaching_sandbox/
+```
+
+It creates disposable sandbox projects, copies in a task card plus the builder
+constraint contract, runs `local_sidecar_agent` with either mocked or live
+Ollama responses, verifies scenario outputs, scores the run, and exports a
+sanitized scorecard. The first scenarios are `static_task_tracker` and
+`python_notes_cli`.
+
+The teaching harness is not an authority expansion. It adds no raw shell
+execution, package installation, broad CLI sandbox, hidden memory, or tracked
+project artifact promotion. Its value is that it turns the builder loop into
+repeatable practice data:
+
+1. create a bounded sandbox project
+2. give the agent a concrete task card
+3. route all work through guarded tools
+4. verify outputs deterministically
+5. archive Evidence Shelf material
+6. link App Journal entries and run traces
+7. score and export the run for operator review
+
+The operator UI Teaching Lab is a thin human surface over the same tool. It is
+useful for exercising the agent loop before hardening richer recovery behavior
+in Tranche 12.
 
 ## Local Agent Operator UI
 

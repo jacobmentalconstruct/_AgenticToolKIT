@@ -1,6 +1,6 @@
 # Northstars
 
-_Last updated: 2026-05-05._
+_Last updated: 2026-05-06._
 
 This file records the release-scope northstar for `.dev-tools` and the next
 post-release capability horizon.
@@ -242,6 +242,36 @@ Non-goals remain important: do not add raw terminal parity, unrestricted CLI
 execution, dependency installation, or hidden memory. Recovery should happen
 through existing guarded tool contracts, explicit operator choices, and visible
 Evidence Shelf/App Journal state.
+
+## Satisfied Bridge: Teaching Sandbox Harness
+
+Teaching Sandbox Harness is now satisfied as a support bridge for the active
+recovery northstar. It does not replace Tranche 12; it gives Tranche 12 a
+repeatable way to generate realistic sidecar traces, Evidence IDs, journal
+links, verification checks, and scorecards.
+
+The implemented surface is `teaching_sandbox_harness`, backed by ignored
+runtime state under `.dev-tools/runtime/teaching_sandbox/`. It supports
+`status`, `init`, `list_scenarios`, `plan`, `create_project`, `run_agent`,
+`verify_project`, `score`, `run_scenario`, and `export`. Mutating and export
+actions require `confirm: true`. The operator UI now has a Teaching Lab tab
+for scenario selection, sandbox creation, agent runs, verification, scoring,
+and exports.
+
+The first practice scenarios are:
+
+| Scenario | Purpose | Verification floor |
+|---|---|---|
+| `static_task_tracker` | Static HTML/CSS/JS task app with localStorage and task lifecycle controls. | Expected files plus deterministic HTML/CSS/JS token checks. |
+| `python_notes_cli` | Stdlib Python notes CLI with add/list/search and JSON persistence. | Expected files, Python AST parse, argparse/json/command checks. |
+
+This bridge embodies the project direction: teach the app the builder process
+one safe step at a time, while preserving the data each step creates. The
+teaching harness is deliberately disposable and bounded. It creates sandbox
+projects under ignored runtime state, routes model work through the existing
+`local_sidecar_agent`, and uses `agent_run_trace`, `session_evidence_store`,
+and `journal_write` as visible memory/evidence surfaces. It adds no raw shell
+execution, no dependency installation, and no hidden memory channel.
 
 ## Later Expansion
 

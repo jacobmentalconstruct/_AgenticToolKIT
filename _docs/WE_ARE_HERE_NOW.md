@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-05 (Tranche 12 recovery/preflight slice implemented)
+- 2026-05-06 (Tranche 13 teaching sandbox support bridge implemented)
 
 ## Fresh-thread start
 
@@ -26,7 +26,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     Local Agent Operator UI prototype is implemented; Tranche 11 Bag of
     Evidence and Evidence Shelf are implemented; Tranche 12 Local Agent
     Runtime Recovery and Live Model Hardening is in progress with run traces,
-    model readiness preflight, and broader recovery classification
+    model readiness preflight, and broader recovery classification; Tranche
+    13 Teaching Sandbox Harness is implemented as a side-support bridge for
+    realistic agent practice/eval data
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -34,15 +36,16 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     toolbox root no longer pretends to be the original journal package
   - sidecar install, setup orchestration, onboarding-site verification, and the
     local agent operator UI are live human/operator surfaces; the root smoke
-    suite is current at the Tranche 12 recovery/preflight slice
+    suite is current at the Tranche 13 teaching sandbox support slice
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
 - Current collaboration truth:
   - the prototype is parkable: human installs via the GUI, agent takes over
     inside the target project from `project_setup` onward; `local_sidecar_agent`
-    now provides the first guarded local agent loop; the popup/chat operator
+    now provides the first guarded local agent loop; `teaching_sandbox_harness`
+    lets that loop practice on ignored sandbox apps; the popup/chat operator
     surface is becoming the narrative cockpit over project LTM, Evidence Shelf,
-    and run traces
+    run traces, and scorecards
 
 ## What works right now
 
@@ -110,6 +113,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   recovery for malformed tool calls, schema errors, runtime tool failures,
   approval stops, and max-round exhaustion, first-pass UI recovery status text,
   and initial claim guardrail metadata. MCP still lists 48 tools.
+- Tranche 13 added `teaching_sandbox_harness` and a Teaching Lab tab to the
+  operator UI. The harness creates ignored runtime sandbox projects, copies in
+  task cards and the builder constraint contract, runs the local sidecar agent
+  through guarded static-task-tracker or Python-notes-CLI scenarios, verifies
+  deterministic checks, records trace/evidence/journal links, scores the run,
+  and exports scorecards. MCP now lists 49 tools.
 
 ## Current bottleneck
 
@@ -117,15 +126,17 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
 - The active source-shaped bottleneck is the remaining live-model hardening
-  after the preflight/recovery foundation. The operator UI still needs richer
+  after the preflight/recovery foundation, now with a harness that can generate
+  repeatable sidecar traces and scorecards. The operator UI still needs richer
   retry/status controls, heartbeat/streaming behavior, named approval choices,
   and stronger evidence-backed final-claim enforcement.
 
 ## Next best move
 
-- Continue Tranche 12: add heartbeat/streaming support, richer operator retry
-  controls, named approval decisions, and stronger filesystem-claim guardrails
-  while keeping the guarded toolbox boundary intact.
+- Continue Tranche 12 using the teaching harness as the practice/eval surface:
+  add heartbeat/streaming support, richer operator retry controls, named
+  approval decisions, and stronger filesystem-claim guardrails while keeping
+  the guarded toolbox boundary intact.
 
 ## Current warnings
 
@@ -148,6 +159,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Tranche 12 should not add raw terminal parity, dependency installation, or
   unrestricted model authority. Recovery should route through existing tool
   contracts, Evidence Shelf state, and explicit operator choices.
+- Teaching sandboxes are disposable ignored runtime projects. Do not promote
+  sandbox artifacts into tracked source unless an operator explicitly asks for
+  that promotion.
 - Committed docs and onboarding surfaces should use relative paths or
   placeholders such as `<project_root>` and `<toolbox_root>`. `LICENSE.md` is
   the intentional exception for copyright holder identity.

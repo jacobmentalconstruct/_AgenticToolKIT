@@ -77,6 +77,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `local_agent_bootstrap` | bootstrap | Aggregate host, workspace, command, dependency, journal, and constraint context into a launch packet |
 | `session_evidence_store` | memory | Manage the local-agent Bag of Evidence SQLite store and Evidence Shelf for sliding-window overflow |
 | `agent_run_trace` | memory | Store local-agent run traces, recovery classes, evidence links, and tuning-data payloads under ignored runtime state |
+| `teaching_sandbox_harness` | evaluation | Create ignored sidecar teaching sandboxes, run guarded scenarios, verify outputs, score runs, and export tuning-data packets |
 | `text_file_reader` | introspection | Read bounded text files under a project root with binary, size, and sidecar protections |
 | `text_file_writer` | write | Create, overwrite, or append text payloads with confirmation and optional validation |
 | `directory_scaffold` | scaffold | Dry-run-first declarative directory and text-file scaffolding under a project root |
@@ -98,7 +99,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 48 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 49 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
@@ -158,6 +159,15 @@ authority. The popup/chat operator surface should evolve as the narrative
 cockpit over project LTM, Evidence Shelf, and run traces: it helps the project
 teach the sidecar agent one safe builder step at a time.
 
+**Teaching Sandbox Harness is now implemented as a support bridge.**
+`teaching_sandbox_harness` creates ignored runtime sandbox projects, copies in
+the builder-contract/task-card substrate, runs the local sidecar agent through
+guarded mocked or live model flows, verifies deterministic scenario checks,
+scores the result, and exports scorecards. The first scenarios are a static
+task tracker and a stdlib Python notes CLI. This gives Tranche 12 recovery work
+realistic traces, Evidence IDs, journal links, and score data without adding
+raw shell execution or broader filesystem authority.
+
 The queued local-agent implementation runway is now:
 
 1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
@@ -185,6 +195,11 @@ The queued local-agent implementation runway is now:
    Remaining work should add heartbeat/streaming behavior, named approval
    choices, richer live recovery UX, and deeper narrative-cockpit behavior
    without adding raw terminal parity.
+7. **Tranche 13 — Teaching Sandbox Harness:** complete as a side-support
+   tranche; `teaching_sandbox_harness` and the operator UI Teaching Lab can
+   create ignored practice projects, run guarded sidecar scenarios, verify and
+   score outputs, archive Evidence Shelf material, link run traces and journal
+   entries, and export scorecards for future tuning-data review.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

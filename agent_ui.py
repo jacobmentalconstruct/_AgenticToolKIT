@@ -111,12 +111,15 @@ class OperatorUI:
         self.agent_tab = ttk.Frame(notebook, padding=12)
         self.tool_tab = ttk.Frame(notebook, padding=12)
         self.evidence_tab = ttk.Frame(notebook, padding=12)
+        self.teaching_tab = ttk.Frame(notebook, padding=12)
         notebook.add(self.agent_tab, text="Agent Console")
         notebook.add(self.tool_tab, text="Tool Lab")
         notebook.add(self.evidence_tab, text="Evidence Shelf")
+        notebook.add(self.teaching_tab, text="Teaching Lab")
         self._build_agent_tab()
         self._build_tool_tab()
         self._build_evidence_tab()
+        self._build_teaching_tab()
 
     def _build_agent_tab(self) -> None:
         left = ttk.Frame(self.agent_tab)
@@ -242,6 +245,38 @@ class OperatorUI:
 
         ttk.Label(right, text="Sanitized Evidence Shelf output", style="Muted.TLabel").pack(anchor=tk.W)
         self.evidence_output = self._text(right, height=34)
+
+    def _build_teaching_tab(self) -> None:
+        left = ttk.Frame(self.teaching_tab)
+        left.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 12))
+        right = ttk.Frame(self.teaching_tab)
+        right.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        self.teaching_scenario_var = tk.StringVar(value="static_task_tracker")
+        self.teaching_run_id_var = tk.StringVar()
+        self.teaching_session_var = tk.StringVar(value="teaching-default")
+        self.teaching_confirm_var = tk.BooleanVar(value=False)
+        self.teaching_status_var = tk.StringVar(value="Teaching Lab is ready.")
+        self.teaching_scenarios: list[str] = ["static_task_tracker", "python_notes_cli"]
+
+        self._combo(left, "Scenario", self.teaching_scenario_var)
+        self.teaching_scenario_combo = self._last_combo
+        self.teaching_scenario_combo.configure(values=self.teaching_scenarios)
+        self._entry(left, "Run ID", self.teaching_run_id_var)
+        self._entry(left, "Session ID", self.teaching_session_var)
+        ttk.Checkbutton(left, text="Permit sandbox writes/runs", variable=self.teaching_confirm_var).pack(anchor=tk.W, pady=(4, 8))
+        ttk.Button(left, text="Refresh Scenarios", command=self._teaching_refresh).pack(fill=tk.X)
+        ttk.Button(left, text="Plan Scenario", command=lambda: self._run_teaching_action("plan")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Create Sandbox", command=lambda: self._run_teaching_action("create_project")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Run Agent", command=lambda: self._run_teaching_action("run_agent")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Verify", command=lambda: self._run_teaching_action("verify_project")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Score", command=lambda: self._run_teaching_action("score")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Run Scenario", style="Accent.TButton", command=lambda: self._run_teaching_action("run_scenario")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Export Scorecard", command=lambda: self._run_teaching_action("export")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Label(left, textvariable=self.teaching_status_var, style="Muted.TLabel", wraplength=260).pack(anchor=tk.W, pady=(10, 0))
+
+        ttk.Label(right, text="Sanitized Teaching Lab output", style="Muted.TLabel").pack(anchor=tk.W)
+        self.teaching_output = self._text(right, height=34)
 
     def _entry(self, parent: ttk.Frame, label: str, variable: tk.StringVar) -> None:
         ttk.Label(parent, text=label, style="Muted.TLabel").pack(anchor=tk.W)
@@ -475,6 +510,78 @@ class OperatorUI:
         self.evidence_status_var.set(f"Evidence {action} finished: {result.get('status', 'unknown')}")
         self._set_text(self.evidence_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
 
+    def _teaching_refresh(self) -> None:
+        self.teaching_status_var.set("Refreshing teaching scenarios...")
+        self._threaded(self._teaching_refresh_worker)
+
+    def _teaching_refresh_worker(self) -> None:
+        try:
+            result = dispatch_tool(self.toolbox_root, "teaching_sandbox_harness", {
+                "project_root": self._project_root(),
+                "action": "list_scenarios",
+            })
+        except Exception as exc:
+            result = {"status": "error", "tool": "teaching_sandbox_harness", "result": {"message": str(exc)}}
+        self.root.after(0, lambda: self._finish_teaching_refresh(result))
+
+    def _finish_teaching_refresh(self, result: dict[str, Any]) -> None:
+        scenarios = result.get("result", {}).get("scenarios", []) if isinstance(result.get("result"), dict) else []
+        names = [str(item.get("scenario_id")) for item in scenarios if isinstance(item, dict) and item.get("scenario_id")]
+        if names:
+            self.teaching_scenarios = names
+            self.teaching_scenario_combo.configure(values=names)
+            if self.teaching_scenario_var.get() not in names:
+                self.teaching_scenario_var.set(names[0])
+        self.teaching_status_var.set(f"Scenario refresh finished: {result.get('status', 'unknown')}")
+        self._set_text(self.teaching_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
+
+    def _run_teaching_action(self, action: str) -> None:
+        mutating = action in {"create_project", "run_agent", "run_scenario", "export"}
+        if mutating and not self.teaching_confirm_var.get():
+            messagebox.showwarning(".dev-tools", "Sandbox writes and runs require the teaching confirmation box.")
+            return
+        payload: dict[str, Any] = {
+            "project_root": self._project_root(),
+            "action": action,
+            "scenario_id": self.teaching_scenario_var.get() or "static_task_tracker",
+            "session_id": self.teaching_session_var.get().strip() or "teaching-default",
+        }
+        run_id = self.teaching_run_id_var.get().strip()
+        if run_id:
+            payload["run_id"] = run_id
+        if mutating:
+            payload["confirm"] = True
+        if action in {"run_agent", "run_scenario"}:
+            payload.update({
+                "ollama_base_url": self.base_url_var.get(),
+                "planner_model": self.planner_model_var.get() or "qwen2.5-coder:7b",
+                "response_model": self.response_model_var.get() or "qwen3.5:4b",
+                "timeout_seconds": int(self.timeout_var.get() or "60"),
+                "max_tool_rounds": int(self.rounds_var.get() or "4"),
+                "preflight": False,
+            })
+        if action == "export":
+            payload["format"] = "markdown"
+        self.teaching_status_var.set(f"Running teaching {action}...")
+        self._threaded(lambda: self._run_teaching_worker(action, payload))
+
+    def _run_teaching_worker(self, action: str, payload: dict[str, Any]) -> None:
+        try:
+            result = dispatch_tool(self.toolbox_root, "teaching_sandbox_harness", payload)
+        except Exception as exc:
+            result = {"status": "error", "tool": "teaching_sandbox_harness", "result": {"message": str(exc)}}
+        self.root.after(0, lambda: self._finish_teaching_run(action, result))
+
+    def _finish_teaching_run(self, action: str, result: dict[str, Any]) -> None:
+        self.teaching_status_var.set(f"Teaching {action} finished: {result.get('status', 'unknown')}")
+        payload = result.get("result", {}) if isinstance(result.get("result"), dict) else {}
+        run_id = payload.get("run_id")
+        if not run_id and isinstance(payload.get("project"), dict):
+            run_id = payload["project"].get("run_id")
+        if run_id:
+            self.teaching_run_id_var.set(str(run_id))
+        self._set_text(self.teaching_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
+
     def _desanitize_tool_input(self, value: Any) -> Any:
         if isinstance(value, str):
             return (
@@ -497,6 +604,7 @@ def self_test() -> int:
     tools = tool_index(ROOT)
     assert "local_sidecar_agent" in tools
     assert "session_evidence_store" in tools
+    assert "teaching_sandbox_harness" in tools
     assert choose_model(["tiny:1", "qwen2.5-coder:7b"], ["qwen2.5-coder"], "fallback") == "qwen2.5-coder:7b"
     payload = agent_payload(
         project_root=str(ROOT),
@@ -522,6 +630,9 @@ def self_test() -> int:
         "result": {"recovery": {"class": "request_timeout", "next_actions": ["increase_timeout", "retry_run"]}},
     })
     assert "<toolbox_root>" in sanitize_path_text(str(ROOT / "README.md"), toolbox_root=ROOT)
+    scenarios = dispatch_tool(ROOT, "teaching_sandbox_harness", {"project_root": str(ROOT), "action": "list_scenarios"})
+    assert scenarios["status"] == "ok"
+    assert any(item["scenario_id"] == "static_task_tracker" for item in scenarios["result"]["scenarios"])
     docs = [ROOT / "README.md", ROOT / "_docs" / "TODO.md"]
     assert isinstance(scan_privacy_leaks(docs), list)
     print("agent_ui self-test passed")
