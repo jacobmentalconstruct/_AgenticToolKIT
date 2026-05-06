@@ -499,6 +499,8 @@ small apps through scored sandbox practice._
 Read `_docs/TRAINING_RUNWAY.md` before running this loop. It is the Tranche 14
 curriculum and baseline protocol, including the score rubric, failure taxonomy,
 trace-review checklist, and ignored run-index/export convention.
+Read `_docs/BUILDER_DOCTRINE_TASK_CARDS.md` before editing task cards or
+scenario doctrine metadata.
 
 ```
 BASELINE
@@ -516,6 +518,7 @@ INSPECT
 
 TUNE
   task card                               → make the expected builder step more explicit
+  builder doctrine task cards             → choose project_birth, feature_addition, bug_fix, validation_pass, recovery_pass, documentation_park, or release_handoff
   prompt/contract constraint              → remove repeated inference errors
   tool schema or recovery decision        → tighten only when the trace proves the gap
 

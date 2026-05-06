@@ -281,6 +281,14 @@ cards, broader small-app scenarios, trace-driven loop tuning, and unseen
 graduation runs. Model weight fine-tuning is deliberately deferred until the
 project has clean, sanitized, high-signal traces worth tuning on.
 
+Tranche 15 adds the parked task-card doctrine layer. The harness now returns
+project-birth template metadata, required/optional/forbidden scenario steps,
+and sandbox-local contract rules in scenario plans. Created sandboxes receive a
+complete `_docs/builder_constraint_contract.md` so the live model does not need
+to chase parent/root contract paths. The local agent also classifies array item
+schema mistakes before tool execution and tolerates a common `[/tool_call]`
+closing tag without treating otherwise valid JSON as unusable.
+
 ## Local Agent Operator UI
 
 Tranche 10 adds the first human-facing operator prototype for the local sidecar

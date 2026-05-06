@@ -1645,6 +1645,22 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent malformed recovery", str(malformed))
 
+    tagged_call = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "read with a closing tag",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"text_file_reader\",\"arguments\":{\"path\":\"src/agent_note.py\"}}\n[/tool_call]\n```",
+            "No changes needed.",
+        ],
+        "checkpoint": False,
+    })
+    if tagged_call["status"] == "ok" and tagged_call["result"]["round_count"] >= 1:
+        _ok("local_sidecar_agent tolerates common tool-call closing tag")
+    else:
+        _fail("local_sidecar_agent closing tag tolerance", str(tagged_call))
+
     schema_error = _tool("local_sidecar_agent", {
         "project_root": str(target_root),
         "action": "run",
@@ -1660,6 +1676,27 @@ def test_local_sidecar_agent() -> None:
         _ok("local_sidecar_agent classifies tool schema errors")
     else:
         _fail("local_sidecar_agent schema recovery", str(schema_error))
+
+    array_item_error = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "scaffold with bad array items",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"directory_scaffold\",\"arguments\":{\"entries\":[\"bad\"],\"dry_run\":false}}\n"
+            "```"
+        ],
+        "confirm_mutations": True,
+        "checkpoint": False,
+    })
+    if (
+        array_item_error["status"] == "error"
+        and array_item_error["result"]["recovery"]["class"] == "tool_schema_error"
+        and "entries[0] must be an object" in array_item_error["result"]["recovery"]["message"]
+    ):
+        _ok("local_sidecar_agent validates array item schema")
+    else:
+        _fail("local_sidecar_agent array item schema recovery", str(array_item_error))
 
     max_rounds = _tool("local_sidecar_agent", {
         "project_root": str(target_root),
@@ -1889,7 +1926,15 @@ def test_teaching_sandbox_harness() -> None:
         "action": "plan",
         "scenario_id": "static_task_tracker",
     })
-    if plan["status"] == "ok" and "Task Card" in plan["result"]["task_card"] and "directory_scaffold" in plan["result"]["allowed_tools"]:
+    if (
+        plan["status"] == "ok"
+        and "Task Card" in plan["result"]["task_card"]
+        and "directory_scaffold" in plan["result"]["allowed_tools"]
+        and plan["result"]["task_card_template"] == "project_birth"
+        and "read_sandbox_local_contract" in plan["result"]["required_steps"]
+        and "read_parent_contract" in plan["result"]["forbidden_steps"]
+        and "entries` must be a list of objects" in plan["result"]["task_card"]
+    ):
         _ok("teaching_sandbox_harness returns task card and allowed tool floor")
     else:
         _fail("teaching_sandbox_harness plan", str(plan))
@@ -1916,13 +1961,18 @@ def test_teaching_sandbox_harness() -> None:
         "action": "verify_project",
         "run_id": created["result"]["run_id"],
     })
+    sandbox_contract = target_root / created["result"]["contract_path"]
+    contract_text = sandbox_contract.read_text(encoding="utf-8")
     if (
         created["status"] == "ok"
         and created["result"]["sandbox_project_root"].startswith(".dev-tools/runtime/teaching_sandbox/projects/")
+        and created["result"]["task_card_template"] == "project_birth"
+        and "Do not read `CONTRACT.md`" in contract_text
+        and "](../CONTRACT.md)" not in contract_text
         and verify_missing["status"] == "ok"
         and verify_missing["result"]["failed"] >= 1
     ):
-        _ok("teaching_sandbox_harness creates ignored sandbox and detects missing files")
+        _ok("teaching_sandbox_harness creates ignored sandbox with local doctrine and detects missing files")
     else:
         _fail("teaching_sandbox_harness create/verify missing", str(verify_missing))
 

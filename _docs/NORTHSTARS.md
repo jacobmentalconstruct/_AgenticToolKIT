@@ -307,6 +307,16 @@ guarded tools but failed before scaffold because the sandbox-local contract
 pointer led the model toward a missing `CONTRACT.md`. That repeated failure is
 the first concrete teaching input for Tranche 15 task cards.
 
+Tranche 15 began the response by making task cards explicit project-birth
+contracts. `_docs/BUILDER_DOCTRINE_TASK_CARDS.md` defines reusable templates
+for project birth, feature work, bug fixes, validation, recovery, documentation
+parking, and release handoff. The Teaching Sandbox now emits scenario metadata
+for required, optional, and forbidden doctrine steps and writes a complete
+sandbox-local contract instead of copying the root-contract pointer. Live
+reruns now get past contract resolution and into real artifact creation, leaving
+more specific next labels around JSON formatting, validation calls, and
+deterministic feature completion.
+
 ## Later Expansion
 
 These remain valuable, but they should follow the sys-ops layer rather than

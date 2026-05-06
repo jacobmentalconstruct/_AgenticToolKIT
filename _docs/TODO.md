@@ -121,23 +121,23 @@ raw terminal parity or dependency installation.
       NORTHSTARS, AGENT_GUIDE, ARCHITECTURE, onboarding, DEV_LOG, app journal,
       smoke tests, and a commit.
 
-### Active source tranche: Tranche 15 Builder Doctrine Task Cards
+### Recently parked source tranche: Tranche 15 Builder Doctrine Task Cards
 
 Purpose: turn the way we build apps into explicit task-card primitives the
 sidecar can follow without inferring the scaffold.
 
-- [ ] Create task-card templates for project birth, feature addition, bug fix,
+- [x] Create task-card templates for project birth, feature addition, bug fix,
       validation pass, recovery pass, documentation park, and release handoff.
-- [ ] Add a sandbox-local contract/task-card reading rule so live models do not
+- [x] Add a sandbox-local contract/task-card reading rule so live models do not
       chase the copied `_docs/builder_constraint_contract.md` pointer to a
       missing root `CONTRACT.md` inside disposable Teaching Sandbox projects.
-- [ ] Add scenario metadata for which doctrine steps are required, optional, or
+- [x] Add scenario metadata for which doctrine steps are required, optional, or
       forbidden.
-- [ ] Ensure each task card names allowed tools, expected artifacts,
+- [x] Ensure each task card names allowed tools, expected artifacts,
       verification checks, journaling expectations, and claim-citation rules.
-- [ ] Add smoke coverage proving task-card parsing and defaults are stable.
+- [x] Add smoke coverage proving task-card parsing and defaults are stable.
 
-### Planned source tranche: Tranche 16 Curriculum Scenario Expansion
+### Active source tranche: Tranche 16 Curriculum Scenario Expansion
 
 Purpose: teach across varied but small apps, not just the two initial fixtures.
 

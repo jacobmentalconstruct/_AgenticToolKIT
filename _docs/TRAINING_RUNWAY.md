@@ -227,3 +227,24 @@ model tried to read `CONTRACT.md` after seeing the copied
 `_docs/builder_constraint_contract.md` pointer, but `CONTRACT.md` is not present
 inside the disposable sandbox project. The durable App Journal summary is
 `journal_c1d47fe3c3df`.
+
+## Tranche 15 Follow-Up Results
+
+_Recorded: 2026-05-06._
+
+Tranche 15 added task-card doctrine and sandbox-local contract rules rather
+than broader authority. The first follow-up live runs show the intended
+movement:
+
+| Run | Scenario | Mode | Score | Rubric label | Teaching labels | Lesson |
+|---|---|---:|---:|---|---|---|
+| `TS000012` | `static_task_tracker` | live | 76 | `partial_pass` | `incomplete_feature`, `tool_runtime_error` | Contract resolution is fixed; model creates files but still needs cleaner validation/rewrite behavior. |
+| `TS000013` | `python_notes_cli` | live | 75 | `partial_pass` | `failed_validation`, `tool_schema_error` | Contract resolution is fixed; model creates valid Python but needs better README/check completion and validator usage. |
+
+Exports:
+
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_TS000012_20260506T123851Z.md`
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_TS000013_20260506T123851Z.md`
+
+These are not graduation runs. They are evidence that task-card doctrine moved
+the live model from pre-scaffold failure to artifact-producing partial passes.

@@ -31,7 +31,50 @@ class Scenario:
     title: str
     summary: str
     expected_files: tuple[str, ...]
+    task_card_template: str
+    required_steps: tuple[str, ...]
+    optional_steps: tuple[str, ...]
+    forbidden_steps: tuple[str, ...]
     task_card: str
+
+
+TASK_CARD_TEMPLATES: dict[str, dict[str, Any]] = {
+    "project_birth": {
+        "purpose": "Create a new small project from a task card.",
+        "required_sections": [
+            "Local contract rule",
+            "Allowed tools",
+            "Expected artifacts",
+            "Verification checks",
+            "Journal and evidence expectations",
+            "Final claim rule",
+        ],
+    },
+    "feature_addition": {
+        "purpose": "Add a feature to an existing project without changing unrelated behavior.",
+        "required_sections": ["Current behavior", "New behavior", "Touched files", "Verification checks"],
+    },
+    "bug_fix": {
+        "purpose": "Correct a named defect with a focused reproduction and verification loop.",
+        "required_sections": ["Observed failure", "Expected behavior", "Fix boundary", "Regression check"],
+    },
+    "validation_pass": {
+        "purpose": "Run declared validation, inspect failures, and report honest status.",
+        "required_sections": ["Commands or tool checks", "Pass/fail evidence", "Residual risk"],
+    },
+    "recovery_pass": {
+        "purpose": "Recover from a failed or partial run using named recovery classes.",
+        "required_sections": ["Recovery class", "Safe next action", "Evidence to preserve"],
+    },
+    "documentation_park": {
+        "purpose": "Update continuity documents and journal state after meaningful work.",
+        "required_sections": ["Changed truth", "Verification", "Next tranche"],
+    },
+    "release_handoff": {
+        "purpose": "Prepare a project for handoff with verified payload and known warnings.",
+        "required_sections": ["Release payload", "Verification", "Known warnings", "Handoff state"],
+    },
+}
 
 
 SCENARIOS: dict[str, Scenario] = {
@@ -40,8 +83,45 @@ SCENARIOS: dict[str, Scenario] = {
         title="Static Task Tracker",
         summary="Build a static HTML/CSS/JS task app with localStorage and task lifecycle controls.",
         expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=(
+            "read_sandbox_local_contract",
+            "read_task_card",
+            "scaffold_expected_files",
+            "validate_static_artifacts",
+            "journal_and_trace_result",
+            "cite_touched_paths",
+        ),
+        optional_steps=("checkpoint_private_git",),
+        forbidden_steps=("read_parent_contract", "raw_shell", "dependency_install", "outside_root_write"),
         task_card=(
             "# Task Card: Static Task Tracker\n\n"
+            "Template: project_birth\n\n"
+            "Local contract rule:\n"
+            "- Treat `_docs/builder_constraint_contract.md` as the complete sandbox-local contract.\n"
+            "- Do not read `CONTRACT.md`, `../CONTRACT.md`, parent folders, or any path outside this sandbox.\n"
+            "- If a contract pointer appears stale, continue with this task card and the sandbox-local contract.\n\n"
+            "Allowed tools:\n"
+            "- directory_scaffold\n"
+            "- text_file_reader\n"
+            "- text_file_writer\n"
+            "- text_file_validator\n"
+            "- session_evidence_store\n"
+            "- agent_run_trace\n"
+            "- journal_write\n\n"
+            "Expected artifacts:\n"
+            "- index.html\n"
+            "- styles.css\n"
+            "- app.js\n"
+            "- _docs/TASK_CARD.md already exists; do not overwrite it.\n\n"
+            "Scaffold argument rule:\n"
+            "- When using directory_scaffold, `entries` must be a list of objects, not a list of strings.\n"
+            "- Each file entry must look like: {\"type\":\"file\",\"path\":\"index.html\",\"content\":\"...\",\"overwrite\":true}.\n"
+            "- Provide real content for each expected file in the first scaffold call.\n\n"
+            "Tool-call format rule:\n"
+            "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
+            "Rewrite rule:\n"
+            "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
             "Build a tiny static app using only index.html, styles.css, and app.js.\n\n"
             "Success criteria:\n"
             "- A user can add a task.\n"
@@ -49,7 +129,18 @@ SCENARIOS: dict[str, Scenario] = {
             "- A user can edit or delete a task.\n"
             "- Tasks persist with localStorage.\n"
             "- The UI is usable by opening index.html directly.\n\n"
-            "Use only guarded text/scaffold tools. Do not install packages or run shell commands.\n"
+            "Verification checks:\n"
+            "- index.html links styles.css and app.js.\n"
+            "- app.js uses localStorage and event listeners.\n"
+            "- app.js includes add, complete, edit, and delete behavior.\n"
+            "- styles.css is non-empty.\n\n"
+            "Journal and evidence expectations:\n"
+            "- Let the harness record trace, evidence, and journal metadata.\n"
+            "- Final summary must cite touched paths: index.html, styles.css, and app.js.\n\n"
+            "Forbidden:\n"
+            "- Do not install packages.\n"
+            "- Do not run shell commands.\n"
+            "- Do not write outside the sandbox project root.\n"
         ),
     ),
     "python_notes_cli": Scenario(
@@ -57,8 +148,44 @@ SCENARIOS: dict[str, Scenario] = {
         title="Python Notes CLI",
         summary="Build a stdlib Python notes CLI with add/list/search and JSON persistence.",
         expected_files=("notes.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=(
+            "read_sandbox_local_contract",
+            "read_task_card",
+            "scaffold_expected_files",
+            "validate_python_artifacts",
+            "journal_and_trace_result",
+            "cite_touched_paths",
+        ),
+        optional_steps=("checkpoint_private_git",),
+        forbidden_steps=("read_parent_contract", "raw_shell", "dependency_install", "outside_root_write"),
         task_card=(
             "# Task Card: Python Notes CLI\n\n"
+            "Template: project_birth\n\n"
+            "Local contract rule:\n"
+            "- Treat `_docs/builder_constraint_contract.md` as the complete sandbox-local contract.\n"
+            "- Do not read `CONTRACT.md`, `../CONTRACT.md`, parent folders, or any path outside this sandbox.\n"
+            "- If a contract pointer appears stale, continue with this task card and the sandbox-local contract.\n\n"
+            "Allowed tools:\n"
+            "- directory_scaffold\n"
+            "- text_file_reader\n"
+            "- text_file_writer\n"
+            "- text_file_validator\n"
+            "- session_evidence_store\n"
+            "- agent_run_trace\n"
+            "- journal_write\n\n"
+            "Expected artifacts:\n"
+            "- notes.py\n"
+            "- README.md\n"
+            "- _docs/TASK_CARD.md already exists; do not overwrite it.\n\n"
+            "Scaffold argument rule:\n"
+            "- When using directory_scaffold, `entries` must be a list of objects, not a list of strings.\n"
+            "- Each file entry must look like: {\"type\":\"file\",\"path\":\"notes.py\",\"content\":\"...\",\"overwrite\":true}.\n"
+            "- Provide real content for each expected file in the first scaffold call.\n\n"
+            "Tool-call format rule:\n"
+            "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
+            "Rewrite rule:\n"
+            "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
             "Build a tiny stdlib-only command line notes app in notes.py.\n\n"
             "Success criteria:\n"
             "- `add` stores a note in a JSON file.\n"
@@ -66,7 +193,18 @@ SCENARIOS: dict[str, Scenario] = {
             "- `search` filters saved notes by query text.\n"
             "- README.md documents the commands.\n"
             "- notes.py parses as valid Python and uses only the standard library.\n\n"
-            "Use only guarded text/scaffold tools. Do not install packages or run shell commands.\n"
+            "Verification checks:\n"
+            "- notes.py parses as Python.\n"
+            "- notes.py uses argparse and JSON persistence.\n"
+            "- notes.py defines add, list, and search commands.\n"
+            "- README.md documents add, list, and search.\n\n"
+            "Journal and evidence expectations:\n"
+            "- Let the harness record trace, evidence, and journal metadata.\n"
+            "- Final summary must cite touched paths: notes.py and README.md.\n\n"
+            "Forbidden:\n"
+            "- Do not install packages.\n"
+            "- Do not run shell commands.\n"
+            "- Do not write outside the sandbox project root.\n"
         ),
     ),
 }
@@ -122,9 +260,14 @@ def list_scenarios() -> dict[str, Any]:
                 "title": item.title,
                 "summary": item.summary,
                 "expected_files": list(item.expected_files),
+                "task_card_template": item.task_card_template,
+                "required_steps": list(item.required_steps),
+                "optional_steps": list(item.optional_steps),
+                "forbidden_steps": list(item.forbidden_steps),
             }
             for item in SCENARIOS.values()
-        ]
+        ],
+        "task_card_templates": _task_card_template_index(),
     }
 
 
@@ -138,6 +281,11 @@ def scenario_plan(payload: dict[str, Any]) -> dict[str, Any]:
         "expected_files": list(scenario.expected_files),
         "verification_checks": _verification_check_ids(scenario.scenario_id),
         "allowed_tools": list(DEFAULT_ALLOWED_TOOLS),
+        "task_card_template": scenario.task_card_template,
+        "required_steps": list(scenario.required_steps),
+        "optional_steps": list(scenario.optional_steps),
+        "forbidden_steps": list(scenario.forbidden_steps),
+        "task_card_templates": _task_card_template_index(),
     }
 
 
@@ -153,13 +301,11 @@ def create_project(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[st
     docs_root = project_root / "_docs"
     docs_root.mkdir(parents=True)
     (docs_root / "TASK_CARD.md").write_text(scenario.task_card, encoding="utf-8", newline="")
-    contract = root / "_docs" / "builder_constraint_contract.md"
-    if contract.exists():
-        (docs_root / "builder_constraint_contract.md").write_text(
-            contract.read_text(encoding="utf-8"),
-            encoding="utf-8",
-            newline="",
-        )
+    (docs_root / "builder_constraint_contract.md").write_text(
+        _sandbox_contract(scenario),
+        encoding="utf-8",
+        newline="",
+    )
     readme = (
         f"# {scenario.title} Sandbox\n\n"
         "This ignored runtime project is a teaching sandbox for the local sidecar agent.\n"
@@ -173,7 +319,9 @@ def create_project(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[st
         "project_id": project_id,
         "sandbox_project_root": _relative(project_root, root),
         "task_card_path": _relative(docs_root / "TASK_CARD.md", root),
+        "contract_path": _relative(docs_root / "builder_constraint_contract.md", root),
         "expected_files": list(scenario.expected_files),
+        "task_card_template": scenario.task_card_template,
     }
 
 
@@ -559,9 +707,45 @@ def _mock_responses(scenario_id: str) -> list[str]:
 def _agent_prompt(scenario: Scenario) -> str:
     return (
         "Read _docs/builder_constraint_contract.md and _docs/TASK_CARD.md first. "
+        "The sandbox-local contract is complete; do not read CONTRACT.md, ../CONTRACT.md, "
+        "parent folders, or paths outside the sandbox. "
         "Then complete the task card using only allowlisted guarded tools. "
         "When done, summarize touched files and verification evidence.\n\n"
         f"{scenario.task_card}"
+    )
+
+
+def _task_card_template_index() -> list[dict[str, Any]]:
+    return [
+        {
+            "template_id": template_id,
+            "purpose": details["purpose"],
+            "required_sections": list(details["required_sections"]),
+        }
+        for template_id, details in TASK_CARD_TEMPLATES.items()
+    ]
+
+
+def _sandbox_contract(scenario: Scenario) -> str:
+    return (
+        "# Sandbox-Local Builder Constraint Contract\n\n"
+        "This file is the complete contract for this disposable Teaching Sandbox project.\n"
+        "Do not read `CONTRACT.md`, `../CONTRACT.md`, parent folders, or any path outside this sandbox.\n"
+        "If another pointer says the root contract lives elsewhere, treat that pointer as unavailable in this sandbox.\n\n"
+        "## Authority Boundary\n\n"
+        "- Use only the tools named in `_docs/TASK_CARD.md` and the harness allowed-tool list.\n"
+        "- Do not request raw shell, dependency installation, broad filesystem access, hidden memory, or network access.\n"
+        "- Write only the expected artifacts named in `_docs/TASK_CARD.md` unless the task card explicitly permits more.\n"
+        "- Keep `_docs/TASK_CARD.md` and this contract file intact.\n\n"
+        "## Required Builder Steps\n\n"
+        + "".join(f"- {step}\n" for step in scenario.required_steps)
+        + "\n## Optional Builder Steps\n\n"
+        + "".join(f"- {step}\n" for step in scenario.optional_steps)
+        + "\n## Forbidden Steps\n\n"
+        + "".join(f"- {step}\n" for step in scenario.forbidden_steps)
+        + "\n## Final Claim Rule\n\n"
+        "When claiming work is complete, cite touched paths or Evidence IDs. "
+        "If validation was partial or failed, say so directly.\n"
     )
 
 

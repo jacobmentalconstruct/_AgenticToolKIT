@@ -1635,6 +1635,87 @@ taxonomy, trace-review checklist, and ignored training-run index convention.
 
 ---
 
+## 2026-05-06 — Tranche 15 builder doctrine task cards
+
+- Added `_docs/BUILDER_DOCTRINE_TASK_CARDS.md`, defining reusable task-card
+  templates for project birth, feature addition, bug fix, validation pass,
+  recovery pass, documentation park, and release handoff.
+- Extended the Teaching Sandbox scenario model with task-card template IDs plus
+  required, optional, and forbidden doctrine steps.
+- Enriched the two initial scenario task cards with sandbox-local contract
+  rules, allowed tools, expected artifacts, scaffold argument rules, tool-call
+  format rules, rewrite rules, verification checks, journaling/evidence
+  expectations, and final claim requirements.
+- Replaced the copied pointer contract in generated sandboxes with a complete
+  sandbox-local `_docs/builder_constraint_contract.md`. This directly addresses
+  the Tranche 14 live failure where models chased missing `CONTRACT.md`.
+- Updated scenario `plan`, `list_scenarios`, and `create_project` outputs so
+  operators and smoke tests can inspect task-card templates and doctrine steps.
+- Hardened `local_sidecar_agent` schema validation so array item types, such as
+  `directory_scaffold.entries`, are checked before tool execution.
+- Added structured tool-runtime exception capture around tool calls so live
+  model mistakes return recovery results instead of escaping the harness.
+- Added tolerance for a common stray `[/tool_call]` closing tag after otherwise
+  valid tool-call JSON.
+- Added smoke coverage for task-card metadata, sandbox-local doctrine, array
+  item schema validation, and closing-tag tolerance.
+- Ran follow-up live Teaching Sandbox baselines:
+  - `TS000012` `static_task_tracker` live: score 76, partial pass. The model
+    created real app files; remaining labels are incomplete feature/rewrite
+    behavior.
+  - `TS000013` `python_notes_cli` live: score 75, partial pass. The model
+    created real `notes.py` and `README.md`; remaining labels are validator
+    argument use and README/check completion.
+- Exported follow-up scorecards for `TS000012` and `TS000013` under ignored
+  `.dev-tools/runtime/teaching_sandbox/exports/`.
+- Mocked `static_task_tracker` still passed after richer task cards:
+  `TS000014`, score 93.
+- Wrote App Journal entry `journal_5fa702315868` for the Tranche 15 outcome
+  and Tranche 16 handoff.
+
+Validation:
+
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\teaching_sandbox_harness.py src\smoke_test.py` -> pass.
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\teaching_sandbox_harness.py src\tools\local_sidecar_agent.py
+  src\smoke_test.py` -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"plan","project_root":".","scenario_id":"static_task_tracker"}'`
+  -> includes `project_birth`, required steps, forbidden steps, and task-card
+  template index.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"create_project","project_root":".","confirm":true,"scenario_id":"static_task_tracker","project_id":"tranche15-contract-check"}'`
+  -> writes sandbox-local contract path and task-card template metadata.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"run_scenario","project_root":".","confirm":true,"scenario_id":"static_task_tracker","run_mode":"live","timeout_seconds":120,"max_tool_rounds":4,"preflight":true}'`
+  -> follow-up live run `TS000012`, score 76.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"run_scenario","project_root":".","confirm":true,"scenario_id":"python_notes_cli","run_mode":"live","timeout_seconds":120,"max_tool_rounds":4,"preflight":true}'`
+  -> follow-up live run `TS000013`, score 75.
+- Scorecard exports for `TS000012` and `TS000013` -> pass.
+- `python src\smoke_test.py` -> 140/140 pass; MCP lists 49 tools.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Classification: spiral.
+
+- Capability increased: task cards now carry explicit doctrine and scenario
+  metadata instead of asking the live model to infer the builder loop.
+- Uncertainty decreased: the first Tranche 14 failure is removed; live models
+  now reach artifact creation, and remaining failures are more specific.
+- Boundary clarified: the fix stayed inside prompts, task cards, schema checks,
+  and guarded harness behavior. No raw shell, dependency installation, hidden
+  memory, or broader filesystem authority was added.
+
+Current read: Tranche 15 is parked. Move to Tranche 16 Curriculum Scenario
+Expansion, then Tranche 17 trace tuning for JSON formatting, validator usage,
+and deterministic feature completion.
+
+---
+
 ## 2026-05-06 — Tranche 14 training runway implementation
 
 - Added `_docs/TRAINING_RUNWAY.md`, the Tranche 14 operator manual for the

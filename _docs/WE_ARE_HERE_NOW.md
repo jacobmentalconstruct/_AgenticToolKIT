@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 14 parked; Tranche 15 next)
+- 2026-05-06 (Tranche 15 parked; Tranche 16 next)
 
 ## Fresh-thread start
 
@@ -35,7 +35,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     `_docs/TRAINING_RUNWAY.md` as its curriculum, baseline protocol, rubric,
     taxonomy, trace-review checklist, ignored run-index/export convention, and
     first mocked/live baseline evidence; Tranche 15 Builder Doctrine Task Cards
-    is the next source tranche
+    is parked with explicit project-birth task-card doctrine; Tranche 16
+    Curriculum Scenario Expansion is the next source tranche
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -44,7 +45,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - sidecar install, setup orchestration, onboarding-site verification, and the
     local agent operator UI are live human/operator surfaces; the root smoke
     suite is current at the Tranche 13 teaching sandbox support slice
-  - Tranche 14 baseline artifacts use the existing ignored Teaching Sandbox
+  - Tranche 14/15 baseline artifacts use the existing ignored Teaching Sandbox
     store and export path under `.dev-tools/runtime/teaching_sandbox/`
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
@@ -142,22 +143,29 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   scenarios; live Ollama baselines were reachable but failed on the same
   sandbox contract-resolution issue, trying to read `CONTRACT.md` inside the
   disposable sandbox after reading the copied pointer doc.
+- Tranche 15 is parked and has added `_docs/BUILDER_DOCTRINE_TASK_CARDS.md`,
+  project-birth task-card metadata, required/optional/forbidden scenario
+  steps, sandbox-local contract rules, scaffold argument examples, tool-call
+  format rules, and schema guardrails for array item types and common tool-call
+  closing tags. Live reruns now reach real artifact creation instead of failing
+  before scaffold. The root smoke suite is current at 140 passing checks with
+  MCP still listing 49 tools.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck has moved from baseline evidence to
-  Tranche 15 teaching material: make sandbox-local task cards and contract
-  reading rules explicit enough that live models do not chase a missing root
-  `CONTRACT.md` before scaffolding app files.
+- The active source-shaped bottleneck has moved to Tranche 16 scenario
+  expansion and Tranche 17 trace tuning: the live model can now get past
+  sandbox contract resolution, but still needs more practice around valid JSON,
+  tool-specific validation calls, and completing all deterministic checks.
 
 ## Next best move
 
-- Implement Tranche 15 Builder Doctrine Task Cards, starting with a
-  sandbox-local contract/task-card reading rule so live models do not chase a
-  missing root `CONTRACT.md` before scaffolding app files.
+- Begin Tranche 16 Curriculum Scenario Expansion with small deterministic web
+  and stdlib Python variants, using the Tranche 15 task-card metadata as the
+  scenario substrate.
 
 ## Current warnings
 
@@ -194,8 +202,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 3. `_docs/TODO.md`
 4. `_docs/PARKING_WORKFLOW.md`
 5. `_docs/TRAINING_RUNWAY.md`
-6. `_docs/NORTHSTARS.md`
-7. `_docs/DEV_LOG.md`
+6. `_docs/BUILDER_DOCTRINE_TASK_CARDS.md`
+7. `_docs/NORTHSTARS.md`
+8. `_docs/DEV_LOG.md`
 
 ## Known truth about the docs
 
@@ -205,4 +214,5 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - `TODO.md` is the active backlog and next-tranche surface.
 - `PARKING_WORKFLOW.md` is the tranche park/handoff regimen.
 - `TRAINING_RUNWAY.md` is the Tranche 14 training/evaluation manual.
+- `BUILDER_DOCTRINE_TASK_CARDS.md` is the Tranche 15 task-card doctrine.
 - `NORTHSTARS.md` is the longer-range capability direction surface.

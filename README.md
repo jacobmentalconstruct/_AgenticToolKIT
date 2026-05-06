@@ -182,7 +182,10 @@ is not model weight fine-tuning yet; it is the project teaching the sidecar the
 builder loop one scored step at a time. The first Tranche 14 baselines are
 recorded there: mocked runs passed both initial scenarios, while live Ollama
 runs exposed a repeatable sandbox contract-resolution failure for Tranche 15
-to teach away.
+to teach away. Tranche 15 added `_docs/BUILDER_DOCTRINE_TASK_CARDS.md`,
+project-birth task-card metadata, sandbox-local contract rules, scaffold/tool
+call format rules, and schema guardrails. The first live reruns improved from
+pre-scaffold failures to real artifact creation and partial scorecards.
 
 The queued local-agent implementation runway is now:
 
@@ -219,9 +222,13 @@ The queued local-agent implementation runway is now:
    curriculum, baseline protocols, score rubric, failure taxonomy,
    trace-review checklist, and ignored training-run index for repeated Teaching
    Lab/CLI runs.
-9. **Tranche 15-18 — Training Cycle:** active next; convert builder doctrine into
-   task cards, expand small-app scenarios, tune from traces/scorecards, and run
-   unseen graduation apps before closing the app-builder northstar.
+9. **Tranche 15 — Builder Doctrine Task Cards:** complete; convert builder
+   doctrine into explicit task-card primitives, beginning with project-birth
+   cards, sandbox-local contract reading, allowed tools, expected artifacts,
+   verification checks, journaling, and claim-citation rules.
+10. **Tranche 16-18 — Training Cycle:** active next; expand small-app scenarios,
+   tune from traces/scorecards, and run unseen graduation apps before closing
+   the app-builder northstar.
 
 ### Tier 2: Vendable Packages (`packages/`)
 
@@ -354,6 +361,7 @@ python src/smoke_test.py
 | `_docs/SETUP_DOCTRINE.md` | Project setup-first doctrine for freshly armed agents |
 | `_docs/PARKING_WORKFLOW.md` | Practical tranche parking and handoff workflow |
 | `_docs/TRAINING_RUNWAY.md` | Tranche 14 curriculum, baseline protocol, rubric, failure taxonomy, trace review, and run-index convention |
+| `_docs/BUILDER_DOCTRINE_TASK_CARDS.md` | Tranche 15 task-card templates, scenario doctrine metadata, and sandbox-local contract rules |
 | `_docs/NORTHSTARS.md` | Release closure and active local-agent roadmap |
 | `_docs/TODO.md` | Active tranche tasks and queued implementation runway |
 | `_docs/WE_ARE_HERE_NOW.md` | Fast pickup state for the current tranche and next move |

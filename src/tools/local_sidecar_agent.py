@@ -381,7 +381,7 @@ def _parse_tool_calls(text: str) -> list[dict[str, Any]]:
     for match in TOOL_CALL_RE.finditer(text):
         raw = match.group(1).strip()
         try:
-            payload = json.loads(raw)
+            payload = _load_tool_call_payload(raw)
         except json.JSONDecodeError as exc:
             calls.append({"tool": "__malformed__", "arguments": {}, "raw": raw, "error": str(exc)})
             continue
@@ -395,6 +395,18 @@ def _parse_tool_calls(text: str) -> list[dict[str, Any]]:
             continue
         calls.append({"tool": tool_name, "arguments": arguments, "raw": raw})
     return calls
+
+
+def _load_tool_call_payload(raw: str) -> Any:
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        decoder = json.JSONDecoder()
+        payload, end = decoder.raw_decode(raw)
+        trailing = raw[end:].strip()
+        if trailing in {"", "[/tool_call]"}:
+            return payload
+        raise
 
 
 def _validate_schema(metadata: dict[str, Any], args: dict[str, Any]) -> list[str]:
@@ -414,8 +426,17 @@ def _validate_schema(metadata: dict[str, Any], args: dict[str, Any]) -> list[str
             errors.append(f"{key} must be a string")
         elif expected == "boolean" and not isinstance(value, bool):
             errors.append(f"{key} must be a boolean")
-        elif expected == "array" and not isinstance(value, list):
-            errors.append(f"{key} must be an array")
+        elif expected == "array":
+            if not isinstance(value, list):
+                errors.append(f"{key} must be an array")
+            else:
+                item_spec = spec.get("items", {}) if isinstance(spec, dict) else {}
+                item_type = item_spec.get("type") if isinstance(item_spec, dict) else None
+                for index, item in enumerate(value):
+                    if item_type == "object" and not isinstance(item, dict):
+                        errors.append(f"{key}[{index}] must be an object")
+                    elif item_type == "string" and not isinstance(item, str):
+                        errors.append(f"{key}[{index}] must be a string")
         elif expected == "object" and not isinstance(value, dict):
             errors.append(f"{key} must be an object")
         elif expected == "integer" and not isinstance(value, int):
@@ -495,7 +516,15 @@ def _execute_tool_call(
     if mutating:
         args = _inject_confirm(tool_name, args)
     started = time.time()
-    result = runner(args)
+    try:
+        result = runner(args)
+    except Exception as exc:
+        result = tool_result(
+            "local_sidecar_agent",
+            call,
+            {"message": str(exc), "recovery_class": "tool_runtime_error", "tool": tool_name},
+            status="error",
+        )
     duration_ms = round((time.time() - started) * 1000)
     _append_jsonl(
         runtime_paths["audit_log"],
