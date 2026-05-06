@@ -178,10 +178,13 @@ The queued local-agent implementation runway is now:
    overflow turns into ignored SQLite state, search/retrieve evidence, and
    connect evidence IDs to normal journaled project memory.
 6. **Tranche 12 — Local Agent Runtime Recovery and Live Model Hardening:**
-   started; the run-trace/tuning-data spine and first model-transport recovery
-   classes are implemented. Remaining work should add model readiness preflight,
-   operator recovery UX, streaming/heartbeat behavior, stronger claim
-   guardrails, and named approval choices without adding raw terminal parity.
+   in progress; the run-trace/tuning-data spine, model readiness preflight,
+   concise operator recovery statuses, initial claim guardrail warnings, and
+   stable recovery classes for transport, malformed tool calls, schema errors,
+   tool failures, approval stops, and max-round exhaustion are implemented.
+   Remaining work should add heartbeat/streaming behavior, named approval
+   choices, richer live recovery UX, and deeper narrative-cockpit behavior
+   without adding raw terminal parity.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

@@ -1424,6 +1424,63 @@ recovery classes, named approvals, and evidence-backed claim guardrails.
 
 ---
 
+## 2026-05-05 — Tranche 12 preflight and recovery hardening
+
+- Added `local_sidecar_agent` `preflight` action for live-model readiness:
+  Ollama reachability, selected model availability, and low-timeout warnings.
+- Live `run` now performs readiness preflight before spending a model round
+  unless the caller is using deterministic mock responses or explicitly
+  disables preflight.
+- Centralized recovery event handling so preflight failures and model
+  transport failures flow through the same journal, trace, session, and
+  Evidence Shelf parking path.
+- Extended recovery classification beyond model transport:
+  `malformed_tool_call`, `tool_schema_error`, `tool_runtime_error`,
+  `approval_required`, `max_rounds_exhausted`, and
+  `claim_guardrail_warning`.
+- Added deterministic next-actions for recovery classes without adding a
+  recovery model role or extra authority.
+- Added initial final-summary claim guardrail metadata so claims of completed
+  work can be checked against touched paths or Evidence IDs.
+- Added `agent_recovery_status` UI helper and wired the operator UI status line
+  to recovery classes while preserving the sanitized JSON detail pane.
+- Extended smoke coverage for preflight failure, preflight-stopped live runs,
+  malformed tool-call recovery, schema-error recovery, max-round exhaustion,
+  and UI recovery status summaries.
+- Updated README, TODO, WE_ARE_HERE_NOW, NORTHSTARS, ARCHITECTURE,
+  AGENT_GUIDE, onboarding, and this dev log.
+
+Validation:
+
+- `python -m py_compile agent_ui.py src\lib\operator_ui_support.py
+  src\tools\local_sidecar_agent.py src\smoke_test.py` -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\smoke_test.py` -> 125/125 pass; MCP lists 48 tools.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `python src\tools\smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` -> 5/5
+  suites passed.
+- `git diff --check` -> pass.
+- Privacy scan across committed public surfaces -> pass.
+
+Classification: spiral.
+
+- Capability increased: live sidecar runs now stop earlier and more legibly
+  when Ollama or selected models are not ready.
+- Uncertainty decreased: the agent now classifies malformed tool calls, schema
+  errors, runtime tool failures, approval stops, and exhausted rounds into
+  inspectable recovery states.
+- Boundary clarified: recovery remains deterministic and tool-contract-bound;
+  no raw terminal parity, dependency installation, hidden memory, or expanded
+  model authority was added.
+
+Current read: Tranche 12 is still open. The next slice should add
+heartbeat/streaming for long live Ollama turns, richer operator retry controls,
+named approval decisions, and stronger evidence-backed claim enforcement.
+
+---
+
 ## Template for future entries
 
 - Files changed:

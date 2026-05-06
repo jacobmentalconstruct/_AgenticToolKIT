@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-05 (Tranche 12 run-trace and recovery foundation started)
+- 2026-05-05 (Tranche 12 recovery/preflight slice implemented)
 
 ## Fresh-thread start
 
@@ -25,8 +25,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     Local Sidecar Agent Runtime is implemented as a safe floor; Tranche 10
     Local Agent Operator UI prototype is implemented; Tranche 11 Bag of
     Evidence and Evidence Shelf are implemented; Tranche 12 Local Agent
-    Runtime Recovery and Live Model Hardening has started with the run-trace
-    and model-transport recovery foundation
+    Runtime Recovery and Live Model Hardening is in progress with run traces,
+    model readiness preflight, and broader recovery classification
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -34,7 +34,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     toolbox root no longer pretends to be the original journal package
   - sidecar install, setup orchestration, onboarding-site verification, and the
     local agent operator UI are live human/operator surfaces; the root smoke
-    suite is current at the Tranche 12 run-trace foundation
+    suite is current at the Tranche 12 recovery/preflight slice
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
 - Current collaboration truth:
@@ -104,8 +104,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   SQLite run/tuning-data spine. The sidecar agent now records successful,
   approval-stopped, and failed runs, links recovery metadata to Evidence IDs
   and App Journal entries, and classifies initial model-transport failures such
-  as `request_timeout`, `ollama_unreachable`, and `model_missing`. MCP now
-  lists 48 tools.
+  as `request_timeout`, `ollama_unreachable`, and `model_missing`.
+- The second Tranche 12 slice added live model readiness preflight, early
+  recovery stops for unreachable Ollama or missing selected models, structured
+  recovery for malformed tool calls, schema errors, runtime tool failures,
+  approval stops, and max-round exhaustion, first-pass UI recovery status text,
+  and initial claim guardrail metadata. MCP still lists 48 tools.
 
 ## Current bottleneck
 
@@ -113,17 +117,15 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
 - The active source-shaped bottleneck is the remaining live-model hardening
-  after the run-trace foundation. Initial timeout/unreachable/missing-model
-  recovery exists, but the operator UI still needs clearer retry/status
-  controls, model readiness preflight, heartbeat/streaming behavior, broader
-  recovery classes, and evidence-backed final-claim guardrails.
+  after the preflight/recovery foundation. The operator UI still needs richer
+  retry/status controls, heartbeat/streaming behavior, named approval choices,
+  and stronger evidence-backed final-claim enforcement.
 
 ## Next best move
 
-- Continue Tranche 12: add live-model readiness checks, operator retry/status
-  UX, heartbeat/streaming support, broader recovery classes, and
-  filesystem-claim guardrails while keeping the guarded toolbox boundary
-  intact.
+- Continue Tranche 12: add heartbeat/streaming support, richer operator retry
+  controls, named approval decisions, and stronger filesystem-claim guardrails
+  while keeping the guarded toolbox boundary intact.
 
 ## Current warnings
 

@@ -410,7 +410,8 @@ operator UI runs fail, stall, or produce claims that need evidence._
 
 ```
 PREFLIGHT
-  local_sidecar_agent models/status → check Ollama reachability and selected models
+  local_sidecar_agent preflight     → check Ollama reachability and selected models
+  local_sidecar_agent models/status → inspect model list and runtime layout
   agent_ui.py Refresh Models        → refresh dropdowns before a live run
 
 RUN
@@ -419,7 +420,7 @@ RUN
   timeout_seconds/window_turns      → choose explicit runtime limits
 
 RECOVER
-  recovery classification           → timeout, missing model, malformed tool call, schema error, approval stop
+  recovery classification           → timeout, missing model, malformed tool call, schema error, approval stop, max rounds
   operator action                   → refresh models, retry with longer timeout, inspect details, or stop
 
 CITE
@@ -436,6 +437,12 @@ The recovery loop is a hardening layer, not a new authority layer. It should
 make live-model failures understandable and recoverable while keeping all work
 inside the existing guarded toolbox, Evidence Shelf, App Journal, and explicit
 operator choices.
+
+Current recovery classes are `request_timeout`, `ollama_unreachable`,
+`model_missing`, `model_request_failed`, `malformed_tool_call`,
+`tool_schema_error`, `tool_runtime_error`, `approval_required`,
+`max_rounds_exhausted`, and `claim_guardrail_warning`. Treat these as
+operator-facing states, not permission to widen the tool surface.
 
 The popup/chat operator surface is the narrative cockpit for this loop. It
 should expose the project LTM, Evidence Shelf, and run traces as visible context

@@ -40,7 +40,7 @@ FILE_METADATA = {
     "input_schema": {
         "type": "object",
         "properties": {
-            "action": {"type": "string", "enum": ["status", "models", "run"], "default": "run"},
+            "action": {"type": "string", "enum": ["status", "models", "preflight", "run"], "default": "run"},
             "project_root": {"type": "string", "default": "."},
             "prompt": {"type": "string", "description": "User task for the local sidecar agent."},
             "ollama_base_url": {"type": "string", "default": "http://localhost:11434"},
@@ -57,6 +57,7 @@ FILE_METADATA = {
             "window_turns": {"type": "integer", "default": 8},
             "use_evidence_shelf": {"type": "boolean", "default": True},
             "write_trace": {"type": "boolean", "default": True},
+            "preflight": {"type": "boolean", "default": True},
             "mock_ollama_failure": {
                 "type": "string",
                 "enum": ["request_timeout", "ollama_unreachable", "model_missing"],
@@ -107,6 +108,7 @@ class AgentConfig:
     window_turns: int = 8
     use_evidence_shelf: bool = True
     write_trace: bool = True
+    preflight: bool = True
 
 
 TOOL_REGISTRY: dict[str, tuple[dict[str, Any], Callable[[dict[str, Any]], dict[str, Any]]]] = {
@@ -204,6 +206,7 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         window_turns=max(0, min(window_turns, 50)),
         use_evidence_shelf=arguments.get("use_evidence_shelf", True) is not False,
         write_trace=arguments.get("write_trace", True) is not False,
+        preflight=arguments.get("preflight", True) is not False,
     )
 
 
@@ -217,6 +220,41 @@ def _scan_models(base_url: str, timeout: int) -> dict[str, Any]:
     models = data.get("models", []) if isinstance(data, dict) else []
     names = [item.get("name", "") for item in models if isinstance(item, dict)]
     return {"available": True, "base_url": base_url, "models": names, "model_count": len(names)}
+
+
+def _model_readiness(config: AgentConfig) -> dict[str, Any]:
+    scan = _scan_models(config.ollama_base_url, min(config.timeout_seconds, 10))
+    warnings: list[str] = []
+    if config.timeout_seconds < 15:
+        warnings.append("timeout_seconds is low for local model inference")
+    if not scan.get("available"):
+        return {
+            "ready": False,
+            "recovery_class": "ollama_unreachable",
+            "message": str(scan.get("error", "Ollama is not reachable")),
+            "next_actions": ["check_ollama_service", "refresh_models", "retry_run"],
+            "scan": scan,
+            "warnings": warnings,
+        }
+    models = [str(item) for item in scan.get("models", [])]
+    missing = [model for model in [config.planner_model, config.response_model] if model not in models]
+    if missing:
+        return {
+            "ready": False,
+            "recovery_class": "model_missing",
+            "message": "selected model is not available: " + ", ".join(missing),
+            "next_actions": ["refresh_models", "choose_available_model", "retry_run"],
+            "scan": scan,
+            "warnings": warnings,
+        }
+    return {
+        "ready": True,
+        "recovery_class": "",
+        "message": "",
+        "next_actions": [],
+        "scan": scan,
+        "warnings": warnings,
+    }
 
 
 def _ollama_chat(config: AgentConfig, messages: list[dict[str, str]], model: str) -> str:
@@ -351,7 +389,11 @@ def _execute_tool_call(
             "status": "error",
             "tool": "__malformed__",
             "input": call,
-            "result": {"message": call.get("error", "malformed tool call"), "raw": call.get("raw", "")[:800]},
+            "result": {
+                "message": call.get("error", "malformed tool call"),
+                "raw": call.get("raw", "")[:800],
+                "recovery_class": "malformed_tool_call",
+            },
         }
     if tool_name not in config.allowed_tools:
         return tool_error("local_sidecar_agent", call, f"tool is not allowlisted: {tool_name}")
@@ -363,7 +405,12 @@ def _execute_tool_call(
     args["project_root"] = str(project_root)
     schema_errors = _validate_schema(metadata, args)
     if schema_errors:
-        return tool_error("local_sidecar_agent", call, "; ".join(schema_errors))
+        return tool_result(
+            "local_sidecar_agent",
+            call,
+            {"message": "; ".join(schema_errors), "recovery_class": "tool_schema_error", "tool": tool_name},
+            status="error",
+        )
     mutating = _is_mutating(tool_name, args)
     if mutating and not config.confirm_mutations:
         return tool_result(
@@ -421,6 +468,26 @@ def _validate_touched(project_root: Path, touched_paths: list[str]) -> dict[str,
         "touched_paths": unique,
         "checks": checks,
         "valid": all(item["exists"] for item in checks),
+    }
+
+
+def _claim_guardrails(final_text: str, touched_paths: list[str], evidence_ids: list[str]) -> dict[str, Any]:
+    text = final_text.lower()
+    claim_patterns = [
+        "i created", "i modified", "i updated", "i wrote", "i validated",
+        "created ", "modified ", "updated ", "wrote ", "validated ",
+    ]
+    claims_work = any(pattern in text for pattern in claim_patterns)
+    has_citation = bool(touched_paths or evidence_ids)
+    warnings: list[str] = []
+    if claims_work and not has_citation:
+        warnings.append("final_text appears to claim completed work without touched paths or evidence IDs")
+    return {
+        "passed": not warnings,
+        "claims_work": claims_work,
+        "has_touched_paths": bool(touched_paths),
+        "has_evidence_ids": bool(evidence_ids),
+        "warnings": warnings,
     }
 
 
@@ -589,6 +656,46 @@ def _recovery_from_exception(exc: Exception, config: AgentConfig) -> dict[str, A
     }
 
 
+def _recovery_from_class(
+    recovery_class: str,
+    message: str,
+    config: AgentConfig,
+    *,
+    next_actions: list[str] | None = None,
+) -> dict[str, Any]:
+    defaults = {
+        "malformed_tool_call": ["inspect_tool_call_json", "retry_with_valid_json", "stop_for_operator_review"],
+        "tool_schema_error": ["inspect_tool_schema", "retry_with_valid_arguments", "stop_for_operator_review"],
+        "tool_runtime_error": ["inspect_tool_result", "retry_or_choose_safer_tool", "stop_for_operator_review"],
+        "approval_required": ["review_output", "enable_named_confirmation", "rerun_if_safe"],
+        "max_rounds_exhausted": ["increase_max_tool_rounds", "narrow_task_prompt", "inspect_trace"],
+        "claim_guardrail_warning": ["inspect_final_text", "cite_touched_paths_or_evidence", "retry_summary"],
+    }
+    return {
+        "class": recovery_class,
+        "message": message,
+        "next_actions": next_actions if next_actions is not None else defaults.get(recovery_class, ["inspect_details"]),
+        "selected_models": {
+            "planner_model": config.planner_model,
+            "response_model": config.response_model,
+        },
+        "timeout_seconds": config.timeout_seconds,
+    }
+
+
+def _recovery_from_result(result: dict[str, Any], config: AgentConfig) -> dict[str, Any]:
+    payload = result.get("result", {}) if isinstance(result, dict) else {}
+    if not isinstance(payload, dict):
+        payload = {}
+    recovery_class = str(payload.get("recovery_class", "")).strip()
+    message = str(payload.get("message", result.get("status", "tool failed")))
+    if recovery_class:
+        return _recovery_from_class(recovery_class, message, config)
+    if result.get("status") == "approval_required":
+        return _recovery_from_class("approval_required", message or "approval required", config)
+    return _recovery_from_class("tool_runtime_error", message or "tool runtime error", config)
+
+
 def _evidence_ids(evidence_archive: dict[str, Any]) -> list[str]:
     payload = evidence_archive.get("result", evidence_archive)
     evidence_items = payload.get("archived_items", []) if isinstance(payload, dict) else []
@@ -673,6 +780,117 @@ def _record_run_trace(project_root: Path, config: AgentConfig, payload: dict[str
         return {"status": "error", "tool": "agent_run_trace", "input": {}, "result": {"message": str(exc)}}
 
 
+def _finish_recovery_event(
+    *,
+    arguments: dict[str, Any],
+    project_root: Path,
+    runtime_paths: dict[str, Path],
+    config: AgentConfig,
+    session_id: str,
+    prompt: str,
+    run_started: float,
+    evidence_shelf: dict[str, Any],
+    rounds: list[dict[str, Any]],
+    touched_paths: list[str],
+    recovery: dict[str, Any],
+) -> dict[str, Any]:
+    halted_reason = recovery["class"]
+    validation = _validate_touched(project_root, touched_paths)
+    evidence_archive = _archive_evidence(
+        project_root,
+        session_id=session_id,
+        prompt=prompt,
+        rounds=rounds,
+        config=config,
+        approval_required=False,
+    )
+    evidence_ids = _evidence_ids(evidence_archive)
+    journal = run_journal_write({
+        "project_root": str(project_root),
+        "action": "create",
+        "title": "Local sidecar agent recovery event",
+        "body": (
+            f"Prompt: {prompt}\n\n"
+            f"Recovery: {recovery['class']} - {recovery['message']}\n\n"
+            f"Evidence IDs: {', '.join(evidence_ids) or 'none'}"
+        ),
+        "kind": "agent-recovery",
+        "source": "local_sidecar_agent",
+        "author": "local_sidecar_agent",
+        "tags": ["local-agent", "sidecar", "recovery", "tranche-12"],
+        "status": "blocked",
+        "related_path": ".dev-tools/runtime/local_agent",
+        "metadata": {
+            "session_id": session_id,
+            "recovery": recovery,
+            "evidence_item_ids": evidence_ids,
+            "evidence_archive_status": evidence_archive.get("status"),
+        },
+    })
+    journal_uid = journal.get("result", {}).get("entry", {}).get("entry_uid", "")
+    trace = _record_run_trace(project_root, config, _trace_payload(
+        session_id=session_id,
+        prompt=prompt,
+        config=config,
+        status="error",
+        recovery=recovery,
+        rounds=rounds,
+        touched_paths=touched_paths,
+        validation=validation,
+        evidence_ids=evidence_ids,
+        journal_entry_uid=journal_uid,
+        duration_ms=round((time.time() - run_started) * 1000),
+        summary=f"Recovery event: {recovery['class']}",
+    ))
+    session = {
+        "session_id": session_id,
+        "created_at": _now(),
+        "config": asdict(config),
+        "prompt": prompt,
+        "recovery": recovery,
+        "evidence_shelf": evidence_shelf,
+        "evidence_archive": evidence_archive,
+        "rounds": rounds,
+        "validation": validation,
+        "checkpoint": {"skipped": True, "reason": "agent recovery event"},
+        "journal": journal,
+        "trace": trace,
+        "halted_reason": halted_reason,
+        "approval_required": recovery["class"] == "approval_required",
+    }
+    if arguments.get("write_session", True) is not False:
+        write_json(runtime_paths["sessions"] / f"{session_id}.json", session)
+    _append_jsonl(runtime_paths["action_journal"], {
+        "ts": _now(),
+        "action": "agent_recovery",
+        "session_id": session_id,
+        "summary": prompt[:160],
+        "halted_reason": halted_reason,
+        "recovery_class": recovery["class"],
+    })
+    return tool_result(
+        FILE_METADATA["tool_name"],
+        arguments,
+        {
+            "session_id": session_id,
+            "project_root": str(project_root),
+            "runtime": _public_runtime(runtime_paths, project_root),
+            "round_count": len(rounds),
+            "touched_paths": sorted(set(touched_paths)),
+            "validation": validation,
+            "recovery": recovery,
+            "evidence_shelf": evidence_shelf.get("result", {}),
+            "evidence_archive": evidence_archive.get("result", evidence_archive),
+            "trace": trace.get("result", trace),
+            "journal_entry_uid": journal_uid,
+            "halted_reason": halted_reason,
+            "approval_required": recovery["class"] == "approval_required",
+            "final_text": "",
+        },
+        status="approval_required" if recovery["class"] == "approval_required" else "error",
+    )
+
+
 def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
     config = _config(arguments, project_root)
     prompt = str(arguments.get("prompt", "")).strip()
@@ -687,6 +905,36 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         mock_responses = []
     mock_responses = [str(item) for item in mock_responses]
     mock_failure = str(arguments.get("mock_ollama_failure", "")).strip()
+    if config.preflight and not mock_responses and not mock_failure:
+        readiness = _model_readiness(config)
+        if not readiness.get("ready"):
+            recovery = _recovery_from_class(
+                str(readiness.get("recovery_class", "model_request_failed")),
+                str(readiness.get("message", "model readiness failed")),
+                config,
+                next_actions=[str(item) for item in readiness.get("next_actions", [])],
+            )
+            rounds = [{
+                "round": 0,
+                "tool_call_count": 0,
+                "results": [],
+                "response": "",
+                "recovery": recovery,
+                "preflight": readiness,
+            }]
+            return _finish_recovery_event(
+                arguments=arguments,
+                project_root=project_root,
+                runtime_paths=runtime_paths,
+                config=config,
+                session_id=session_id,
+                prompt=prompt,
+                run_started=run_started,
+                evidence_shelf={"status": "skipped", "result": {"reason": "preflight stopped before shelf load"}},
+                rounds=rounds,
+                touched_paths=[],
+                recovery=recovery,
+            )
 
     bootstrap = run_local_agent_bootstrap({
         "project_root": str(project_root),
@@ -719,6 +967,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
     final_text = ""
     approval_required = False
     halted_reason = ""
+    recovery: dict[str, Any] = {}
 
     for round_index in range(config.max_tool_rounds):
         try:
@@ -732,7 +981,6 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             ))
         except Exception as exc:
             recovery = _recovery_from_exception(exc, config)
-            halted_reason = recovery["class"]
             rounds.append({
                 "round": round_index + 1,
                 "tool_call_count": 0,
@@ -740,99 +988,18 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
                 "response": "",
                 "recovery": recovery,
             })
-            validation = _validate_touched(project_root, touched_paths)
-            evidence_archive = _archive_evidence(
-                project_root,
+            return _finish_recovery_event(
+                arguments=arguments,
+                project_root=project_root,
+                runtime_paths=runtime_paths,
+                config=config,
                 session_id=session_id,
                 prompt=prompt,
-                rounds=rounds,
-                config=config,
-                approval_required=False,
-            )
-            evidence_ids = _evidence_ids(evidence_archive)
-            journal = run_journal_write({
-                "project_root": str(project_root),
-                "action": "create",
-                "title": "Local sidecar agent recovery event",
-                "body": (
-                    f"Prompt: {prompt}\n\n"
-                    f"Recovery: {recovery['class']} - {recovery['message']}\n\n"
-                    f"Evidence IDs: {', '.join(evidence_ids) or 'none'}"
-                ),
-                "kind": "agent-recovery",
-                "source": "local_sidecar_agent",
-                "author": "local_sidecar_agent",
-                "tags": ["local-agent", "sidecar", "recovery", "tranche-12"],
-                "status": "blocked",
-                "related_path": ".dev-tools/runtime/local_agent",
-                "metadata": {
-                    "session_id": session_id,
-                    "recovery": recovery,
-                    "evidence_item_ids": evidence_ids,
-                    "evidence_archive_status": evidence_archive.get("status"),
-                },
-            })
-            journal_uid = journal.get("result", {}).get("entry", {}).get("entry_uid", "")
-            trace = _record_run_trace(project_root, config, _trace_payload(
-                session_id=session_id,
-                prompt=prompt,
-                config=config,
-                status="error",
-                recovery=recovery,
+                run_started=run_started,
+                evidence_shelf=evidence_shelf,
                 rounds=rounds,
                 touched_paths=touched_paths,
-                validation=validation,
-                evidence_ids=evidence_ids,
-                journal_entry_uid=journal_uid,
-                duration_ms=round((time.time() - run_started) * 1000),
-                summary=f"Recovery event: {recovery['class']}",
-            ))
-            session = {
-                "session_id": session_id,
-                "created_at": _now(),
-                "config": asdict(config),
-                "prompt": prompt,
-                "recovery": recovery,
-                "evidence_shelf": evidence_shelf,
-                "evidence_archive": evidence_archive,
-                "rounds": rounds,
-                "validation": validation,
-                "checkpoint": {"skipped": True, "reason": "model recovery event"},
-                "journal": journal,
-                "trace": trace,
-                "halted_reason": halted_reason,
-                "approval_required": False,
-            }
-            if arguments.get("write_session", True) is not False:
-                write_json(runtime_paths["sessions"] / f"{session_id}.json", session)
-            _append_jsonl(runtime_paths["action_journal"], {
-                "ts": _now(),
-                "action": "agent_recovery",
-                "session_id": session_id,
-                "summary": prompt[:160],
-                "halted_reason": halted_reason,
-                "recovery_class": recovery["class"],
-            })
-            return tool_result(
-                FILE_METADATA["tool_name"],
-                arguments,
-                {
-                    "session_id": session_id,
-                    "project_root": str(project_root),
-                    "runtime": _public_runtime(runtime_paths, project_root),
-                    "round_count": len(rounds),
-                    "touched_paths": sorted(set(touched_paths)),
-                    "validation": validation,
-                    "recovery": recovery,
-                    "evidence_shelf": evidence_shelf.get("result", {}),
-                    "evidence_archive": evidence_archive.get("result", evidence_archive),
-                    "trace": trace.get("result", trace),
-                    "journal_entry_uid": journal_uid,
-                    "halted_reason": halted_reason,
-                    "approval_required": False,
-                    "final_text": "",
-                },
-                status="error",
+                recovery=recovery,
             )
         final_text = response
         calls = _parse_tool_calls(response)
@@ -849,14 +1016,20 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             if result.get("status") == "approval_required":
                 approval_required = True
                 halted_reason = "approval_required"
+                recovery = _recovery_from_result(result, config)
+                break
+            if result.get("status") == "error":
+                recovery = _recovery_from_result(result, config)
+                halted_reason = recovery["class"]
                 break
         rounds.append({"round": round_index + 1, "tool_call_count": len(calls), "results": round_results, "response": response})
-        if approval_required or not calls:
+        if approval_required or halted_reason or not calls:
             break
         messages.append({"role": "assistant", "content": response})
         messages.append({"role": "user", "content": _format_tool_results(round_results)})
     else:
         halted_reason = "max_tool_rounds_exhausted"
+        recovery = _recovery_from_class("max_rounds_exhausted", "maximum tool rounds exhausted", config)
 
     validation = _validate_touched(project_root, touched_paths)
     evidence_archive = _archive_evidence(
@@ -875,7 +1048,16 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
     evidence_payload = evidence_archive.get("result", evidence_archive)
     evidence_ids = _evidence_ids(evidence_archive)
     evidence_status = evidence_archive.get("status", "skipped")
-    recovery = {"class": halted_reason, "message": halted_reason, "next_actions": []} if halted_reason else {}
+    claim_guardrails = _claim_guardrails(final_text, touched_paths, evidence_ids)
+    validation["claim_guardrails"] = claim_guardrails
+    if not recovery and halted_reason:
+        recovery = _recovery_from_class(halted_reason, halted_reason, config)
+    if not recovery and not claim_guardrails["passed"]:
+        recovery = _recovery_from_class(
+            "claim_guardrail_warning",
+            "; ".join(claim_guardrails["warnings"]),
+            config,
+        )
 
     journal = run_journal_write({
         "project_root": str(project_root),
@@ -891,7 +1073,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "kind": "agent-turn",
         "source": "local_sidecar_agent",
         "author": "local_sidecar_agent",
-        "tags": ["local-agent", "sidecar", "evidence", "tranche-9", "tranche-11"],
+        "tags": ["local-agent", "sidecar", "evidence", "tranche-9", "tranche-11", "tranche-12"],
         "status": "active" if not approval_required else "blocked",
         "related_path": ".dev-tools/runtime/local_agent",
         "metadata": {
@@ -900,10 +1082,12 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "evidence_archive_status": evidence_status,
             "evidence_item_ids": evidence_ids,
             "evidence_archive": evidence_payload,
+            "recovery": recovery,
+            "claim_guardrails": claim_guardrails,
         },
     })
     journal_uid = journal.get("result", {}).get("entry", {}).get("entry_uid", "")
-    result_status = "approval_required" if approval_required else "ok"
+    result_status = "approval_required" if approval_required else ("error" if halted_reason else "ok")
     trace = _record_run_trace(project_root, config, _trace_payload(
         session_id=session_id,
         prompt=prompt,
@@ -958,6 +1142,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "round_count": len(rounds),
             "touched_paths": sorted(set(touched_paths)),
             "validation": validation,
+            "recovery": recovery,
             "evidence_shelf": evidence_shelf.get("result", {}),
             "evidence_archive": evidence_archive.get("result", evidence_archive),
             "trace": trace.get("result", trace),
@@ -973,7 +1158,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
 
 def run(arguments: dict[str, Any]) -> dict[str, Any]:
     action = str(arguments.get("action", "run")).strip().lower()
-    if action not in {"status", "models", "run"}:
+    if action not in {"status", "models", "preflight", "run"}:
         return tool_error(FILE_METADATA["tool_name"], arguments, f"unsupported action: {action}")
     try:
         project_root = resolve_project_root(arguments.get("project_root"))
@@ -994,6 +1179,8 @@ def run(arguments: dict[str, Any]) -> dict[str, Any]:
         })
     if action == "models":
         return tool_result(FILE_METADATA["tool_name"], arguments, _scan_models(config.ollama_base_url, min(config.timeout_seconds, 30)))
+    if action == "preflight":
+        return tool_result(FILE_METADATA["tool_name"], arguments, _model_readiness(config))
     return _run_agent(arguments, project_root)
 
 

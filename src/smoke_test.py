@@ -1602,12 +1602,88 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent timeout recovery", str(failure))
 
+    preflight = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "preflight",
+        "ollama_base_url": "http://127.0.0.1:1",
+        "planner_model": "missing-planner",
+        "response_model": "missing-response",
+        "timeout_seconds": 1,
+    })
+    if preflight["status"] == "ok" and preflight["result"]["ready"] is False:
+        _ok("local_sidecar_agent reports model readiness preflight failures")
+    else:
+        _fail("local_sidecar_agent preflight", str(preflight))
+
+    preflight_run = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "inspect this project",
+        "ollama_base_url": "http://127.0.0.1:1",
+        "timeout_seconds": 1,
+        "checkpoint": False,
+    })
+    if (
+        preflight_run["status"] == "error"
+        and preflight_run["result"]["recovery"]["class"] == "ollama_unreachable"
+        and preflight_run["result"]["trace"]["run_id"].startswith("R")
+    ):
+        _ok("local_sidecar_agent stops live runs on failed preflight and traces recovery")
+    else:
+        _fail("local_sidecar_agent preflight recovery", str(preflight_run))
+
+    malformed = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "make a malformed call",
+        "mock_ollama_responses": ["```tool_call\n{\"tool\": \n```"],
+        "checkpoint": False,
+    })
+    if malformed["status"] == "error" and malformed["result"]["recovery"]["class"] == "malformed_tool_call":
+        _ok("local_sidecar_agent classifies malformed tool calls")
+    else:
+        _fail("local_sidecar_agent malformed recovery", str(malformed))
+
+    schema_error = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "read with a bad arg",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"text_file_reader\",\"arguments\":{\"path\":\"README.md\",\"bogus\":true}}\n"
+            "```"
+        ],
+        "checkpoint": False,
+    })
+    if schema_error["status"] == "error" and schema_error["result"]["recovery"]["class"] == "tool_schema_error":
+        _ok("local_sidecar_agent classifies tool schema errors")
+    else:
+        _fail("local_sidecar_agent schema recovery", str(schema_error))
+
+    max_rounds = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "read repeatedly",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"text_file_reader\",\"arguments\":{\"path\":\"src/agent_note.py\"}}\n"
+            "```"
+        ],
+        "max_tool_rounds": 1,
+        "checkpoint": False,
+    })
+    if max_rounds["status"] == "error" and max_rounds["result"]["recovery"]["class"] == "max_rounds_exhausted":
+        _ok("local_sidecar_agent classifies max-round exhaustion")
+    else:
+        _fail("local_sidecar_agent max-round recovery", str(max_rounds))
+
 
 def test_operator_ui_support() -> None:
     print("\n── Tranche 10: Local Agent Operator UI Support ──")
 
     from lib.operator_ui_support import (
         agent_payload,
+        agent_recovery_status,
         choose_model,
         default_input_from_schema,
         dispatch_tool,
@@ -1663,6 +1739,15 @@ def test_operator_ui_support() -> None:
         _ok("operator UI builds agent payload")
     else:
         _fail("operator UI agent payload", str(payload))
+
+    status_text = agent_recovery_status({
+        "status": "error",
+        "result": {"recovery": {"class": "tool_schema_error", "next_actions": ["inspect_tool_schema"]}},
+    })
+    if "Tool schema error" in status_text:
+        _ok("operator UI summarizes recovery status")
+    else:
+        _fail("operator UI recovery status", status_text)
 
     if is_mutating_tool(tools["local_sidecar_agent"]) and not is_mutating_tool(tools["journal_manifest"]):
         _ok("operator UI identifies side-effecting tools")

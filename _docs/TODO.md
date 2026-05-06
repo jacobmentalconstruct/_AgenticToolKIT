@@ -24,11 +24,12 @@ _Last updated: 2026-05-05._
 
 ## Current state
 
-**Tranche 12 is started as the recovery and tuning-data layer.** The first
-implementation slice adds `agent_run_trace` plus structured model-transport
-recovery for the local sidecar agent. Remaining work should harden live model
-operation, operator recovery UX, evidence-backed claims, and the popup/chat
-narrative cockpit without widening authority.
+**Tranche 12 is in progress as the recovery and tuning-data layer.** The
+implemented surface now includes `agent_run_trace`, model readiness preflight,
+stable recovery classes for transport/tool-loop failures, concise UI recovery
+status text, and initial claim guardrail warnings. Remaining work should harden
+heartbeat/streaming, named approvals, richer live recovery UX, and the
+popup/chat narrative cockpit without widening authority.
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -56,7 +57,10 @@ runs could end in a raw timeout envelope such as `Ollama request failed: timed
 out`. That class now has a first recovery path: the agent returns a structured
 `request_timeout` recovery object, can archive the failed turn into the Bag of
 Evidence when confirmed, writes durable App Journal recovery metadata, and
-records a local run trace for future tuning/eval data.
+records a local run trace for future tuning/eval data. The agent also now
+preflights selected live models before runs, stops early on unreachable Ollama
+or missing models, and classifies malformed tool calls, schema errors, runtime
+tool failures, approval stops, and exhausted tool rounds.
 
 ### Active tasks
 
@@ -73,18 +77,22 @@ records a local run trace for future tuning/eval data.
 - [x] Archive mocked timeout failures into `session_evidence_store` when
       confirmed and write App Journal recovery metadata.
 - [x] Extend smoke coverage for run traces and mocked timeout recovery.
-- [ ] Extend structured recovery classification for non-transport failures:
+- [x] Extend structured recovery classification for non-transport failures:
       `malformed_tool_call`, `tool_schema_error`, `tool_runtime_error`,
       `approval_required`, and `max_rounds_exhausted`.
-- [ ] Add a recovery model role or deterministic recovery planner that turns
-      failure classes into operator-facing next actions without inventing new
-      authority.
-- [ ] Improve `local_sidecar_agent` model readiness checks before `run`:
+- [x] Add deterministic recovery next-actions that turn failure classes into
+      operator-facing actions without inventing new authority.
+- [ ] Add an optional recovery model role that turns failure classes into
+      operator-facing next actions without inventing new authority.
+- [x] Improve `local_sidecar_agent` model readiness checks before `run`:
       validate Ollama reachability, selected model availability, and likely
       timeout risk before spending a tool round.
-- [ ] Add operator UI recovery UX for failed runs: concise status, retry with
-      longer timeout, refresh models, disable run when models are unavailable,
-      and preserve the sanitized JSON details for inspection.
+- [x] Add first-pass operator UI recovery UX for failed runs: concise status
+      text from recovery classes while preserving sanitized JSON details for
+      inspection.
+- [ ] Extend operator UI recovery UX with one-click retry with longer timeout,
+      refresh models, disabled run when models are unavailable, and named
+      recovery decisions.
 - [ ] Shape the popup/chat operator window as the narrative cockpit over
       project LTM, Evidence Shelf, and run traces so each sidecar session has a
       coherent causal direction and produces inspectable tuning data.
@@ -93,19 +101,21 @@ records a local run trace for future tuning/eval data.
 - [ ] Extend failed live-model archiving beyond mocked transport failures and
       keep App Journal metadata linked to recovery status, evidence IDs,
       selected models, and timeout settings.
-- [ ] Add filesystem-claim guardrails and final-summary evidence verification
-      using `session_evidence_store`, so agent-facing summaries cite touched
-      paths or evidence IDs when claiming work was done.
+- [x] Add initial filesystem-claim guardrail warnings and final-summary
+      evidence verification metadata.
+- [ ] Harden filesystem-claim guardrails using `session_evidence_store`, so
+      agent-facing summaries cite touched paths or evidence IDs when claiming
+      work was done.
 - [ ] Add disposable run-workspace planning hooks for future verification tools,
       but keep dependency installation and broad CLI-in-sandbox behavior out of
       Tranche 12.
 - [ ] Expand approval UX from booleans toward named decisions where the current
       tool contracts already expose safe choices.
-- [ ] Extend smoke coverage with mocked Ollama timeout/unreachable/model-missing
-      cases, mocked malformed tool-call recovery, UI helper tests, and
-      evidence/journal parking assertions.
-- [ ] Update README, agent guide, architecture, northstars, TODO,
-      WE_ARE_HERE_NOW, onboarding, and dev log after implementation.
+- [x] Extend smoke coverage with preflight failure, mocked malformed
+      tool-call recovery, schema-error recovery, max-round recovery, and UI
+      recovery status helper tests.
+- [x] Update README, agent guide, architecture, northstars, TODO,
+      WE_ARE_HERE_NOW, onboarding, and dev log after this implementation slice.
 
 ### Previous source tranche (parked): Tranche 11 Bag of Evidence and Evidence Shelf
 

@@ -159,11 +159,12 @@ approval UX.
 
 ## Runtime Recovery and Live Model Hardening
 
-Tranche 12 is the active architecture step. Its first slice adds
-`agent_run_trace`, a project-scoped ignored SQLite run/tuning-data store, plus
-initial model-transport recovery classification in `local_sidecar_agent`.
-Remaining work should harden the Ollama-backed runtime and operator UI around
-live-model failure modes without expanding the agent's authority.
+Tranche 12 is the active architecture step. Its implemented slices add
+`agent_run_trace`, a project-scoped ignored SQLite run/tuning-data store, model
+readiness preflight, initial claim guardrail metadata, and structured recovery
+classification in `local_sidecar_agent`. Remaining work should harden the
+Ollama-backed runtime and operator UI around longer live-model runs and richer
+operator decisions without expanding the agent's authority.
 
 `agent_run_trace` owns this ignored runtime path:
 
@@ -189,10 +190,10 @@ tool execution, Evidence Shelf parking, and operator UX:
    timeout settings
 7. require final summaries to cite touched paths or evidence IDs for claims
 
-Implemented model-transport classes are `request_timeout`,
-`ollama_unreachable`, `model_missing`, and fallback `model_request_failed`.
-Remaining classes include `malformed_tool_call`, `tool_schema_error`,
-`tool_runtime_error`, `approval_required`, and `max_rounds_exhausted`.
+Implemented recovery classes include `request_timeout`, `ollama_unreachable`,
+`model_missing`, fallback `model_request_failed`, `malformed_tool_call`,
+`tool_schema_error`, `tool_runtime_error`, `approval_required`,
+`max_rounds_exhausted`, and `claim_guardrail_warning`.
 
 This layer should preserve deterministic mocked-model smoke tests and keep
 streaming or heartbeat behavior optional. It should not add raw command

@@ -204,6 +204,40 @@ def format_json(value: Any, *, project_root: str | Path | None = None, toolbox_r
     return json.dumps(sanitized, indent=2, sort_keys=False)
 
 
+def agent_recovery_status(result: dict[str, Any]) -> str:
+    status = str(result.get("status", "unknown"))
+    payload = result.get("result", {}) if isinstance(result, dict) else {}
+    if not isinstance(payload, dict):
+        return f"Agent finished: {status}"
+    recovery = payload.get("recovery", {})
+    if not isinstance(recovery, dict) or not recovery.get("class"):
+        if status == "approval_required":
+            return "Approval required. Review output, then rerun with the needed confirmation toggle."
+        return f"Agent finished: {status}"
+    recovery_class = str(recovery.get("class", "unknown"))
+    actions = recovery.get("next_actions", [])
+    action_text = ", ".join(str(item).replace("_", " ") for item in actions[:3]) if isinstance(actions, list) else ""
+    if recovery_class == "request_timeout":
+        prefix = "Timed out."
+    elif recovery_class == "ollama_unreachable":
+        prefix = "Ollama unreachable."
+    elif recovery_class == "model_missing":
+        prefix = "Model missing."
+    elif recovery_class == "approval_required":
+        prefix = "Approval required."
+    elif recovery_class == "max_rounds_exhausted":
+        prefix = "Max rounds reached."
+    elif recovery_class == "malformed_tool_call":
+        prefix = "Malformed tool call."
+    elif recovery_class == "tool_schema_error":
+        prefix = "Tool schema error."
+    elif recovery_class == "tool_runtime_error":
+        prefix = "Tool failed."
+    else:
+        prefix = f"Recovery: {recovery_class}."
+    return f"{prefix} Next: {action_text}." if action_text else prefix
+
+
 def scan_privacy_leaks(paths: list[Path], *, allow_names: set[str] | None = None) -> list[dict[str, Any]]:
     allow = allow_names or {"LICENSE.md"}
     private_fragments = _private_fragments()

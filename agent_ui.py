@@ -19,6 +19,7 @@ if str(SRC) not in sys.path:
 
 from lib.operator_ui_support import (  # noqa: E402
     agent_payload,
+    agent_recovery_status,
     choose_model,
     default_input_from_schema,
     dispatch_tool,
@@ -378,11 +379,7 @@ class OperatorUI:
 
     def _finish_agent_run(self, result: dict[str, Any]) -> None:
         self.run_btn.configure(state=tk.NORMAL if self.model_names else tk.DISABLED)
-        status = result.get("status", "unknown")
-        if status == "approval_required":
-            self.agent_status_var.set("Approval required. Review output, then rerun with the needed confirmation toggle.")
-        else:
-            self.agent_status_var.set(f"Agent finished: {status}")
+        self.agent_status_var.set(agent_recovery_status(result))
         self._set_text(self.agent_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
 
     def _allowed_tools(self) -> list[str]:
@@ -520,6 +517,10 @@ def self_test() -> int:
     )
     assert payload["action"] == "run"
     assert payload["session_id"] == "self-test"
+    assert "Timed out" in agent_recovery_status({
+        "status": "error",
+        "result": {"recovery": {"class": "request_timeout", "next_actions": ["increase_timeout", "retry_run"]}},
+    })
     assert "<toolbox_root>" in sanitize_path_text(str(ROOT / "README.md"), toolbox_root=ROOT)
     docs = [ROOT / "README.md", ROOT / "_docs" / "TODO.md"]
     assert isinstance(scan_privacy_leaks(docs), list)

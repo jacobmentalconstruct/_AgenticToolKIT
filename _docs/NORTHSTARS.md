@@ -216,26 +216,27 @@ The active horizon is Tranche 12: harden live local-model operation rather than
 broaden authority.
 
 The concrete trigger is an operator-visible Ollama timeout in the Agent Console.
-The first implementation slice has replaced the raw timeout-only floor with
-`agent_run_trace` and initial recovery classification for timeout,
-unreachable-Ollama, missing-model, and generic model-request failures. The
-remaining northstar is to make all live-model and tool-loop failures
-structured, recoverable, evidence-aware, journaled, and visible in the operator
-chat surface.
+The first implementation slices have replaced the raw timeout-only floor with
+`agent_run_trace`, model readiness preflight, initial claim guardrail metadata,
+and recovery classification for timeout, unreachable-Ollama, missing-model,
+malformed tool calls, schema errors, tool failures, approval stops, and
+max-round exhaustion. The remaining northstar is to make live recovery richer,
+more interactive, evidence-aware, journaled, and visible in the operator chat
+surface.
 
 Target capabilities:
 
 | Capability | Purpose | Expected surface |
 |---|---|---|
 | Run trace / tuning-data spine | Record prompts, models, tools, results, approvals, touched paths, recovery classes, Evidence IDs, and journal links for each sidecar run. | `agent_run_trace` — foundation implemented |
-| Model readiness preflight | Check Ollama reachability, selected model availability, and obvious timeout risk before a run. | `local_sidecar_agent`, `agent_ui.py` |
-| Recovery classification | Normalize failures such as timeout, missing model, malformed tool call, schema error, approval stop, and exhausted rounds. | `local_sidecar_agent` — model transport foundation implemented |
-| Operator recovery UX | Show concise status and safe next actions such as refresh models, retry with longer timeout, or inspect details. | `agent_ui.py` |
+| Model readiness preflight | Check Ollama reachability, selected model availability, and obvious timeout risk before a run. | `local_sidecar_agent` — implemented |
+| Recovery classification | Normalize failures such as timeout, missing model, malformed tool call, schema error, approval stop, and exhausted rounds. | `local_sidecar_agent` — implemented foundation |
+| Operator recovery UX | Show concise status and safe next actions such as refresh models, retry with longer timeout, or inspect details. | `agent_ui.py` — concise status implemented |
 | Narrative cockpit | Let the popup/chat operator surface steer each small builder step using project LTM, Evidence Shelf, and run traces without becoming hidden memory. | `agent_ui.py`, `local_sidecar_agent` |
 | Streaming or heartbeat path | Keep long-running Ollama turns visible instead of feeling frozen, while preserving deterministic smoke tests. | `local_sidecar_agent`, UI helpers |
 | Evidence parking | Archive failed/recovered turns into the Bag of Evidence when confirmed. | `session_evidence_store` integration — timeout path implemented |
 | Journal recovery metadata | Record recovery class, selected models, timeout settings, and evidence IDs in durable project LTM. | `journal_write` metadata — timeout path implemented |
-| Claim guardrails | Make final summaries cite touched paths or evidence IDs before claiming work happened. | `local_sidecar_agent` |
+| Claim guardrails | Make final summaries cite touched paths or evidence IDs before claiming work happened. | `local_sidecar_agent` — warning metadata implemented |
 
 Non-goals remain important: do not add raw terminal parity, unrestricted CLI
 execution, dependency installation, or hidden memory. Recovery should happen
