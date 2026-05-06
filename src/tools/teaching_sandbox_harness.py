@@ -13,6 +13,7 @@ from typing import Any
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from common import standard_main, tool_error, tool_result
 from lib.teaching_sandbox_harness import (
+    compare_runs,
     create_project,
     export_run,
     init_store,
@@ -48,6 +49,7 @@ FILE_METADATA = {
                     "run_agent",
                     "verify_project",
                     "score",
+                    "compare_runs",
                     "run_scenario",
                     "export",
                 ],
@@ -58,6 +60,8 @@ FILE_METADATA = {
             "scenario_id": {"type": "string", "default": "static_task_tracker"},
             "project_id": {"type": "string"},
             "run_id": {"type": "string"},
+            "run_ids": {"type": "array", "items": {"type": "string"}},
+            "limit": {"type": "integer", "default": 12},
             "session_id": {"type": "string"},
             "prompt": {"type": "string"},
             "ollama_base_url": {"type": "string", "default": "http://localhost:11434"},
@@ -126,6 +130,8 @@ def run(arguments: dict[str, Any]) -> dict[str, Any]:
             result = verify_project(project_root, arguments)
         elif action == "score":
             result = score_run(project_root, arguments)
+        elif action == "compare_runs":
+            result = compare_runs(project_root, arguments)
         elif action == "run_scenario":
             result = run_scenario(project_root, arguments)
         else:

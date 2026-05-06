@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 17A parked; Tranche 17B next)
+- 2026-05-06 (Tranche 17B started; compare_runs implemented)
 
 ## Fresh-thread start
 
@@ -39,7 +39,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     Curriculum Scenario Expansion is parked with five additional deterministic
     practice scenarios; Tranche 17A Teaching Sandbox Control-File Integrity is
     parked as the first trace-tuning hardening slice; Tranche 17B Trace Review
-    And Loop Tuning is the next source slice
+    And Loop Tuning has started with an explicit training procedure and a
+    read-only run comparison surface
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -164,6 +165,11 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   sidecar, `directory_scaffold` and `text_file_writer` reject writes to those
   paths with `control_file_tamper`, and scorecards expose the named safety
   signal.
+- Tranche 17B has started. `_docs/TRAINING_RUNWAY.md` now describes how to
+  perform a training slice end to end, and `teaching_sandbox_harness
+  compare_runs` summarizes selected or recent runs by score, pass/fail state,
+  failed checks, recovery classes, safety signals, trace IDs, Evidence IDs,
+  App Journal UID, and next review steps.
 
 ## Current bottleneck
 
@@ -178,10 +184,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Next best move
 
-- Begin Tranche 17B by comparing the Tranche 15 live partial passes, the
-  Tranche 16 expanded mocked baselines, and the Tranche 17A
-  `control_file_tamper` safety path. Choose the smallest prompt, task-card,
-  schema, or recovery change that should improve live runs without broadening
+- Continue Tranche 17B by using `compare_runs` against recent mocked/live
+  Teaching Sandbox runs, then choose the smallest prompt, task-card, schema,
+  scoring, or recovery change that should improve live runs without broadening
   authority.
 
 ## Current warnings

@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import json
 import sqlite3
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -702,6 +703,59 @@ def run_scenario(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str,
     }
 
 
+def compare_runs(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, Any]:
+    root = Path(toolbox_root).resolve()
+    database = db_path(root)
+    if not database.exists():
+        raise ValueError("teaching sandbox store has not been initialized")
+    run_ids = _string_list(payload.get("run_ids"))
+    scenario_id = str(payload.get("scenario_id", "")).strip()
+    try:
+        limit = max(1, min(int(payload.get("limit", 12)), 50))
+    except (TypeError, ValueError):
+        limit = 12
+
+    with _connect(database) as conn:
+        if run_ids:
+            placeholders = ", ".join("?" for _ in run_ids)
+            rows = conn.execute(
+                f"SELECT * FROM teaching_runs WHERE run_uid IN ({placeholders}) ORDER BY id DESC",
+                run_ids,
+            ).fetchall()
+        elif scenario_id:
+            rows = conn.execute(
+                "SELECT * FROM teaching_runs WHERE scenario_id = ? ORDER BY id DESC LIMIT ?",
+                (scenario_id, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM teaching_runs ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    runs = [_display_run(row, root) for row in rows]
+    summaries = [_run_comparison_summary(run) for run in runs]
+    score_values = [int(item.get("score", 0)) for item in summaries]
+    safety_counts = Counter(signal for item in summaries for signal in item.get("safety_signals", []))
+    recovery_counts = Counter(signal for item in summaries for signal in item.get("recovery_classes", []))
+    failed_check_counts = Counter(check for item in summaries for check in item.get("failed_checks", []))
+    scenario_counts = Counter(str(item.get("scenario_id", "")) for item in summaries if item.get("scenario_id"))
+    aggregates = {
+        "run_count": len(summaries),
+        "scenario_count": len(scenario_counts),
+        "pass_count": sum(1 for item in summaries if item.get("passed") is True),
+        "average_score": round(sum(score_values) / len(score_values), 1) if score_values else 0,
+        "score_min": min(score_values) if score_values else 0,
+        "score_max": max(score_values) if score_values else 0,
+        "scenario_counts": dict(sorted(scenario_counts.items())),
+        "safety_signal_counts": dict(sorted(safety_counts.items())),
+        "recovery_class_counts": dict(sorted(recovery_counts.items())),
+        "failed_check_counts": dict(sorted(failed_check_counts.items())),
+    }
+    return {
+        "run_count": len(summaries),
+        "runs": summaries,
+        "aggregates": aggregates,
+        "training_review_steps": _training_review_steps(aggregates),
+    }
+
+
 def export_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, Any]:
     root = Path(toolbox_root).resolve()
     run_record = _run_record(root, payload)
@@ -1140,6 +1194,76 @@ def _run_markdown(run_record: dict[str, Any], toolbox_root: Path) -> str:
     for item in verification.get("checks", []):
         lines.append(f"- [{item.get('status')}] {item.get('check_id')}: {item.get('message')}")
     return "\n".join(lines) + "\n"
+
+
+def _run_comparison_summary(run: dict[str, Any]) -> dict[str, Any]:
+    verification = run.get("verification", {}) if isinstance(run.get("verification"), dict) else {}
+    scorecard = run.get("scorecard", {}) if isinstance(run.get("scorecard"), dict) else {}
+    agent_result = run.get("agent_result", {}) if isinstance(run.get("agent_result"), dict) else {}
+    failed_checks = [
+        str(item.get("check_id", ""))
+        for item in verification.get("checks", [])
+        if isinstance(item, dict) and item.get("status") != "pass" and item.get("check_id")
+    ]
+    recovery_classes = _recovery_classes(agent_result)
+    return {
+        "run_id": run.get("run_id", ""),
+        "scenario_id": run.get("scenario_id", ""),
+        "status": run.get("status", ""),
+        "agent_status": scorecard.get("agent_status", agent_result.get("status", "")),
+        "score": int(scorecard.get("score", run.get("score", 0)) or 0),
+        "verification_score": int(scorecard.get("verification_score", verification.get("score", 0)) or 0),
+        "passed": bool(scorecard.get("passed", False)),
+        "failed": int(verification.get("failed", 0) or 0),
+        "failed_checks": failed_checks,
+        "recovery_classes": recovery_classes,
+        "safety_signals": _string_list(scorecard.get("safety_signals")) or _safety_signals(agent_result),
+        "trace_ids": _string_list(run.get("trace_ids")),
+        "evidence_ids": _string_list(run.get("evidence_ids")),
+        "journal_entry_uid": str(run.get("journal_entry_uid", "")),
+        "updated_at": run.get("updated_at", ""),
+    }
+
+
+def _recovery_classes(value: Any) -> list[str]:
+    classes: set[str] = set()
+
+    def visit(item: Any) -> None:
+        if isinstance(item, dict):
+            recovery_class = str(item.get("recovery_class", "")).strip()
+            if recovery_class:
+                classes.add(recovery_class)
+            recovery = item.get("recovery")
+            if isinstance(recovery, dict):
+                nested_class = str(recovery.get("class", "")).strip()
+                if nested_class:
+                    classes.add(nested_class)
+            halted_reason = str(item.get("halted_reason", "")).strip()
+            if halted_reason:
+                classes.add(halted_reason)
+            for child in item.values():
+                visit(child)
+        elif isinstance(item, list):
+            for child in item:
+                visit(child)
+
+    visit(value)
+    return sorted(classes)
+
+
+def _training_review_steps(aggregates: dict[str, Any]) -> list[str]:
+    if not aggregates.get("run_count"):
+        return ["run_mocked_baseline", "export_scorecard", "record_review_note"]
+    steps = ["inspect_scorecard_deltas", "inspect_trace_tool_calls", "write_reviewer_note"]
+    if aggregates.get("safety_signal_counts"):
+        steps.insert(0, "review_safety_signals_first")
+    if aggregates.get("failed_check_counts"):
+        steps.append("promote_recurring_failed_checks")
+    if aggregates.get("recovery_class_counts"):
+        steps.append("promote_recurring_recovery_classes")
+    if aggregates.get("pass_count") == aggregates.get("run_count"):
+        steps.append("preserve_baseline_and_try_live_or_unseen_run")
+    return steps
 
 
 def _scenario(payload: dict[str, Any]) -> Scenario:

@@ -86,6 +86,55 @@ For a live run, set `run_mode: "live"`, omit `mock_ollama_responses`, set
 
 ---
 
+## How To Perform A Training Slice
+
+This is the Tranche 17 working loop. Use it when comparing scorecards and
+promoting lessons into the sidecar's teaching surfaces.
+
+1. Pick a scenario or small group of scenarios.
+2. Run `plan` and read the task card, required steps, forbidden steps, expected
+   artifacts, allowed tools, and verification checks.
+3. Run a mocked baseline first. Mocked runs prove the harness and deterministic
+   verifier still work.
+4. Run a live baseline only when Ollama preflight passes and the operator wants
+   live-model evidence.
+5. Run `compare_runs` across the relevant run IDs or recent scenario history.
+6. Inspect the comparison output in this order: safety signals, failed checks,
+   recovery classes, score deltas, missing traces/evidence/journal links, then
+   final-claim quality.
+7. Open the linked trace, Evidence IDs, and App Journal entry only when the
+   comparison shows a concrete question.
+8. Write one reviewer note in the App Journal: scenario, run IDs, score
+   movement, teaching labels, and one next tuning action.
+9. Promote the smallest proven lesson:
+   - task card when the assignment or expected artifacts were ambiguous
+   - prompt example when fenced tool-call JSON or order of operations drifted
+   - tool schema when valid intent repeatedly maps to invalid arguments
+   - recovery decision when the operator next step is unclear
+   - scoring or safety signal when the run needs a stable named label
+10. Rerun the affected mocked baseline and, when useful, one live baseline.
+11. Park only the sanitized lesson in committed docs. Keep raw transcripts,
+    sandbox files, local paths, and exports under ignored runtime state.
+
+Example comparison command:
+
+```powershell
+python src/tools/teaching_sandbox_harness.py run --input-json "{\"project_root\":\".\",\"action\":\"compare_runs\",\"run_ids\":[\"TS000001\",\"TS000002\"],\"limit\":12}"
+```
+
+For recent runs in one scenario:
+
+```powershell
+python src/tools/teaching_sandbox_harness.py run --input-json "{\"project_root\":\".\",\"action\":\"compare_runs\",\"scenario_id\":\"static_task_tracker\",\"limit\":6}"
+```
+
+`compare_runs` is read-only. It summarizes scores, pass/fail state, failed
+checks, recovery classes, safety signals, trace IDs, Evidence IDs, journal
+UIDs, and suggested review steps. It is the first Tranche 17B comparison
+surface.
+
+---
+
 ## Score Rubric
 
 The harness scorecard is the numeric floor. The operator classification is the

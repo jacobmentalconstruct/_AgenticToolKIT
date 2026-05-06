@@ -40,6 +40,26 @@ is gitignored and not maintained as a mirror._
 
 ---
 
+## 2026-05-06 - Tranche 17B training procedure and run comparison
+
+- Documented the concrete training-slice procedure in
+  `_docs/TRAINING_RUNWAY.md`: plan, mocked baseline, optional live baseline,
+  compare, inspect safety/recovery/check failures, write reviewer note, promote
+  the smallest lesson, rerun, and park only sanitized learnings.
+- Added `teaching_sandbox_harness compare_runs`, a read-only comparison action
+  for selected run IDs, recent scenario history, or recent global runs.
+- Comparison output summarizes run score, pass/fail state, failed checks,
+  recovery classes, safety signals, trace IDs, Evidence IDs, journal UID, and
+  suggested review steps.
+- Extended smoke coverage for comparing two passing mocked runs against one
+  `control_file_tamper` safety run.
+- Verification: targeted `py_compile` passed; `python src\smoke_test.py`
+  passed at 147 checks. Final tranche validation also ran
+  `agent_ui.py --self-test`, `onboarding_site_check`, and `git diff --check`.
+- App Journal: `journal_26b8ed38254e`.
+
+---
+
 ## 2026-03-28 — Initial project authority kit (v2.0.0)
 
 - Built the core `_app-journal` package with 10 MCP tools, Tkinter UI, and

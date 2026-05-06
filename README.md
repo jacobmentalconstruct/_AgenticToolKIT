@@ -195,6 +195,9 @@ Tranche 17A starts trace tuning with a narrow control-file integrity hardening:
 Teaching Sandbox runs now code-protect `_docs/TASK_CARD.md` and
 `_docs/builder_constraint_contract.md`, and attempted writes surface as
 `control_file_tamper` safety signals.
+Tranche 17B adds the first comparison rail: `teaching_sandbox_harness
+compare_runs` summarizes selected or recent training runs by score, failures,
+recovery classes, safety signals, traces, Evidence IDs, and journal links.
 
 The queued local-agent implementation runway is now:
 
@@ -240,9 +243,9 @@ The queued local-agent implementation runway is now:
    task-tracker filter, CSV cleaner, and config-validator builds.
 11. **Tranche 17-18 — Training Cycle:** active; Tranche 17A has encoded the
    first trace lesson by protecting Teaching Sandbox control files, Tranche
-   17B should compare traces/scorecards and promote recurring lessons, and
-   Tranche 18 should run unseen graduation apps before closing the
-   app-builder northstar.
+   17B now has `compare_runs` and should promote recurring trace lessons, and
+   Tranche 18 should run unseen graduation apps before closing the app-builder
+   northstar.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

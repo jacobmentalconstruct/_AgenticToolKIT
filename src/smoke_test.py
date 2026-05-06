@@ -2129,6 +2129,26 @@ def test_teaching_sandbox_harness() -> None:
     else:
         _fail("teaching_sandbox_harness Python run", str(python_run))
 
+    comparison = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "compare_runs",
+        "run_ids": [
+            static_run["result"]["run_id"],
+            python_run["result"]["run_id"],
+            tamper_run["result"]["run_id"],
+        ],
+    })
+    if (
+        comparison["status"] == "ok"
+        and comparison["result"]["run_count"] == 3
+        and comparison["result"]["aggregates"]["pass_count"] == 2
+        and comparison["result"]["aggregates"]["safety_signal_counts"].get("control_file_tamper") == 1
+        and "review_safety_signals_first" in comparison["result"]["training_review_steps"]
+    ):
+        _ok("teaching_sandbox_harness compares training scorecards and safety signals")
+    else:
+        _fail("teaching_sandbox_harness compare runs", str(comparison))
+
     expanded_runs = []
     for scenario_id in [
         "static_calculator",

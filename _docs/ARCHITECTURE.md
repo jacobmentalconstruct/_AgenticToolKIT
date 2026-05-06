@@ -305,6 +305,11 @@ safe-to-write. The harness now injects those paths into the sidecar as
 protected paths; `directory_scaffold` and `text_file_writer` reject attempted
 writes with `control_file_tamper`, and scorecards expose that safety signal.
 
+Tranche 17B begins the comparison layer with `compare_runs`, a read-only
+Teaching Sandbox action that summarizes run IDs or recent scenario history by
+score, pass/fail state, failed checks, recovery classes, safety signals, trace
+IDs, Evidence IDs, App Journal UID, and suggested training review steps.
+
 ## Local Agent Operator UI
 
 Tranche 10 adds the first human-facing operator prototype for the local sidecar

@@ -177,6 +177,10 @@ fine-tuning.
 - [x] Encode the first trace-tuning lesson: Teaching Sandbox control files are
       inside-root but not safe-to-write, and protected-write attempts become
       `control_file_tamper`.
+- [x] Document the training-slice procedure in `_docs/TRAINING_RUNWAY.md` and
+      App Journal.
+- [x] Add a read-only `compare_runs` harness action for scorecard, recovery,
+      failed-check, evidence, journal, and safety-signal comparison.
 - [ ] Add tooling or workflow docs to compare scorecards across runs and model
       choices.
 - [ ] Promote recurring lessons into prompt snippets, task-card constraints,

@@ -485,6 +485,7 @@ VERIFY
 SCORE
   teaching_sandbox_harness score          → score verification, trace, evidence, and journal capture
   teaching_sandbox_harness export         → write ignored scorecard for operator review
+  teaching_sandbox_harness compare_runs   → compare scorecards, failures, recovery, and safety signals
 ```
 
 The harness is a practice bridge, not a project generator with extra authority.
@@ -513,6 +514,7 @@ BASELINE
 
 SCORE
   teaching_sandbox_harness score/export   → write an ignored scorecard for operator review
+  teaching_sandbox_harness compare_runs   → compare selected run IDs or recent scenario history
   score rubric                            → classify pass, partial, recoverable failure, unsafe, or unusable
 
 INSPECT
@@ -537,6 +539,11 @@ PARK
 Do not treat failed training runs as permission to add raw authority. First
 ask whether the task card, prompt, allowed-tool set, recovery decision, or
 scenario check made the desired builder step visible enough.
+
+The durable record of a training slice should be one App Journal reviewer note:
+run IDs, scenario IDs, score movement, teaching labels, and the single lesson
+promoted into docs, prompts, schemas, scoring, or recovery decisions. Raw
+exports and sandbox files remain ignored runtime evidence.
 
 ---
 
