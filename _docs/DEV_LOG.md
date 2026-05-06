@@ -1362,6 +1362,68 @@ Current read: when implementation resumes, start with Tranche 12 in
 
 ---
 
+## 2026-05-05 — Tranche 12 run trace and recovery foundation
+
+- Added `src/lib/agent_run_trace.py`, the shared SQLite implementation for
+  project-scoped local-agent run traces and future tuning/eval data.
+- Added `agent_run_trace` with `status`, `init`, `append`, `query`, `get`, and
+  `export` actions. Mutating and export actions require `confirm: true`.
+- Registered `agent_run_trace` in `tool_manifest.json` and `src/mcp_server.py`;
+  MCP now lists 48 tools.
+- Integrated `local_sidecar_agent` so successful, approval-stopped, and failed
+  runs can record prompts, selected models, allowed tools, tool calls/results,
+  approvals, touched paths, Evidence IDs, verification signals, recovery
+  classes, linked journal entries, and operator outcomes.
+- Added deterministic mocked failure hooks for `request_timeout`,
+  `ollama_unreachable`, and `model_missing` so recovery can be tested without
+  depending on a live Ollama failure.
+- Implemented the first model-transport recovery slice:
+  `request_timeout`, `ollama_unreachable`, `model_missing`, and fallback
+  `model_request_failed`.
+- Timeout recovery now writes a structured recovery response, can archive
+  confirmed overflow into `session_evidence_store`, writes App Journal recovery
+  metadata, and records a run trace.
+- Updated README, TODO, NORTHSTARS, WE_ARE_HERE_NOW, AGENT_GUIDE,
+  ARCHITECTURE, onboarding, and toolbox manifest so Tranche 12 is marked as
+  started rather than merely selected.
+- Aligned the operator UI direction around the popup/chat surface as the
+  narrative cockpit over project LTM, Evidence Shelf, and run traces. This
+  keeps the "teach the app the builder process one step at a time" direction
+  explicit without adding hidden memory or extra authority.
+
+Validation:
+
+- `python -m py_compile src\lib\agent_run_trace.py
+  src\tools\agent_run_trace.py src\tools\local_sidecar_agent.py
+  src\mcp_server.py src\smoke_test.py` -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\smoke_test.py` -> 119/119 pass; MCP lists 48 tools.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `python src\tools\smoke_test_runner.py run --input-json
+  '{"toolbox_root":".","include_packages":true,"timeout_seconds":60}'` -> 5/5
+  suites passed.
+- `git diff --check` -> pass.
+- Privacy scan across committed public surfaces -> pass.
+- App journal entry written and journal export run for operator visibility.
+
+Classification: spiral.
+
+- Capability increased: the local sidecar agent now leaves a structured
+  run/tuning-data trail for both successful and failed runs.
+- Uncertainty decreased: mocked timeout recovery proves the agent can classify
+  model-transport failure, connect it to evidence/journal state, and preserve
+  the guarded-tool boundary.
+- Boundary clarified: run traces are ignored local tuning/eval evidence, the
+  Evidence Shelf remains session STM, and the App Journal remains durable
+  project LTM.
+
+Current read: Tranche 12 is started, not closed. Remaining work is model
+readiness preflight, operator recovery UX, streaming/heartbeat support, broader
+recovery classes, named approvals, and evidence-backed claim guardrails.
+
+---
+
 ## Template for future entries
 
 - Files changed:

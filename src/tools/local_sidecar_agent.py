@@ -20,6 +20,7 @@ from lib.text_workspace import resolve_project_root, runtime_root, safe_relative
 from tools.directory_scaffold import FILE_METADATA as DIRECTORY_SCAFFOLD_METADATA, run as run_directory_scaffold
 from tools.git_private_workspace import FILE_METADATA as GIT_PRIVATE_METADATA, run as run_git_private_workspace
 from tools.journal_write import FILE_METADATA as JOURNAL_WRITE_METADATA, run as run_journal_write
+from tools.agent_run_trace import run as run_agent_run_trace
 from tools.local_agent_bootstrap import run as run_local_agent_bootstrap
 from tools.project_setup import run as run_project_setup
 from tools.session_evidence_store import FILE_METADATA as SESSION_EVIDENCE_METADATA, run as run_session_evidence_store
@@ -55,6 +56,12 @@ FILE_METADATA = {
             "session_id": {"type": "string"},
             "window_turns": {"type": "integer", "default": 8},
             "use_evidence_shelf": {"type": "boolean", "default": True},
+            "write_trace": {"type": "boolean", "default": True},
+            "mock_ollama_failure": {
+                "type": "string",
+                "enum": ["request_timeout", "ollama_unreachable", "model_missing"],
+                "description": "Deterministic model transport failure for smoke tests.",
+            },
             "mock_ollama_responses": {
                 "type": "array",
                 "items": {"type": "string"},
@@ -99,6 +106,7 @@ class AgentConfig:
     session_id: str = ""
     window_turns: int = 8
     use_evidence_shelf: bool = True
+    write_trace: bool = True
 
 
 TOOL_REGISTRY: dict[str, tuple[dict[str, Any], Callable[[dict[str, Any]], dict[str, Any]]]] = {
@@ -195,6 +203,7 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         session_id=str(arguments.get("session_id", "")).strip(),
         window_turns=max(0, min(window_turns, 50)),
         use_evidence_shelf=arguments.get("use_evidence_shelf", True) is not False,
+        write_trace=arguments.get("write_trace", True) is not False,
     )
 
 
@@ -447,8 +456,16 @@ def _model_response(
     messages: list[dict[str, str]],
     model: str,
     mock_responses: list[str],
+    mock_failure: str,
     round_index: int,
 ) -> str:
+    if round_index == 0 and mock_failure:
+        if mock_failure == "request_timeout":
+            raise TimeoutError("timed out")
+        if mock_failure == "ollama_unreachable":
+            raise urllib.error.URLError("connection refused")
+        if mock_failure == "model_missing":
+            raise RuntimeError(f"model not found: {model}")
     if mock_responses:
         if round_index < len(mock_responses):
             return mock_responses[round_index]
@@ -545,6 +562,117 @@ def _archive_evidence(
     })
 
 
+def _recovery_from_exception(exc: Exception, config: AgentConfig) -> dict[str, Any]:
+    message = str(exc)
+    lowered = message.lower()
+    if isinstance(exc, TimeoutError) or "timed out" in lowered or "timeout" in lowered:
+        recovery_class = "request_timeout"
+        next_actions = ["increase_timeout", "retry_run", "refresh_models"]
+    elif isinstance(exc, urllib.error.URLError) or "connection refused" in lowered or "failed to establish" in lowered:
+        recovery_class = "ollama_unreachable"
+        next_actions = ["check_ollama_service", "refresh_models", "retry_run"]
+    elif "model" in lowered and ("not found" in lowered or "missing" in lowered):
+        recovery_class = "model_missing"
+        next_actions = ["refresh_models", "choose_available_model", "retry_run"]
+    else:
+        recovery_class = "model_request_failed"
+        next_actions = ["inspect_details", "refresh_models", "retry_run"]
+    return {
+        "class": recovery_class,
+        "message": message,
+        "next_actions": next_actions,
+        "selected_models": {
+            "planner_model": config.planner_model,
+            "response_model": config.response_model,
+        },
+        "timeout_seconds": config.timeout_seconds,
+    }
+
+
+def _evidence_ids(evidence_archive: dict[str, Any]) -> list[str]:
+    payload = evidence_archive.get("result", evidence_archive)
+    evidence_items = payload.get("archived_items", []) if isinstance(payload, dict) else []
+    return [
+        str(item.get("item_id"))
+        for item in evidence_items
+        if isinstance(item, dict) and item.get("item_id")
+    ]
+
+
+def _trace_payload(
+    *,
+    session_id: str,
+    prompt: str,
+    config: AgentConfig,
+    status: str,
+    recovery: dict[str, Any] | None,
+    rounds: list[dict[str, Any]],
+    touched_paths: list[str],
+    validation: dict[str, Any],
+    evidence_ids: list[str],
+    journal_entry_uid: str,
+    duration_ms: int,
+    summary: str,
+) -> dict[str, Any]:
+    tool_results: list[dict[str, Any]] = []
+    for round_item in rounds:
+        for result in round_item.get("results", []):
+            if isinstance(result, dict):
+                tool_results.append({
+                    "round": round_item.get("round"),
+                    "tool": result.get("tool"),
+                    "status": result.get("status"),
+                })
+    return {
+        "action": "append",
+        "confirm": True,
+        "session_id": session_id,
+        "status": status,
+        "recovery_class": (recovery or {}).get("class", ""),
+        "recovery_message": (recovery or {}).get("message", ""),
+        "prompt": prompt,
+        "summary": summary,
+        "selected_models": {
+            "planner_model": config.planner_model,
+            "response_model": config.response_model,
+            "ollama_base_url": config.ollama_base_url,
+            "timeout_seconds": config.timeout_seconds,
+        },
+        "allowed_tools": config.allowed_tools,
+        "tool_calls": [
+            {"round": item.get("round"), "tool_call_count": item.get("tool_call_count", 0)}
+            for item in rounds
+        ],
+        "tool_results": tool_results,
+        "approvals": {
+            "confirm_mutations": config.confirm_mutations,
+            "confirm_checkpoint": config.confirm_checkpoint,
+            "confirm_evidence": config.confirm_evidence,
+        },
+        "touched_paths": sorted(set(touched_paths)),
+        "evidence_ids": evidence_ids,
+        "verification": validation,
+        "journal_entry_uid": journal_entry_uid,
+        "duration_ms": duration_ms,
+        "trace": {
+            "rounds": rounds,
+            "recovery": recovery or {},
+            "builder_loop_step": "local_sidecar_agent_run",
+        },
+    }
+
+
+def _record_run_trace(project_root: Path, config: AgentConfig, payload: dict[str, Any]) -> dict[str, Any]:
+    if not config.write_trace:
+        return {"status": "skipped", "result": {"reason": "write_trace=false"}}
+    try:
+        trace_input = dict(payload)
+        trace_input["project_root"] = str(project_root)
+        return run_agent_run_trace(trace_input)
+    except Exception as exc:  # pragma: no cover - trace failure must not break agent runs
+        return {"status": "error", "tool": "agent_run_trace", "input": {}, "result": {"message": str(exc)}}
+
+
 def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
     config = _config(arguments, project_root)
     prompt = str(arguments.get("prompt", "")).strip()
@@ -552,11 +680,13 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         return tool_error(FILE_METADATA["tool_name"], arguments, "prompt is required for action=run")
 
     runtime_paths = _ensure_runtime(project_root)
+    run_started = time.time()
     session_id = config.session_id or f"{_stamp()}_{uuid.uuid4().hex[:8]}"
     mock_responses = arguments.get("mock_ollama_responses")
     if not isinstance(mock_responses, list):
         mock_responses = []
     mock_responses = [str(item) for item in mock_responses]
+    mock_failure = str(arguments.get("mock_ollama_failure", "")).strip()
 
     bootstrap = run_local_agent_bootstrap({
         "project_root": str(project_root),
@@ -597,10 +727,113 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
                 messages=messages,
                 model=config.planner_model if round_index == 0 else config.response_model,
                 mock_responses=mock_responses,
+                mock_failure=mock_failure,
                 round_index=round_index,
             ))
         except Exception as exc:
-            return tool_error(FILE_METADATA["tool_name"], arguments, f"Ollama request failed: {exc}")
+            recovery = _recovery_from_exception(exc, config)
+            halted_reason = recovery["class"]
+            rounds.append({
+                "round": round_index + 1,
+                "tool_call_count": 0,
+                "results": [],
+                "response": "",
+                "recovery": recovery,
+            })
+            validation = _validate_touched(project_root, touched_paths)
+            evidence_archive = _archive_evidence(
+                project_root,
+                session_id=session_id,
+                prompt=prompt,
+                rounds=rounds,
+                config=config,
+                approval_required=False,
+            )
+            evidence_ids = _evidence_ids(evidence_archive)
+            journal = run_journal_write({
+                "project_root": str(project_root),
+                "action": "create",
+                "title": "Local sidecar agent recovery event",
+                "body": (
+                    f"Prompt: {prompt}\n\n"
+                    f"Recovery: {recovery['class']} - {recovery['message']}\n\n"
+                    f"Evidence IDs: {', '.join(evidence_ids) or 'none'}"
+                ),
+                "kind": "agent-recovery",
+                "source": "local_sidecar_agent",
+                "author": "local_sidecar_agent",
+                "tags": ["local-agent", "sidecar", "recovery", "tranche-12"],
+                "status": "blocked",
+                "related_path": ".dev-tools/runtime/local_agent",
+                "metadata": {
+                    "session_id": session_id,
+                    "recovery": recovery,
+                    "evidence_item_ids": evidence_ids,
+                    "evidence_archive_status": evidence_archive.get("status"),
+                },
+            })
+            journal_uid = journal.get("result", {}).get("entry", {}).get("entry_uid", "")
+            trace = _record_run_trace(project_root, config, _trace_payload(
+                session_id=session_id,
+                prompt=prompt,
+                config=config,
+                status="error",
+                recovery=recovery,
+                rounds=rounds,
+                touched_paths=touched_paths,
+                validation=validation,
+                evidence_ids=evidence_ids,
+                journal_entry_uid=journal_uid,
+                duration_ms=round((time.time() - run_started) * 1000),
+                summary=f"Recovery event: {recovery['class']}",
+            ))
+            session = {
+                "session_id": session_id,
+                "created_at": _now(),
+                "config": asdict(config),
+                "prompt": prompt,
+                "recovery": recovery,
+                "evidence_shelf": evidence_shelf,
+                "evidence_archive": evidence_archive,
+                "rounds": rounds,
+                "validation": validation,
+                "checkpoint": {"skipped": True, "reason": "model recovery event"},
+                "journal": journal,
+                "trace": trace,
+                "halted_reason": halted_reason,
+                "approval_required": False,
+            }
+            if arguments.get("write_session", True) is not False:
+                write_json(runtime_paths["sessions"] / f"{session_id}.json", session)
+            _append_jsonl(runtime_paths["action_journal"], {
+                "ts": _now(),
+                "action": "agent_recovery",
+                "session_id": session_id,
+                "summary": prompt[:160],
+                "halted_reason": halted_reason,
+                "recovery_class": recovery["class"],
+            })
+            return tool_result(
+                FILE_METADATA["tool_name"],
+                arguments,
+                {
+                    "session_id": session_id,
+                    "project_root": str(project_root),
+                    "runtime": _public_runtime(runtime_paths, project_root),
+                    "round_count": len(rounds),
+                    "touched_paths": sorted(set(touched_paths)),
+                    "validation": validation,
+                    "recovery": recovery,
+                    "evidence_shelf": evidence_shelf.get("result", {}),
+                    "evidence_archive": evidence_archive.get("result", evidence_archive),
+                    "trace": trace.get("result", trace),
+                    "journal_entry_uid": journal_uid,
+                    "halted_reason": halted_reason,
+                    "approval_required": False,
+                    "final_text": "",
+                },
+                status="error",
+            )
         final_text = response
         calls = _parse_tool_calls(response)
         round_results: list[dict[str, Any]] = []
@@ -640,13 +873,9 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "reason": "turn stopped before checkpoint",
     }
     evidence_payload = evidence_archive.get("result", evidence_archive)
-    evidence_items = evidence_payload.get("archived_items", []) if isinstance(evidence_payload, dict) else []
-    evidence_ids = [
-        str(item.get("item_id"))
-        for item in evidence_items
-        if isinstance(item, dict) and item.get("item_id")
-    ]
+    evidence_ids = _evidence_ids(evidence_archive)
     evidence_status = evidence_archive.get("status", "skipped")
+    recovery = {"class": halted_reason, "message": halted_reason, "next_actions": []} if halted_reason else {}
 
     journal = run_journal_write({
         "project_root": str(project_root),
@@ -673,6 +902,22 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "evidence_archive": evidence_payload,
         },
     })
+    journal_uid = journal.get("result", {}).get("entry", {}).get("entry_uid", "")
+    result_status = "approval_required" if approval_required else "ok"
+    trace = _record_run_trace(project_root, config, _trace_payload(
+        session_id=session_id,
+        prompt=prompt,
+        config=config,
+        status=result_status,
+        recovery=recovery,
+        rounds=rounds,
+        touched_paths=touched_paths,
+        validation=validation,
+        evidence_ids=evidence_ids,
+        journal_entry_uid=journal_uid,
+        duration_ms=round((time.time() - run_started) * 1000),
+        summary=f"Local sidecar agent run: {result_status}",
+    ))
 
     session = {
         "session_id": session_id,
@@ -688,6 +933,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "validation": validation,
         "checkpoint": checkpoint,
         "journal": journal,
+        "trace": trace,
         "halted_reason": halted_reason,
         "approval_required": approval_required,
     }
@@ -702,7 +948,6 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "halted_reason": halted_reason,
     })
 
-    result_status = "approval_required" if approval_required else "ok"
     return tool_result(
         FILE_METADATA["tool_name"],
         arguments,
@@ -715,8 +960,9 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "validation": validation,
             "evidence_shelf": evidence_shelf.get("result", {}),
             "evidence_archive": evidence_archive.get("result", evidence_archive),
+            "trace": trace.get("result", trace),
             "checkpoint": checkpoint,
-            "journal_entry_uid": journal.get("result", {}).get("entry", {}).get("entry_uid"),
+            "journal_entry_uid": journal_uid,
             "halted_reason": halted_reason,
             "approval_required": approval_required,
             "final_text": final_text,

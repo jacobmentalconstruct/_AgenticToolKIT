@@ -24,8 +24,11 @@ _Last updated: 2026-05-05._
 
 ## Current state
 
-**Tranche 11 complete as the session coherence layer. Next: Tranche 12 Local
-Agent Runtime Recovery and Live Model Hardening.**
+**Tranche 12 is started as the recovery and tuning-data layer.** The first
+implementation slice adds `agent_run_trace` plus structured model-transport
+recovery for the local sidecar agent. Remaining work should harden live model
+operation, operator recovery UX, evidence-backed claims, and the popup/chat
+narrative cockpit without widening authority.
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -48,18 +51,29 @@ before model work, archives sliding-window overflow after runs when confirmed,
 and records evidence archive status in the normal App Journal turn metadata.
 The bag is session STM archive; the App Journal remains durable project LTM.
 
-The Tranche 12 trigger is live operator friction from the UI: Ollama-backed
-runs can currently end in a raw timeout envelope such as `Ollama request failed:
-timed out`. That is an acceptable floor behavior, but the next tranche should
-make live model failures recoverable, visible, and journaled without widening
-the agent's authority.
+The Tranche 12 trigger was live operator friction from the UI: Ollama-backed
+runs could end in a raw timeout envelope such as `Ollama request failed: timed
+out`. That class now has a first recovery path: the agent returns a structured
+`request_timeout` recovery object, can archive the failed turn into the Bag of
+Evidence when confirmed, writes durable App Journal recovery metadata, and
+records a local run trace for future tuning/eval data.
 
 ### Active tasks
 
 ### Active source tranche: Tranche 12 Local Agent Runtime Recovery and Live Model Hardening
 
-- [ ] Add structured recovery classification for live-model failures:
-      `ollama_unreachable`, `model_missing`, `request_timeout`,
+- [x] Add `agent_run_trace` as the local run/tuning-data spine under ignored
+      runtime state.
+- [x] Register `agent_run_trace` in `tool_manifest.json` and `src/mcp_server.py`.
+- [x] Record successful, approval-stopped, and failed local sidecar runs into
+      `agent_run_trace` by default.
+- [x] Add initial structured recovery classification for model-transport
+      failures: `request_timeout`, `ollama_unreachable`, `model_missing`, and
+      fallback `model_request_failed`.
+- [x] Archive mocked timeout failures into `session_evidence_store` when
+      confirmed and write App Journal recovery metadata.
+- [x] Extend smoke coverage for run traces and mocked timeout recovery.
+- [ ] Extend structured recovery classification for non-transport failures:
       `malformed_tool_call`, `tool_schema_error`, `tool_runtime_error`,
       `approval_required`, and `max_rounds_exhausted`.
 - [ ] Add a recovery model role or deterministic recovery planner that turns
@@ -71,11 +85,14 @@ the agent's authority.
 - [ ] Add operator UI recovery UX for failed runs: concise status, retry with
       longer timeout, refresh models, disable run when models are unavailable,
       and preserve the sanitized JSON details for inspection.
+- [ ] Shape the popup/chat operator window as the narrative cockpit over
+      project LTM, Evidence Shelf, and run traces so each sidecar session has a
+      coherent causal direction and produces inspectable tuning data.
 - [ ] Add optional streaming or heartbeat support for long-running Ollama turns,
       while keeping the existing non-streaming path as the smoke-test default.
-- [ ] Archive failed live-model runs into `session_evidence_store` when
-      confirmed and write App Journal metadata that links recovery status,
-      evidence IDs, selected models, and timeout settings.
+- [ ] Extend failed live-model archiving beyond mocked transport failures and
+      keep App Journal metadata linked to recovery status, evidence IDs,
+      selected models, and timeout settings.
 - [ ] Add filesystem-claim guardrails and final-summary evidence verification
       using `session_evidence_store`, so agent-facing summaries cite touched
       paths or evidence IDs when claiming work was done.

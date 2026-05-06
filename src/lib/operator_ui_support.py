@@ -35,6 +35,7 @@ MUTATING_TOOLS = {
     "runtime_artifact_cleaner",
     "local_sidecar_agent",
     "session_evidence_store",
+    "agent_run_trace",
 }
 
 

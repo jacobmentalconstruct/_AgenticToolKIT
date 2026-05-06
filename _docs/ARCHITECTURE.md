@@ -1,6 +1,6 @@
 # Architecture
 
-_Last updated: 2026-05-04._
+_Last updated: 2026-05-05._
 
 `.dev-tools` is a self-contained sidecar toolbox. Its job is to help a human
 install the toolbox into a project and help a builder agent orient, set up,
@@ -32,11 +32,12 @@ folders, old project roots, generated caches, or hidden runtime state.
 
 The local-agent system operations layer, Safe Text Workspace Operations layer,
 Private Git Workspace Operations layer, Local Sidecar Agent Runtime safe floor,
-Local Agent Operator UI prototype, and Bag of Evidence / Evidence Shelf layer
-are implemented. The current architecture now has an Ollama-backed loop that
-uses the guarded toolbox, checkpoints through private Git, hydrates from a
-visible session evidence shelf, can be exercised from a desktop prototype, and
-avoids raw shell or unrestricted filesystem parity.
+Local Agent Operator UI prototype, Bag of Evidence / Evidence Shelf layer, and
+Tranche 12 run-trace foundation are implemented. The current architecture now
+has an Ollama-backed loop that uses the guarded toolbox, checkpoints through
+private Git, hydrates from a visible session evidence shelf, records run traces
+for recovery/tuning data, can be exercised from a desktop prototype, and avoids
+raw shell or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -158,9 +159,22 @@ approval UX.
 
 ## Runtime Recovery and Live Model Hardening
 
-Tranche 12 is the selected next architecture step. It should harden the
-Ollama-backed runtime and operator UI around live-model failure modes without
-expanding the agent's authority.
+Tranche 12 is the active architecture step. Its first slice adds
+`agent_run_trace`, a project-scoped ignored SQLite run/tuning-data store, plus
+initial model-transport recovery classification in `local_sidecar_agent`.
+Remaining work should harden the Ollama-backed runtime and operator UI around
+live-model failure modes without expanding the agent's authority.
+
+`agent_run_trace` owns this ignored runtime path:
+
+```
+.dev-tools/runtime/local_agent/run_trace/run_trace.sqlite3
+```
+
+The run trace store is not durable project LTM and not hidden memory. It is
+local tuning/eval evidence: prompts, selected models, allowed tools, tool
+calls/results, approvals, touched paths, recovery classes, Evidence IDs,
+verification signals, linked journal entries, and operator outcomes.
 
 The observed floor issue is a raw timeout envelope from a live Agent Console
 run. Architecturally, that belongs to a recovery layer between model transport,
@@ -175,13 +189,19 @@ tool execution, Evidence Shelf parking, and operator UX:
    timeout settings
 7. require final summaries to cite touched paths or evidence IDs for claims
 
-Likely recovery classes include `ollama_unreachable`, `model_missing`,
-`request_timeout`, `malformed_tool_call`, `tool_schema_error`,
+Implemented model-transport classes are `request_timeout`,
+`ollama_unreachable`, `model_missing`, and fallback `model_request_failed`.
+Remaining classes include `malformed_tool_call`, `tool_schema_error`,
 `tool_runtime_error`, `approval_required`, and `max_rounds_exhausted`.
 
 This layer should preserve deterministic mocked-model smoke tests and keep
 streaming or heartbeat behavior optional. It should not add raw command
 execution, dependency installation, or hidden memory.
+
+The popup/chat operator surface should become the narrative cockpit over
+project LTM, Evidence Shelf, and run traces. Its job is to help the user and
+sidecar agent move one builder step at a time, while each step leaves
+inspectable evidence that can later become evaluation or tuning data.
 
 ## Local Agent Operator UI
 

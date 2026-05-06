@@ -1425,6 +1425,90 @@ def test_session_evidence_store() -> None:
         _fail("session_evidence_store export", str(export))
 
 
+def test_agent_run_trace() -> None:
+    print("\n── Tranche 12: Agent Run Trace / Tuning Data Spine ──")
+
+    target_root = Path(tempfile.mkdtemp(prefix="agent_run_trace_"))
+
+    status_before = _tool("agent_run_trace", {"project_root": str(target_root), "action": "status"})
+    if status_before["status"] == "ok" and not status_before["result"]["exists"]:
+        _ok("agent_run_trace reports missing store before init")
+    else:
+        _fail("agent_run_trace initial status", str(status_before))
+
+    append_gate = _tool("agent_run_trace", {
+        "project_root": str(target_root),
+        "action": "append",
+        "session_id": "trace-smoke",
+        "prompt": "do work",
+    })
+    if append_gate["status"] == "approval_required":
+        _ok("agent_run_trace requires confirmation before append")
+    else:
+        _fail("agent_run_trace append gate", str(append_gate))
+
+    append = _tool("agent_run_trace", {
+        "project_root": str(target_root),
+        "action": "append",
+        "confirm": True,
+        "session_id": "trace-smoke",
+        "status": "error",
+        "recovery_class": "request_timeout",
+        "recovery_message": "Ollama request failed: timed out",
+        "prompt": "Inspect this project.",
+        "selected_models": {"planner_model": "qwen2.5-coder:14b", "response_model": "qwen3.5:4b"},
+        "allowed_tools": ["text_file_reader"],
+        "tool_calls": [{"round": 1, "tool_call_count": 0}],
+        "tool_results": [],
+        "approvals": {"confirm_mutations": False},
+        "touched_paths": [str(target_root / "README.md")],
+        "evidence_ids": ["E000001"],
+        "verification": {"valid": False},
+        "journal_entry_uid": "journal_smoke",
+        "duration_ms": 12,
+        "summary": "Timeout while inspecting project.",
+    })
+    run_id = append["result"]["run_id"]
+    if append["status"] == "ok" and run_id.startswith("R"):
+        _ok("agent_run_trace appends structured local run trace")
+    else:
+        _fail("agent_run_trace append", str(append))
+
+    query = _tool("agent_run_trace", {
+        "project_root": str(target_root),
+        "action": "query",
+        "recovery_class": "request_timeout",
+    })
+    get_full = _tool("agent_run_trace", {
+        "project_root": str(target_root),
+        "action": "get",
+        "run_id": run_id,
+        "mode": "full",
+    })
+    if (
+        query["status"] == "ok"
+        and query["result"]["match_count"] == 1
+        and get_full["status"] == "ok"
+        and get_full["result"]["trace"]["recovery_class"] == "request_timeout"
+        and "<project_root>" in get_full["result"]["touched_paths"][0]
+    ):
+        _ok("agent_run_trace queries and retrieves sanitized full traces")
+    else:
+        _fail("agent_run_trace query/get", f"{query} {get_full}")
+
+    export = _tool("agent_run_trace", {
+        "project_root": str(target_root),
+        "action": "export",
+        "confirm": True,
+        "format": "markdown",
+    })
+    export_path = target_root / export["result"]["export_path"]
+    if export["status"] == "ok" and export_path.exists():
+        _ok("agent_run_trace exports readable trace index")
+    else:
+        _fail("agent_run_trace export", str(export))
+
+
 def test_local_sidecar_agent() -> None:
     print("\n── Tranche 9: Local Sidecar Agent Runtime ──")
 
@@ -1491,11 +1575,32 @@ def test_local_sidecar_agent() -> None:
         and session_dir.exists()
         and checkpoint_ok
         and run_result["result"]["evidence_archive"]["archived_count"] >= 1
+        and run_result["result"]["trace"]["run_id"].startswith("R")
         and not (target_root / ".git").exists()
     ):
-        _ok("local_sidecar_agent runs mock plan, writes, validates, journals, archives evidence, and checkpoints")
+        _ok("local_sidecar_agent runs mock plan, writes, validates, journals, archives evidence, traces, and checkpoints")
     else:
         _fail("local_sidecar_agent mock run", str(run_result))
+
+    failure = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "inspect this project",
+        "mock_ollama_failure": "request_timeout",
+        "confirm_evidence": True,
+        "session_id": "timeout-session",
+        "window_turns": 0,
+        "checkpoint": False,
+    })
+    if (
+        failure["status"] == "error"
+        and failure["result"]["recovery"]["class"] == "request_timeout"
+        and failure["result"]["trace"]["run_id"].startswith("R")
+        and failure["result"]["evidence_archive"]["archived_count"] >= 1
+    ):
+        _ok("local_sidecar_agent classifies timeout recovery and records trace/evidence")
+    else:
+        _fail("local_sidecar_agent timeout recovery", str(failure))
 
 
 def test_operator_ui_support() -> None:
@@ -1516,7 +1621,7 @@ def test_operator_ui_support() -> None:
 
     toolbox_root = ROOT.parent
     tools = tool_index(toolbox_root)
-    if "local_sidecar_agent" in tools and "session_evidence_store" in tools and "journal_manifest" in tools:
+    if "local_sidecar_agent" in tools and "session_evidence_store" in tools and "agent_run_trace" in tools and "journal_manifest" in tools:
         _ok("operator UI loads tool manifest")
     else:
         _fail("operator UI manifest load", str(sorted(tools)[:10]))
@@ -1625,7 +1730,7 @@ def test_mcp(project_root: Path) -> None:
             "dependency_env_check", "dev_server_manager", "docker_ops", "k8s_ops",
             "secret_surface_audit", "runtime_artifact_cleaner",
             "local_agent_bootstrap", "local_sidecar_agent",
-            "session_evidence_store",
+            "session_evidence_store", "agent_run_trace",
             "text_file_reader", "text_file_writer", "directory_scaffold",
             "text_file_validator", "file_move_guarded", "file_delete_guarded",
             "git_private_workspace",
@@ -1683,6 +1788,7 @@ def main() -> int:
     test_safe_text_workspace_operations()
     test_git_private_workspace()
     test_session_evidence_store()
+    test_agent_run_trace()
     test_local_sidecar_agent()
     test_operator_ui_support()
     test_mcp(project_root)

@@ -405,7 +405,7 @@ history.
 
 ### Loop 12: Preflight → Run → Recover → Cite → Park
 
-_The selected next local-agent hardening loop. Use when live Ollama turns or
+_The active local-agent hardening loop. Use when live Ollama turns or
 operator UI runs fail, stall, or produce claims that need evidence._
 
 ```
@@ -415,6 +415,7 @@ PREFLIGHT
 
 RUN
   local_sidecar_agent run           → execute through allowlisted guarded tools
+  agent_run_trace                   → record local run/tuning data by default
   timeout_seconds/window_turns      → choose explicit runtime limits
 
 RECOVER
@@ -427,6 +428,7 @@ CITE
 
 PARK
   session_evidence_store archive_window → archive failed/recovered turns when confirmed
+  agent_run_trace                       → keep recovery/tool/result evidence inspectable
   journal_write                         → record recovery class, models, timeout, and evidence IDs
 ```
 
@@ -434,6 +436,11 @@ The recovery loop is a hardening layer, not a new authority layer. It should
 make live-model failures understandable and recoverable while keeping all work
 inside the existing guarded toolbox, Evidence Shelf, App Journal, and explicit
 operator choices.
+
+The popup/chat operator surface is the narrative cockpit for this loop. It
+should expose the project LTM, Evidence Shelf, and run traces as visible context
+so the sidecar learns the builder process one step at a time instead of
+inventing scaffolds, memory, or authority.
 
 ---
 
@@ -457,6 +464,7 @@ _"I need to…" → use this tool._
 | Dry-run and clean allowlisted runtime artifacts | `runtime_artifact_cleaner` |
 | Emit a local-agent launch packet | `local_agent_bootstrap` |
 | Manage the Bag of Evidence or Evidence Shelf | `session_evidence_store` |
+| Inspect local-agent run traces and tuning-data records | `agent_run_trace` |
 | Open the local agent operator UI | `chat.bat`, `chat.sh`, or `agent_ui.py` |
 | Read a bounded text file safely | `text_file_reader` |
 | Create, overwrite, or append text safely | `text_file_writer` |

@@ -76,6 +76,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `runtime_artifact_cleaner` | cleanup | Dry-run-first cleanup of allowlisted generated artifacts with tracked-file protection |
 | `local_agent_bootstrap` | bootstrap | Aggregate host, workspace, command, dependency, journal, and constraint context into a launch packet |
 | `session_evidence_store` | memory | Manage the local-agent Bag of Evidence SQLite store and Evidence Shelf for sliding-window overflow |
+| `agent_run_trace` | memory | Store local-agent run traces, recovery classes, evidence links, and tuning-data payloads under ignored runtime state |
 | `text_file_reader` | introspection | Read bounded text files under a project root with binary, size, and sidecar protections |
 | `text_file_writer` | write | Create, overwrite, or append text payloads with confirmation and optional validation |
 | `directory_scaffold` | scaffold | Dry-run-first declarative directory and text-file scaffolding under a project root |
@@ -97,7 +98,7 @@ these to work ON target projects without modifying the toolbox itself.
 | `schema_diff_tool` | introspection | Compare two SQLite schemas — added/dropped tables, columns, indexes, FKs |
 
 The single source of truth for the active tool set is `tool_manifest.json`
-(currently 47 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
+(currently 48 tools). Every tool follows the same contract: `FILE_METADATA` dict + `run(arguments)`
 function + `standard_main()` CLI. See `CONTRACT.md` for the full mechanical
 specification.
 
@@ -146,6 +147,17 @@ long-term memory; the bag is session short-term-memory archive, with explicit
 promotion into journal entries when a decision or outcome should become project
 history.
 
+**Local Agent Runtime Recovery and Run Trace is now started.**
+`agent_run_trace` is the first tuning-data spine for the local sidecar agent.
+It records successful and failed runs, recovery classes, selected models,
+allowed tools, tool calls/results, approvals, touched paths, Evidence IDs,
+verification signals, and linked journal entries under ignored runtime state.
+The first implemented recovery slice normalizes timeout, unreachable-Ollama,
+missing-model, and generic model-request failures without widening the agent's
+authority. The popup/chat operator surface should evolve as the narrative
+cockpit over project LTM, Evidence Shelf, and run traces: it helps the project
+teach the sidecar agent one safe builder step at a time.
+
 The queued local-agent implementation runway is now:
 
 1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
@@ -166,10 +178,10 @@ The queued local-agent implementation runway is now:
    overflow turns into ignored SQLite state, search/retrieve evidence, and
    connect evidence IDs to normal journaled project memory.
 6. **Tranche 12 — Local Agent Runtime Recovery and Live Model Hardening:**
-   selected as the next source tranche; it should turn live Ollama failures
-   such as request timeouts into structured recovery classes, UI retry/status
-   actions, Evidence Shelf parking, journaled recovery metadata, and
-   filesystem-claim guardrails without adding raw terminal parity.
+   started; the run-trace/tuning-data spine and first model-transport recovery
+   classes are implemented. Remaining work should add model readiness preflight,
+   operator recovery UX, streaming/heartbeat behavior, stronger claim
+   guardrails, and named approval choices without adding raw terminal parity.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

@@ -140,6 +140,11 @@ except ImportError:
     SESSION_EVIDENCE_METADATA, run_session_evidence_store = None, None
 
 try:
+    from tools.agent_run_trace import FILE_METADATA as AGENT_RUN_TRACE_METADATA, run as run_agent_run_trace
+except ImportError:
+    AGENT_RUN_TRACE_METADATA, run_agent_run_trace = None, None
+
+try:
     from tools.text_file_reader import FILE_METADATA as TEXT_FILE_READER_METADATA, run as run_text_file_reader
 except ImportError:
     TEXT_FILE_READER_METADATA, run_text_file_reader = None, None
@@ -271,6 +276,7 @@ for meta, runner in [
     (LOCAL_AGENT_BOOTSTRAP_METADATA, run_local_agent_bootstrap),
     (LOCAL_SIDECAR_AGENT_METADATA, run_local_sidecar_agent),
     (SESSION_EVIDENCE_METADATA, run_session_evidence_store),
+    (AGENT_RUN_TRACE_METADATA, run_agent_run_trace),
     (TEXT_FILE_READER_METADATA, run_text_file_reader),
     (TEXT_FILE_WRITER_METADATA, run_text_file_writer),
     (DIRECTORY_SCAFFOLD_METADATA, run_directory_scaffold),
