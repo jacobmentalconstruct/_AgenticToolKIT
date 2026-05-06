@@ -32,6 +32,8 @@ argument rule:
 - `entries` must be a list of objects, not a list of strings.
 - Each file entry must include `type`, `path`, `content`, and `overwrite`.
 - The first scaffold call should provide real content for each expected file.
+- Multiline file `content` must stay inside one valid JSON string; prefer
+  escaped `\n` sequences rather than literal line breaks inside tool-call JSON.
 - Tool calls should be a single ```tool_call fenced JSON object without
   extra closing tags such as `[/tool_call]`.
 - If a later `text_file_writer` call rewrites an existing file, it must set
@@ -143,3 +145,17 @@ This preserves the sandbox's usefulness as a disposable practice project while
 making one boundary explicit: an agent may write app artifacts under the
 sandbox root, but it may not rewrite the files that define the assignment or
 authority boundary for the run.
+
+## Multiline Tool-Call Content
+
+Tranche 17B adds a second trace-tuning lesson from `compare_runs`: several live
+practice runs expressed valid scaffold intent but placed literal multiline file
+content inside JSON string values, producing `malformed_tool_call` before the
+tool schema could run.
+
+Task cards should continue teaching valid JSON, especially escaped `\n`
+sequences for generated HTML, CSS, JavaScript, Python, README, and sample-data
+content. `local_sidecar_agent` now has a narrow tolerance for raw newline,
+carriage-return, and tab characters inside JSON strings, but that is a recovery
+rail, not the desired style. The desired behavior is still a single fenced JSON
+object whose `content` values are valid JSON strings.

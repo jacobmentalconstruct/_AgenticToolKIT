@@ -181,6 +181,8 @@ fine-tuning.
       App Journal.
 - [x] Add a read-only `compare_runs` harness action for scorecard, recovery,
       failed-check, evidence, journal, and safety-signal comparison.
+- [x] Promote the recurring malformed multiline content lesson into narrow
+      parser tolerance and task-card guidance.
 - [ ] Add tooling or workflow docs to compare scorecards across runs and model
       choices.
 - [ ] Promote recurring lessons into prompt snippets, task-card constraints,

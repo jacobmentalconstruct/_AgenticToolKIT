@@ -1904,6 +1904,51 @@ recovery changes.
 
 ---
 
+## 2026-05-06 — Tranche 17B malformed multiline tool-call repair
+
+- Compared recent Teaching Sandbox runs and identified a repeated
+  `malformed_tool_call` shape in `TS000015`, `TS000019`, and `TS000020`.
+- Root cause: valid scaffold/write intent carried literal multiline file
+  content inside JSON string values, so strict parsing failed before guarded
+  tool validation could run.
+- Updated `local_sidecar_agent` with a narrow retry repair that escapes raw
+  newline, carriage-return, and tab characters only while scanning inside JSON
+  strings.
+- Added smoke coverage proving raw multiline `content` can still route through
+  `directory_scaffold` and write the intended app artifact.
+- Updated the training runway and task-card doctrine: task cards should still
+  teach escaped `\n` content in valid JSON; the runtime repair is a recovery
+  rail, not broader authority.
+- Wrote App Journal entry `journal_d84e9e00c12d` for the Tranche 17B lesson.
+
+Validation:
+
+- `python -m py_compile src\tools\local_sidecar_agent.py src\smoke_test.py`
+  -> pass.
+- `python src\smoke_test.py` -> 148/148 pass; MCP lists 49 tools.
+- `python -m py_compile src\tools\local_sidecar_agent.py src\smoke_test.py
+  src\lib\teaching_sandbox_harness.py src\tools\teaching_sandbox_harness.py`
+  -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Classification: spiral.
+
+- Capability increased: common multiline scaffold intent now survives a narrow
+  model-output formatting drift.
+- Uncertainty decreased: the lesson came from compared Teaching Sandbox traces
+  and is covered by deterministic smoke.
+- Boundary clarified: the repair does not add tools, skip schemas, allow
+  outside-root paths, or accept arbitrary malformed JSON.
+
+Current read: continue Tranche 17B by comparing runs across scenarios and model
+choices, then promote the next recurring lesson into the smallest prompt,
+task-card, schema, or recovery change.
+
+---
+
 ## Template for future entries
 
 - Files changed:

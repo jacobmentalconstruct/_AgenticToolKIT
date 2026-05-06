@@ -412,13 +412,61 @@ def _parse_tool_calls(text: str) -> list[dict[str, Any]]:
 def _load_tool_call_payload(raw: str) -> Any:
     try:
         return json.loads(raw)
-    except json.JSONDecodeError:
-        decoder = json.JSONDecoder()
-        payload, end = decoder.raw_decode(raw)
-        trailing = raw[end:].strip()
-        if trailing in {"", "[/tool_call]"}:
-            return payload
-        raise
+    except json.JSONDecodeError as original:
+        try:
+            decoder = json.JSONDecoder()
+            payload, end = decoder.raw_decode(raw)
+            trailing = raw[end:].strip()
+            if trailing in {"", "[/tool_call]"}:
+                return payload
+            raise original
+        except json.JSONDecodeError:
+            repaired = _escape_string_control_chars(raw)
+            if repaired != raw:
+                try:
+                    decoder = json.JSONDecoder()
+                    payload, end = decoder.raw_decode(repaired)
+                    trailing = repaired[end:].strip()
+                    if trailing in {"", "[/tool_call]"}:
+                        return payload
+                except json.JSONDecodeError:
+                    pass
+            raise original
+
+
+def _escape_string_control_chars(raw: str) -> str:
+    out: list[str] = []
+    in_string = False
+    escaped = False
+    for ch in raw:
+        if in_string:
+            if escaped:
+                out.append(ch)
+                escaped = False
+                continue
+            if ch == "\\":
+                out.append(ch)
+                escaped = True
+                continue
+            if ch == '"':
+                out.append(ch)
+                in_string = False
+                continue
+            if ch == "\n":
+                out.append("\\n")
+                continue
+            if ch == "\r":
+                out.append("\\r")
+                continue
+            if ch == "\t":
+                out.append("\\t")
+                continue
+            out.append(ch)
+            continue
+        out.append(ch)
+        if ch == '"':
+            in_string = True
+    return "".join(out)
 
 
 def _validate_schema(metadata: dict[str, Any], args: dict[str, Any]) -> list[str]:

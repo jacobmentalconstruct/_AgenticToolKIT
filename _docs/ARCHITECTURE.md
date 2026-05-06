@@ -308,7 +308,11 @@ writes with `control_file_tamper`, and scorecards expose that safety signal.
 Tranche 17B begins the comparison layer with `compare_runs`, a read-only
 Teaching Sandbox action that summarizes run IDs or recent scenario history by
 score, pass/fail state, failed checks, recovery classes, safety signals, trace
-IDs, Evidence IDs, App Journal UID, and suggested training review steps.
+IDs, Evidence IDs, App Journal UID, and suggested training review steps. Its
+first promoted lesson is narrow parser tolerance for raw newline,
+carriage-return, and tab characters inside JSON string content, preserving
+valid multiline scaffold intent while task cards continue teaching escaped
+`\n` strings as the desired form.
 
 ## Local Agent Operator UI
 

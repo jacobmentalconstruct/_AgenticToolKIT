@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 17B started; compare_runs implemented)
+- 2026-05-06 (Tranche 17B malformed multiline tool-call repair implemented)
 
 ## Fresh-thread start
 
@@ -40,7 +40,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     practice scenarios; Tranche 17A Teaching Sandbox Control-File Integrity is
     parked as the first trace-tuning hardening slice; Tranche 17B Trace Review
     And Loop Tuning has started with an explicit training procedure and a
-    read-only run comparison surface
+    read-only run comparison surface, and a narrow parser repair for raw
+    control characters inside JSON string content
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -170,6 +171,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   compare_runs` summarizes selected or recent runs by score, pass/fail state,
   failed checks, recovery classes, safety signals, trace IDs, Evidence IDs,
   App Journal UID, and next review steps.
+- The first Tranche 17B comparison review found a recurring
+  `malformed_tool_call` shape in `TS000015`, `TS000019`, and `TS000020`: the
+  model put literal multiline file content inside JSON string values. The
+  sidecar now repairs raw newline, carriage-return, and tab characters inside
+  JSON strings before retrying parse, while task cards still teach escaped
+  `\n` content as the desired form.
 
 ## Current bottleneck
 
@@ -177,17 +184,19 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
 - The active source-shaped bottleneck remains Tranche 17 trace tuning. The
-  first lesson is now encoded: inside-root is not the same as safe-to-write
-  for sandbox control files. The next step is to compare scorecards/traces
-  across scenarios, then promote recurring lessons into prompt, task-card,
-  schema, or recovery improvements.
+  first lessons are now encoded: inside-root is not the same as safe-to-write
+  for sandbox control files, and valid multiline scaffold intent should not be
+  lost to a common JSON-control-character drift. The next step is to compare
+  scorecards/traces across scenarios and model choices, then promote the next
+  recurring lesson into the smallest prompt, task-card, schema, or recovery
+  improvement.
 
 ## Next best move
 
 - Continue Tranche 17B by using `compare_runs` against recent mocked/live
-  Teaching Sandbox runs, then choose the smallest prompt, task-card, schema,
-  scoring, or recovery change that should improve live runs without broadening
-  authority.
+  Teaching Sandbox runs and model choices, then choose the next smallest
+  prompt, task-card, schema, scoring, or recovery change that should improve
+  live runs without broadening authority.
 
 ## Current warnings
 

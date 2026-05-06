@@ -1661,6 +1661,29 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent closing tag tolerance", str(tagged_call))
 
+    multiline_content_call = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "scaffold with raw multiline content in JSON string",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"directory_scaffold\",\"arguments\":{\"entries\":[{\"type\":\"file\",\"path\":\"raw_multiline.txt\",\"content\":\"line one\nline two\",\"overwrite\":true}],\"dry_run\":false}}\n"
+            "```",
+            "Created raw_multiline.txt",
+        ],
+        "confirm_mutations": True,
+        "checkpoint": False,
+    })
+    multiline_path = target_root / "raw_multiline.txt"
+    if (
+        multiline_content_call["status"] == "ok"
+        and multiline_path.exists()
+        and multiline_path.read_text(encoding="utf-8") == "line one\nline two"
+    ):
+        _ok("local_sidecar_agent repairs raw newlines inside tool-call JSON strings")
+    else:
+        _fail("local_sidecar_agent multiline JSON string repair", str(multiline_content_call))
+
     schema_error = _tool("local_sidecar_agent", {
         "project_root": str(target_root),
         "action": "run",
