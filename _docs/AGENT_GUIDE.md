@@ -491,6 +491,42 @@ The harness is a practice bridge, not a project generator with extra authority.
 Sandbox projects stay under ignored runtime state by default. Promote only the
 lessons, evidence IDs, or journal-worthy decisions into durable project LTM.
 
+### Loop 14: Baseline → Score → Inspect → Tune → Rerun → Park
+
+_The active app-builder training loop. Use when teaching the sidecar to build
+small apps through scored sandbox practice._
+
+```
+BASELINE
+  teaching_sandbox_harness list_scenarios → choose static_task_tracker or python_notes_cli
+  teaching_sandbox_harness run_scenario   → run a mocked or live baseline when confirmed
+
+SCORE
+  teaching_sandbox_harness score/export   → write an ignored scorecard for operator review
+  score rubric                            → classify pass, partial, recoverable failure, unsafe, or unusable
+
+INSPECT
+  agent_run_trace                         → inspect prompt, models, tools, paths, recovery, and timing
+  session_evidence_store search/get       → inspect Evidence IDs and relevant verbatim evidence
+  journal_query                           → connect run outcomes to durable project memory
+
+TUNE
+  task card                               → make the expected builder step more explicit
+  prompt/contract constraint              → remove repeated inference errors
+  tool schema or recovery decision        → tighten only when the trace proves the gap
+
+RERUN
+  teaching_sandbox_harness run_scenario   → compare new scorecard to baseline
+
+PARK
+  journal_write                           → record training result and next tuning action
+  _docs/DEV_LOG.md / _docs/TODO.md        → mirror tranche-level truth
+```
+
+Do not treat failed training runs as permission to add raw authority. First
+ask whether the task card, prompt, allowed-tool set, recovery decision, or
+scenario check made the desired builder step visible enough.
+
 ---
 
 ## Tool Selection Cheat Sheet

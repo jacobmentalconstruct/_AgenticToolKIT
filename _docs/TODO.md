@@ -18,9 +18,12 @@ _Last updated: 2026-05-06._
   Git Workspace Operations, Tranche 9 local sidecar agent safe floor, Tranche
   10 operator UI prototype, Tranche 11 Bag of Evidence / Evidence Shelf,
   Tranche 12 Local Agent Runtime Recovery and Live Model Hardening, and
-  Tranche 13 Teaching Sandbox Harness support bridge are closed. The next
-  source horizon should be selected from teaching-harness findings rather than
-  by widening raw authority.
+  Tranche 13 Teaching Sandbox Harness support bridge are closed.
+- The next source horizon is the local-agent development/training cycle:
+  teach the sidecar to build apps by replaying the builder loop through
+  bounded sandbox scenarios, collecting traces/evidence/scorecards, tuning the
+  scaffolded agent loop, and graduating only when it can complete unseen small
+  apps through guarded tools.
 
 ---
 
@@ -41,6 +44,13 @@ It creates ignored runtime practice projects, runs the local sidecar through
 guarded scenarios, records trace/evidence/journal links, verifies deterministic
 outputs, scores runs, and exports scorecards. This gives future sidecar
 hardening work realistic data without adding raw terminal parity.
+
+**Tranche 14 is selected as the first active training tranche.** It should not
+fine-tune model weights yet. It should create the repeatable training regimen:
+baseline runs, curriculum task cards, score thresholds, failure taxonomy,
+trace-review workflow, and prompt/contract tuning loop. The artifact of the
+tranche is a training/evaluation runway the operator can run repeatedly from
+the Teaching Lab and command line.
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -74,6 +84,95 @@ or missing models, and classifies malformed tool calls, schema errors, runtime
 tool failures, approval stops, and exhausted tool rounds.
 
 ### Active tasks
+
+### Active source tranche: Tranche 14 Training Curriculum And Baseline Runs
+
+Purpose: begin teaching the sidecar how to build apps by turning the human
+builder process into explicit, repeatable, scored practice. This tranche should
+use the existing `teaching_sandbox_harness`, `local_sidecar_agent`,
+`agent_run_trace`, `session_evidence_store`, and App Journal. It should not add
+raw terminal parity or dependency installation.
+
+- [ ] Define a training curriculum document under `_docs/` that explains the
+      builder-loop doctrine as trainable steps: read contract, audit setup,
+      plan tranche, scaffold safely, write bounded files, validate, recover,
+      checkpoint, journal, and park.
+- [ ] Add a baseline-run protocol for the two existing scenarios:
+      `static_task_tracker` and `python_notes_cli`.
+- [ ] Add a training score rubric with thresholds for pass, partial pass,
+      recoverable failure, unsafe action, and unusable output.
+- [ ] Define a failure taxonomy mapped to existing recovery classes and new
+      teaching labels: missed scaffold, invalid tool JSON, wrong file path,
+      incomplete feature, failed validation, unsupported authority request,
+      uncited final claim, and poor user-facing summary.
+- [ ] Add a trace-review checklist for each run: prompt, chosen models,
+      allowed tools, tool calls, touched paths, Evidence IDs, journal entry,
+      scorecard, and next tuning action.
+- [ ] Add a small training-run index/export convention under ignored runtime
+      state so repeated runs can be compared without committing private
+      session artifacts.
+- [ ] Extend the Teaching Lab or supporting helpers only if needed to make
+      baseline runs and scorecard comparison ergonomic.
+- [ ] Run baseline mocked and live-Ollama runs where available, then record
+      the results in App Journal and `_docs/DEV_LOG.md`.
+- [ ] Park Tranche 14 with updated README, TODO, WE_ARE_HERE_NOW,
+      NORTHSTARS, AGENT_GUIDE, ARCHITECTURE, onboarding, DEV_LOG, app journal,
+      smoke tests, and a commit.
+
+### Planned source tranche: Tranche 15 Builder Doctrine Task Cards
+
+Purpose: turn the way we build apps into explicit task-card primitives the
+sidecar can follow without inferring the scaffold.
+
+- [ ] Create task-card templates for project birth, feature addition, bug fix,
+      validation pass, recovery pass, documentation park, and release handoff.
+- [ ] Add scenario metadata for which doctrine steps are required, optional, or
+      forbidden.
+- [ ] Ensure each task card names allowed tools, expected artifacts,
+      verification checks, journaling expectations, and claim-citation rules.
+- [ ] Add smoke coverage proving task-card parsing and defaults are stable.
+
+### Planned source tranche: Tranche 16 Curriculum Scenario Expansion
+
+Purpose: teach across varied but small apps, not just the two initial fixtures.
+
+- [ ] Add additional static web scenarios such as calculator, timer, habit
+      tracker, markdown previewer, and simple budget table.
+- [ ] Add additional stdlib Python scenarios such as CSV cleaner, file indexer,
+      config validator, and tiny Tkinter utility.
+- [ ] Add scenario variations that require edit-after-feedback rather than
+      first-pass creation only.
+- [ ] Keep every scenario deterministic, stdlib-only, and disposable under
+      ignored runtime state.
+
+### Planned source tranche: Tranche 17 Trace Review And Loop Tuning
+
+Purpose: use generated traces as tuning data before considering weight-level
+fine-tuning.
+
+- [ ] Add tooling or workflow docs to compare scorecards across runs and model
+      choices.
+- [ ] Promote recurring lessons into prompt snippets, task-card constraints,
+      recovery decisions, or tool schema improvements.
+- [ ] Maintain a sanitized tuning-data export format that includes task card,
+      prompt, tool calls, tool results, evidence IDs, score, and reviewer notes.
+- [ ] Keep private paths and verbatim local session data out of committed
+      artifacts.
+
+### Planned source tranche: Tranche 18 Graduation Runs
+
+Purpose: decide whether the sidecar has learned enough to build small apps
+reliably.
+
+- [ ] Define two or more unseen graduation apps before the agent sees them.
+- [ ] Run each app through the full loop: setup, plan, build, verify, recover,
+      checkpoint, journal, score, and park.
+- [ ] Require passing score thresholds, no unsafe authority requests, valid
+      artifacts, accurate final claims, and readable journal/scorecard output.
+- [ ] If graduation fails, feed failures back into Tranche 15-17 style task
+      cards, scenarios, or prompt/contract tuning.
+- [ ] If graduation passes, close the local-agent app-builder northstar and
+      document what remains outside scope.
 
 ### Recently parked support tranche: Tranche 13 Teaching Sandbox Harness
 

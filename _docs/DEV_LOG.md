@@ -1589,6 +1589,52 @@ builder step to teach the sidecar.
 
 ---
 
+## 2026-05-06 — Tranche 14 local-agent training runway planning park
+
+- Selected Tranche 14 as the active next source tranche: Training Curriculum
+  And Baseline Runs.
+- Preserved the staged training runway through Tranche 18:
+  - Tranche 15: Builder Doctrine Task Cards.
+  - Tranche 16: Curriculum Scenario Expansion.
+  - Tranche 17: Trace Review And Loop Tuning.
+  - Tranche 18: Graduation Runs.
+- Updated the continuity packet so the next agent can continue without
+  re-deriving the training direction: README, TODO, WE_ARE_HERE_NOW,
+  NORTHSTARS, AGENT_GUIDE, ARCHITECTURE, onboarding, and this dev log.
+- Clarified that Tranche 14 uses the current `teaching_sandbox_harness`,
+  `local_sidecar_agent`, `agent_run_trace`, `session_evidence_store`,
+  `journal_write`, and operator UI rather than adding new tool authority.
+- Kept model weight fine-tuning out of scope until the project has clean,
+  sanitized, high-signal training traces and scorecards.
+- Defined the active training loop as baseline, score, inspect traces/evidence,
+  tune task cards or prompt/contract constraints, rerun, and park.
+
+Validation:
+
+- Documentation/journal planning park.
+- `git diff --check` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- Privacy scan across updated docs and onboarding -> pass.
+- App journal entry written and journal export run for operator visibility.
+
+Classification: spiral.
+
+- Capability increased: the next phase is now a repeatable training/evaluation
+  runway instead of an undefined "teach the agent" aspiration.
+- Uncertainty decreased: training begins with baseline runs and trace review,
+  not model fine-tuning or broader authority.
+- Boundary clarified: failed training runs should first improve task cards,
+  prompts, constraints, recovery decisions, or scenario checks before adding
+  any new tool capability.
+
+Current read: Tranche 14 is selected and ready for implementation. Start by
+creating the curriculum document, baseline-run protocol, score rubric, failure
+taxonomy, trace-review checklist, and ignored training-run index convention.
+
+---
+
 ## Template for future entries
 
 - Files changed:

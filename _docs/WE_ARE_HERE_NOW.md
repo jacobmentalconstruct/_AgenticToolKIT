@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 12 recovery hardening closed after Tranche 13 support bridge)
+- 2026-05-06 (Tranche 14 local-agent training runway selected)
 
 ## Fresh-thread start
 
@@ -30,7 +30,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     events, optional recovery-model advice, named operator decisions,
     one-click retry, planning workspace hooks, and evidence-backed claim
     guardrails; Tranche 13 Teaching Sandbox Harness is implemented as a
-    side-support bridge for realistic agent practice/eval data
+    side-support bridge for realistic agent practice/eval data; Tranche 14
+    Training Curriculum And Baseline Runs is selected as the active next
+    tranche
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -128,22 +130,27 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   longer timeout and recovery decision controls while keeping model dropdowns
   and no-model disabled-run behavior. The root smoke suite is current at 138
   passing checks with MCP still listing 49 tools.
+- Tranche 14 is now selected as the local-agent app-builder training runway.
+  The next work should document the curriculum, run baseline Teaching Lab /
+  `teaching_sandbox_harness` scenarios, review scorecards and traces, and turn
+  recurring failures into task cards, prompt/contract constraints, or scenario
+  expansions. This is not model weight fine-tuning yet.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck is now the next capability selection:
-  use teaching-harness traces and scorecards to decide the next small builder
-  step to teach the sidecar. The current recovery floor should be exercised
-  rather than expanded into raw authority.
+- The active source-shaped bottleneck is the Tranche 14 training regimen:
+  make baseline runs repeatable and reviewable so the sidecar can learn the
+  builder process from scored evidence instead of ad hoc inference.
 
 ## Next best move
 
-- Use the Teaching Lab and `teaching_sandbox_harness` to run small sandbox
-  builds, inspect Evidence IDs/run traces/journal links, and select the next
-  tranche from observed gaps. Keep authority bounded to guarded tools.
+- Implement Tranche 14: create the training curriculum, baseline-run protocol,
+  score rubric, failure taxonomy, trace-review checklist, and ignored
+  training-run index/export convention. Then run the first baseline scenarios
+  and park the results.
 
 ## Current warnings
 

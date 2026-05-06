@@ -273,6 +273,29 @@ projects under ignored runtime state, routes model work through the existing
 and `journal_write` as visible memory/evidence surfaces. It adds no raw shell
 execution, no dependency installation, and no hidden memory channel.
 
+## Active Northstar: Local-Agent App-Builder Training
+
+The active horizon is to teach the local sidecar agent to build small apps by
+replaying the same builder loop used in this project: read the contract, audit
+setup, plan a small tranche, scaffold safely, write bounded files, validate,
+recover, checkpoint, journal, and park. The agent should learn from scored
+sandbox evidence before any model weight fine-tuning is considered.
+
+The training runway is intentionally staged:
+
+| Tranche | Goal | Output |
+|---|---|---|
+| Tranche 14 | Baseline the current sidecar and define the training regimen. | Curriculum, score rubric, failure taxonomy, trace-review checklist, baseline results. |
+| Tranche 15 | Turn builder doctrine into explicit task cards. | Reusable task-card templates for project birth, feature work, recovery, validation, docs, and handoff. |
+| Tranche 16 | Expand the small-app curriculum. | More deterministic static web and stdlib Python scenarios, including edit-after-feedback variants. |
+| Tranche 17 | Tune from traces rather than guesses. | Prompt/task-card/schema improvements derived from scorecards, Evidence IDs, and run traces. |
+| Tranche 18 | Test graduation on unseen apps. | Pass/fail decision for the app-builder northstar and documented residual scope. |
+
+The success criterion is not "the model says it understands." The sidecar must
+complete unseen small apps through guarded tools, produce valid artifacts,
+avoid unsafe authority requests, cite touched paths or Evidence IDs when
+claiming work, and leave readable App Journal/scorecard handoffs.
+
 ## Later Expansion
 
 These remain valuable, but they should follow the sys-ops layer rather than

@@ -171,6 +171,13 @@ task tracker and a stdlib Python notes CLI. This gives future hardening work
 realistic traces, Evidence IDs, journal links, and score data without adding
 raw shell execution or broader filesystem authority.
 
+**Local-Agent App-Builder Training is the active horizon.** Tranche 14 begins
+the training runway by using the Teaching Lab and current harness to run
+baseline app builds, score them, inspect traces/evidence/journal links, and
+turn repeated failures into explicit task cards, prompt/contract constraints,
+or future scenario work. This is not model weight fine-tuning yet; it is the
+project teaching the sidecar the builder loop one scored step at a time.
+
 The queued local-agent implementation runway is now:
 
 1. **Tranche 7 — Safe Text Workspace Operations:** complete; bounded text/file
@@ -201,6 +208,13 @@ The queued local-agent implementation runway is now:
    create ignored practice projects, run guarded sidecar scenarios, verify and
    score outputs, archive Evidence Shelf material, link run traces and journal
    entries, and export scorecards for future tuning-data review.
+8. **Tranche 14 — Training Curriculum And Baseline Runs:** active as a
+   planning/training runway; define the curriculum, baseline protocols, score
+   rubric, failure taxonomy, trace-review checklist, and ignored training-run
+   index for repeated Teaching Lab/CLI runs.
+9. **Tranche 15-18 — Training Cycle:** planned; convert builder doctrine into
+   task cards, expand small-app scenarios, tune from traces/scorecards, and run
+   unseen graduation apps before closing the app-builder northstar.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

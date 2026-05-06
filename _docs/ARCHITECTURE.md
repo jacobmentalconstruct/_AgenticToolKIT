@@ -35,11 +35,12 @@ The local-agent system operations layer, Safe Text Workspace Operations layer,
 Private Git Workspace Operations layer, Local Sidecar Agent Runtime safe floor,
 Local Agent Operator UI prototype, Bag of Evidence / Evidence Shelf layer,
 Tranche 12 recovery hardening layer, and Tranche 13 Teaching Sandbox Harness are
-implemented. The current architecture now has an Ollama-backed loop that uses
-the guarded toolbox, checkpoints through private Git, hydrates from a visible
-session evidence shelf, records run traces for recovery/tuning data, can be
-exercised from a desktop prototype, can practice in disposable teaching
-sandboxes, and avoids raw shell or unrestricted filesystem parity.
+implemented. Tranche 14 is selected as the active training runway. The current
+architecture now has an Ollama-backed loop that uses the guarded toolbox,
+checkpoints through private Git, hydrates from a visible session evidence
+shelf, records run traces for recovery/tuning data, can be exercised from a
+desktop prototype, can practice in disposable teaching sandboxes, and avoids
+raw shell or unrestricted filesystem parity.
 
 ## Agent Flow
 
@@ -244,6 +245,31 @@ repeatable practice data:
 The operator UI Teaching Lab is a thin human surface over the same tool. It is
 useful for exercising the agent loop and selecting the next small builder step
 from observed traces and scorecards.
+
+## Local-Agent Training Runway
+
+Tranche 14 starts the app-builder training layer over the existing runtime. It
+does not introduce a new authority surface; it organizes the current harness,
+Evidence Shelf, run trace store, App Journal, and operator UI into a repeatable
+training/evaluation cycle.
+
+The data flow is:
+
+1. `teaching_sandbox_harness` creates or runs a bounded scenario.
+2. `local_sidecar_agent` acts through allowlisted guarded tools.
+3. `session_evidence_store` archives visible session evidence when confirmed.
+4. `agent_run_trace` records prompts, models, tool calls, touched paths,
+   recovery classes, Evidence IDs, and journal links.
+5. The harness verifies and scores the run.
+6. The operator reviews the scorecard and promotes lessons into task cards,
+   prompt/contract constraints, or future scenario changes.
+7. App Journal and `_docs/DEV_LOG.md` preserve the durable project-level
+   training story.
+
+Tranches 15-18 continue this architecture by adding builder-doctrine task
+cards, broader small-app scenarios, trace-driven loop tuning, and unseen
+graduation runs. Model weight fine-tuning is deliberately deferred until the
+project has clean, sanitized, high-signal traces worth tuning on.
 
 ## Local Agent Operator UI
 
