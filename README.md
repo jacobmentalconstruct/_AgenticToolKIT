@@ -148,23 +148,26 @@ long-term memory; the bag is session short-term-memory archive, with explicit
 promotion into journal entries when a decision or outcome should become project
 history.
 
-**Local Agent Runtime Recovery and Run Trace is now started.**
+**Local Agent Runtime Recovery and Live Model Hardening is now implemented.**
 `agent_run_trace` is the first tuning-data spine for the local sidecar agent.
 It records successful and failed runs, recovery classes, selected models,
 allowed tools, tool calls/results, approvals, touched paths, Evidence IDs,
 verification signals, and linked journal entries under ignored runtime state.
-The first implemented recovery slice normalizes timeout, unreachable-Ollama,
-missing-model, and generic model-request failures without widening the agent's
-authority. The popup/chat operator surface should evolve as the narrative
-cockpit over project LTM, Evidence Shelf, and run traces: it helps the project
-teach the sidecar agent one safe builder step at a time.
+The recovery layer now normalizes live-model transport failures, malformed tool
+calls, schema errors, tool failures, approval stops, max-round exhaustion, and
+filesystem-claim warnings. It also adds model readiness preflight, optional
+recovery-model advice, heartbeat events for long runs, named operator recovery
+decisions, one-click retry with longer timeout in the UI, disposable planning
+workspace hooks under ignored runtime state, and stronger touched-path/Evidence
+ID citation checks. The popup/chat operator surface is now the narrative
+cockpit floor over project LTM, Evidence Shelf, run traces, and scorecards.
 
 **Teaching Sandbox Harness is now implemented as a support bridge.**
 `teaching_sandbox_harness` creates ignored runtime sandbox projects, copies in
 the builder-contract/task-card substrate, runs the local sidecar agent through
 guarded mocked or live model flows, verifies deterministic scenario checks,
 scores the result, and exports scorecards. The first scenarios are a static
-task tracker and a stdlib Python notes CLI. This gives Tranche 12 recovery work
+task tracker and a stdlib Python notes CLI. This gives future hardening work
 realistic traces, Evidence IDs, journal links, and score data without adding
 raw shell execution or broader filesystem authority.
 
@@ -188,13 +191,11 @@ The queued local-agent implementation runway is now:
    overflow turns into ignored SQLite state, search/retrieve evidence, and
    connect evidence IDs to normal journaled project memory.
 6. **Tranche 12 — Local Agent Runtime Recovery and Live Model Hardening:**
-   in progress; the run-trace/tuning-data spine, model readiness preflight,
-   concise operator recovery statuses, initial claim guardrail warnings, and
-   stable recovery classes for transport, malformed tool calls, schema errors,
-   tool failures, approval stops, and max-round exhaustion are implemented.
-   Remaining work should add heartbeat/streaming behavior, named approval
-   choices, richer live recovery UX, and deeper narrative-cockpit behavior
-   without adding raw terminal parity.
+   complete; the run-trace/tuning-data spine, model readiness preflight,
+   concise operator recovery statuses, named recovery decisions, heartbeat
+   runtime events, optional recovery-model advice, disposable planning
+   workspace hooks, evidence-backed failure parking, and touched-path/Evidence
+   ID claim guardrails are implemented without adding raw terminal parity.
 7. **Tranche 13 — Teaching Sandbox Harness:** complete as a side-support
    tranche; `teaching_sandbox_harness` and the operator UI Teaching Lab can
    create ignored practice projects, run guarded sidecar scenarios, verify and

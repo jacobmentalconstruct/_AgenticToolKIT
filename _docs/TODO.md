@@ -16,28 +16,31 @@ _Last updated: 2026-05-06._
   expansion is intentionally out of scope for this release candidate.
 - The local-agent sys-ops northstar, Safe Text Workspace Operations, Private
   Git Workspace Operations, Tranche 9 local sidecar agent safe floor, Tranche
-  10 operator UI prototype, Tranche 11 Bag of Evidence / Evidence Shelf, and
-  Tranche 13 Teaching Sandbox Harness support bridge are closed. The active
-  source horizon returns to Tranche 12: Local Agent Runtime Recovery and Live
-  Model Hardening.
+  10 operator UI prototype, Tranche 11 Bag of Evidence / Evidence Shelf,
+  Tranche 12 Local Agent Runtime Recovery and Live Model Hardening, and
+  Tranche 13 Teaching Sandbox Harness support bridge are closed. The next
+  source horizon should be selected from teaching-harness findings rather than
+  by widening raw authority.
 
 ---
 
 ## Current state
 
-**Tranche 12 is in progress as the recovery and tuning-data layer.** The
-implemented surface now includes `agent_run_trace`, model readiness preflight,
-stable recovery classes for transport/tool-loop failures, concise UI recovery
-status text, and initial claim guardrail warnings. Remaining work should harden
-heartbeat/streaming, named approvals, richer live recovery UX, and the
-popup/chat narrative cockpit without widening authority.
+**Tranche 12 is closed as the recovery and tuning-data layer.** The implemented
+surface now includes `agent_run_trace`, model readiness preflight, stable
+recovery classes for transport/tool-loop failures, concise UI recovery status
+text, named recovery decisions, one-click retry with longer timeout, optional
+recovery-model advice, heartbeat events, disposable planning workspace hooks,
+and evidence-backed claim guardrails. The popup/chat surface now has the
+narrative-cockpit floor without widening authority.
 
-**Tranche 13 is parked as a support tranche for Tranche 12.** The implemented
-surface is `teaching_sandbox_harness`, plus a Teaching Lab tab in `agent_ui.py`.
+**Tranche 13 is parked as a support tranche for the next sidecar hardening
+cycle.** The implemented surface is `teaching_sandbox_harness`, plus a Teaching
+Lab tab in `agent_ui.py`.
 It creates ignored runtime practice projects, runs the local sidecar through
 guarded scenarios, records trace/evidence/journal links, verifies deterministic
-outputs, scores runs, and exports scorecards. This gives the remaining recovery
-work realistic data without adding raw terminal parity.
+outputs, scores runs, and exports scorecards. This gives future sidecar
+hardening work realistic data without adding raw terminal parity.
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -93,7 +96,7 @@ tool failures, approval stops, and exhausted tool rounds.
 - [x] Update README, AGENT_GUIDE, ARCHITECTURE, NORTHSTARS, TODO,
       WE_ARE_HERE_NOW, onboarding, and DEV_LOG.
 
-### Active source tranche: Tranche 12 Local Agent Runtime Recovery and Live Model Hardening
+### Parked source tranche: Tranche 12 Local Agent Runtime Recovery and Live Model Hardening
 
 - [x] Add `agent_run_trace` as the local run/tuning-data spine under ignored
       runtime state.
@@ -111,7 +114,7 @@ tool failures, approval stops, and exhausted tool rounds.
       `approval_required`, and `max_rounds_exhausted`.
 - [x] Add deterministic recovery next-actions that turn failure classes into
       operator-facing actions without inventing new authority.
-- [ ] Add an optional recovery model role that turns failure classes into
+- [x] Add an optional recovery model role that turns failure classes into
       operator-facing next actions without inventing new authority.
 - [x] Improve `local_sidecar_agent` model readiness checks before `run`:
       validate Ollama reachability, selected model availability, and likely
@@ -119,30 +122,31 @@ tool failures, approval stops, and exhausted tool rounds.
 - [x] Add first-pass operator UI recovery UX for failed runs: concise status
       text from recovery classes while preserving sanitized JSON details for
       inspection.
-- [ ] Extend operator UI recovery UX with one-click retry with longer timeout,
+- [x] Extend operator UI recovery UX with one-click retry with longer timeout,
       refresh models, disabled run when models are unavailable, and named
       recovery decisions.
-- [ ] Shape the popup/chat operator window as the narrative cockpit over
+- [x] Shape the popup/chat operator window as the narrative cockpit over
       project LTM, Evidence Shelf, and run traces so each sidecar session has a
       coherent causal direction and produces inspectable tuning data.
-- [ ] Add optional streaming or heartbeat support for long-running Ollama turns,
+- [x] Add optional streaming or heartbeat support for long-running Ollama turns,
       while keeping the existing non-streaming path as the smoke-test default.
-- [ ] Extend failed live-model archiving beyond mocked transport failures and
+- [x] Extend failed live-model archiving beyond mocked transport failures and
       keep App Journal metadata linked to recovery status, evidence IDs,
       selected models, and timeout settings.
 - [x] Add initial filesystem-claim guardrail warnings and final-summary
       evidence verification metadata.
-- [ ] Harden filesystem-claim guardrails using `session_evidence_store`, so
+- [x] Harden filesystem-claim guardrails using `session_evidence_store`, so
       agent-facing summaries cite touched paths or evidence IDs when claiming
       work was done.
-- [ ] Add disposable run-workspace planning hooks for future verification tools,
+- [x] Add disposable run-workspace planning hooks for future verification tools,
       but keep dependency installation and broad CLI-in-sandbox behavior out of
       Tranche 12.
-- [ ] Expand approval UX from booleans toward named decisions where the current
+- [x] Expand approval UX from booleans toward named decisions where the current
       tool contracts already expose safe choices.
 - [x] Extend smoke coverage with preflight failure, mocked malformed
-      tool-call recovery, schema-error recovery, max-round recovery, and UI
-      recovery status helper tests.
+      tool-call recovery, schema-error recovery, max-round recovery, recovery
+      model advice, heartbeat/planning hooks, claim guardrail enforcement,
+      named decisions, and UI recovery helper tests.
 - [x] Update README, agent guide, architecture, northstars, TODO,
       WE_ARE_HERE_NOW, onboarding, and dev log after this implementation slice.
 

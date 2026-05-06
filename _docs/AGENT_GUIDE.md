@@ -404,9 +404,9 @@ project LTM. Do not copy all verbatim evidence into the journal; promote only
 the decisions, outcomes, or evidence IDs that should survive as project
 history.
 
-### Loop 12: Preflight → Run → Recover → Cite → Park
+### Loop 12: Preflight → Run → Recover → Decide → Cite → Park
 
-_The active local-agent hardening loop. Use when live Ollama turns or
+_The implemented local-agent hardening loop. Use when live Ollama turns or
 operator UI runs fail, stall, or produce claims that need evidence._
 
 ```
@@ -422,11 +422,17 @@ RUN
 
 RECOVER
   recovery classification           → timeout, missing model, malformed tool call, schema error, approval stop, max rounds
-  operator action                   → refresh models, retry with longer timeout, inspect details, or stop
+  optional recovery model advice    → summarize next steps without adding authority
+  heartbeat                         → keep long local-model turns visible in ignored runtime logs
+
+DECIDE
+  named recovery decision           → refresh models, retry with longer timeout, confirm mutation, cite evidence, inspect, or stop
+  Agent Console                     → use one-click retry/decision controls; keep model choices dropdown-only
 
 CITE
   session_evidence_store shelf      → cite evidence IDs for session memory
   touched_paths                     → cite changed files for filesystem claims
+  claim_enforcement                 → use `require_citation` when summaries must name touched paths or Evidence IDs
 
 PARK
   session_evidence_store archive_window → archive failed/recovered turns when confirmed
@@ -445,15 +451,17 @@ Current recovery classes are `request_timeout`, `ollama_unreachable`,
 `max_rounds_exhausted`, and `claim_guardrail_warning`. Treat these as
 operator-facing states, not permission to widen the tool surface.
 
-The popup/chat operator surface is the narrative cockpit for this loop. It
-should expose the project LTM, Evidence Shelf, and run traces as visible context
-so the sidecar learns the builder process one step at a time instead of
-inventing scaffolds, memory, or authority.
+The popup/chat operator surface is the narrative cockpit for this loop. It now
+exposes the floor for project LTM, Evidence Shelf, run traces, recovery
+decisions, and teaching scorecards as visible context so the sidecar learns the
+builder process one step at a time instead of inventing scaffolds, memory, or
+authority.
 
 ### Loop 13: Scenario → Sandbox → Run → Verify → Score
 
 _The teaching/evaluation loop. Use when the sidecar needs to practice a builder
-step in a disposable project before the remaining recovery work is hardened._
+step in a disposable project and generate traces for the next small hardening
+decision._
 
 ```
 SCENARIO

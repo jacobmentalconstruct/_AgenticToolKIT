@@ -1537,6 +1537,58 @@ and evidence-backed claim hardening.
 
 ---
 
+## 2026-05-06 — Tranche 12 recovery hardening closeout
+
+- Finished the remaining Tranche 12 recovery layer in `local_sidecar_agent`
+  without adding raw terminal parity or broad CLI authority.
+- Added named recovery decisions for operator-visible failure classes, including
+  refresh-model, retry-with-longer-timeout, retry-with-citations, confirmation,
+  inspect, and stop choices where the existing contracts make those choices
+  safe.
+- Added optional recovery-model advice for operator next steps. The advice is
+  descriptive only; it does not grant new tool authority or bypass confirmation.
+- Added optional heartbeat events under ignored local-agent runtime logs so
+  long Ollama turns can show progress while the deterministic non-streaming
+  path remains the smoke-test default.
+- Added disposable planning workspace hooks under ignored runtime state for
+  future verification planning, gated by normal mutation confirmation.
+- Hardened filesystem-claim guardrails so summaries that claim completed work
+  can require explicit touched-path or Evidence ID citations.
+- Extended `agent_ui.py` with recovery decision controls, one-click retry with
+  a longer timeout, recovery-model selection, heartbeat and planning toggles,
+  claim-enforcement selection, and preserved model-dropdown/no-model run
+  disabling behavior.
+- Extended `src/lib/operator_ui_support.py` with recovery-decision extraction
+  and safe retry-payload patching.
+- Extended smoke and UI self-tests for recovery-model advice, named decisions,
+  heartbeat/planning hooks, claim guardrail enforcement, and the operator UI
+  retry payload path.
+- Updated README, TODO, WE_ARE_HERE_NOW, NORTHSTARS, ARCHITECTURE,
+  AGENT_GUIDE, onboarding, and this dev log.
+
+Validation:
+
+- `python agent_ui.py --self-test` -> pass.
+- `python src\smoke_test.py` -> 138/138 pass; MCP lists 49 tools.
+
+Classification: spiral.
+
+- Capability increased: live local-agent failures now return structured,
+  named operator decisions and leave richer evidence, trace, and journal
+  metadata for later teaching/evaluation review.
+- Uncertainty decreased: the timeout/recovery path, model-advice path,
+  heartbeat/planning hooks, and claim-citation guardrails are covered by
+  deterministic smoke fixtures.
+- Boundary clarified: recovery remains a hardening layer over existing guarded
+  tool contracts. No raw shell, dependency installation, hidden memory, or
+  unrestricted filesystem authority was added.
+
+Current read: Tranche 12 is closed. Use the Teaching Lab and
+`teaching_sandbox_harness` to generate sandbox traces and choose the next small
+builder step to teach the sidecar.
+
+---
+
 ## Template for future entries
 
 - Files changed:

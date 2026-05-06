@@ -34,7 +34,7 @@ folders, old project roots, generated caches, or hidden runtime state.
 The local-agent system operations layer, Safe Text Workspace Operations layer,
 Private Git Workspace Operations layer, Local Sidecar Agent Runtime safe floor,
 Local Agent Operator UI prototype, Bag of Evidence / Evidence Shelf layer,
-Tranche 12 run-trace foundation, and Tranche 13 Teaching Sandbox Harness are
+Tranche 12 recovery hardening layer, and Tranche 13 Teaching Sandbox Harness are
 implemented. The current architecture now has an Ollama-backed loop that uses
 the guarded toolbox, checkpoints through private Git, hydrates from a visible
 session evidence shelf, records run traces for recovery/tuning data, can be
@@ -155,18 +155,19 @@ the first target.
 
 The safe floor deliberately does not add raw CLI parity, dependency
 installation, or a duplicate file/VCS stack. It routes through the existing
-guarded tools. Future hardening should add recovery-pattern detection, evidence
-passes, filesystem-claim guardrails, disposable run workspaces, and richer
-approval UX.
+guarded tools. Tranche 12 closes the first recovery hardening layer over that
+floor with run traces, evidence passes, filesystem-claim guardrails,
+disposable planning hooks, and richer approval UX.
 
 ## Runtime Recovery and Live Model Hardening
 
-Tranche 12 is the active architecture step. Its implemented slices add
-`agent_run_trace`, a project-scoped ignored SQLite run/tuning-data store, model
-readiness preflight, initial claim guardrail metadata, and structured recovery
-classification in `local_sidecar_agent`. Remaining work should harden the
-Ollama-backed runtime and operator UI around longer live-model runs and richer
-operator decisions without expanding the agent's authority.
+Tranche 12 is now closed as the recovery and live-model hardening layer. It
+adds `agent_run_trace`, a project-scoped ignored SQLite run/tuning-data store,
+model readiness preflight, structured recovery classification in
+`local_sidecar_agent`, optional recovery-model advice, heartbeat events, named
+operator recovery decisions, disposable planning workspace hooks, and
+evidence-backed claim guardrails. The layer hardens live Ollama runs and the
+operator UI without expanding the agent's authority.
 
 `agent_run_trace` owns this ignored runtime path:
 
@@ -186,25 +187,28 @@ tool execution, Evidence Shelf parking, and operator UX:
 1. preflight selected models before a run
 2. classify transport/model/tool/approval failures into stable recovery classes
 3. return structured recovery status in the normal JSON envelope
-4. present concise retry/status actions in `agent_ui.py`
+4. present concise retry/status actions and named decisions in `agent_ui.py`
 5. archive confirmed failed/recovered turns into `session_evidence_store`
 6. write App Journal metadata linking recovery class, evidence IDs, models, and
    timeout settings
 7. require final summaries to cite touched paths or evidence IDs for claims
+8. write heartbeat events under ignored runtime state when enabled
+9. expose disposable planning workspace hooks for future verification loops
 
 Implemented recovery classes include `request_timeout`, `ollama_unreachable`,
 `model_missing`, fallback `model_request_failed`, `malformed_tool_call`,
 `tool_schema_error`, `tool_runtime_error`, `approval_required`,
 `max_rounds_exhausted`, and `claim_guardrail_warning`.
 
-This layer should preserve deterministic mocked-model smoke tests and keep
-streaming or heartbeat behavior optional. It should not add raw command
-execution, dependency installation, or hidden memory.
+This layer preserves deterministic mocked-model smoke tests and keeps heartbeat
+behavior optional. It does not add raw command execution, dependency
+installation, or hidden memory.
 
-The popup/chat operator surface should become the narrative cockpit over
-project LTM, Evidence Shelf, and run traces. Its job is to help the user and
-sidecar agent move one builder step at a time, while each step leaves
-inspectable evidence that can later become evaluation or tuning data.
+The popup/chat operator surface now has the narrative cockpit floor over
+project LTM, Evidence Shelf, run traces, recovery decisions, and teaching
+scorecards. Its job is to help the user and sidecar agent move one builder step
+at a time, while each step leaves inspectable evidence that can later become
+evaluation or tuning data.
 
 ## Teaching Sandbox Harness
 
@@ -238,8 +242,8 @@ repeatable practice data:
 7. score and export the run for operator review
 
 The operator UI Teaching Lab is a thin human surface over the same tool. It is
-useful for exercising the agent loop before hardening richer recovery behavior
-in Tranche 12.
+useful for exercising the agent loop and selecting the next small builder step
+from observed traces and scorecards.
 
 ## Local Agent Operator UI
 

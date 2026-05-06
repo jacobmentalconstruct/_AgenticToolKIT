@@ -20,12 +20,14 @@ if str(SRC) not in sys.path:
 from lib.operator_ui_support import (  # noqa: E402
     agent_payload,
     agent_recovery_status,
+    apply_recovery_decision,
     choose_model,
     default_input_from_schema,
     dispatch_tool,
     format_json,
     is_mutating_tool,
     load_tool_metadata,
+    recovery_decisions,
     sanitize_path_text,
     tool_index,
 )
@@ -89,6 +91,10 @@ class OperatorUI:
         self.tools = tool_index(toolbox_root)
         self.tool_metadata: dict[str, dict[str, Any]] = {}
         self.model_names: list[str] = []
+        self.last_agent_payload: dict[str, Any] = {}
+        self.last_agent_result: dict[str, Any] = {}
+        self.agent_running = False
+        self.agent_started_at = 0.0
 
         self.root.title(".dev-tools Agent Operator")
         self.root.geometry("1060x760")
@@ -131,6 +137,7 @@ class OperatorUI:
         self.base_url_var = tk.StringVar(value="http://localhost:11434")
         self.planner_model_var = tk.StringVar()
         self.response_model_var = tk.StringVar()
+        self.recovery_model_var = tk.StringVar()
         self.timeout_var = tk.StringVar(value="60")
         self.rounds_var = tk.StringVar(value="4")
         self.session_id_var = tk.StringVar(value="default")
@@ -138,8 +145,13 @@ class OperatorUI:
         self.confirm_mutations_var = tk.BooleanVar(value=False)
         self.confirm_checkpoint_var = tk.BooleanVar(value=False)
         self.confirm_evidence_var = tk.BooleanVar(value=False)
+        self.heartbeat_var = tk.BooleanVar(value=True)
+        self.recovery_model_enabled_var = tk.BooleanVar(value=False)
+        self.planning_workspace_var = tk.BooleanVar(value=False)
         self.checkpoint_var = tk.BooleanVar(value=True)
         self.use_evidence_var = tk.BooleanVar(value=True)
+        self.claim_enforcement_var = tk.StringVar(value="warn")
+        self.recovery_decision_var = tk.StringVar()
         self.agent_status_var = tk.StringVar(value="Refresh models to enable agent runs.")
         self.allowed_tool_vars: dict[str, tk.BooleanVar] = {}
 
@@ -153,13 +165,21 @@ class OperatorUI:
         self.planner_combo = self._last_combo
         self._combo(left, "Response model", self.response_model_var)
         self.response_combo = self._last_combo
+        self._combo(left, "Recovery model", self.recovery_model_var)
+        self.recovery_combo = self._last_combo
         self._entry(left, "Timeout seconds", self.timeout_var)
         self._entry(left, "Max tool rounds", self.rounds_var)
         self._entry(left, "Session ID", self.session_id_var)
         self._entry(left, "Evidence window turns", self.window_turns_var)
+        self._combo(left, "Claim enforcement", self.claim_enforcement_var)
+        self.claim_combo = self._last_combo
+        self.claim_combo.configure(values=["warn", "require_citation"])
         ttk.Checkbutton(left, text="Confirm mutations", variable=self.confirm_mutations_var).pack(anchor=tk.W, pady=(4, 0))
         ttk.Checkbutton(left, text="Confirm checkpoint", variable=self.confirm_checkpoint_var).pack(anchor=tk.W)
         ttk.Checkbutton(left, text="Confirm evidence archive", variable=self.confirm_evidence_var).pack(anchor=tk.W)
+        ttk.Checkbutton(left, text="Heartbeat while running", variable=self.heartbeat_var).pack(anchor=tk.W)
+        ttk.Checkbutton(left, text="Use recovery model advice", variable=self.recovery_model_enabled_var).pack(anchor=tk.W)
+        ttk.Checkbutton(left, text="Plan in runtime workspace", variable=self.planning_workspace_var).pack(anchor=tk.W)
         ttk.Checkbutton(left, text="Checkpoint after run", variable=self.checkpoint_var).pack(anchor=tk.W)
         ttk.Checkbutton(left, text="Use Evidence Shelf", variable=self.use_evidence_var).pack(anchor=tk.W)
 
@@ -181,6 +201,30 @@ class OperatorUI:
         self.run_btn.pack(side=tk.LEFT)
         ttk.Button(actions, text="Clear Output", command=lambda: self._set_text(self.agent_output, "")).pack(side=tk.LEFT, padx=(8, 0))
         ttk.Label(actions, textvariable=self.agent_status_var, style="Muted.TLabel").pack(side=tk.RIGHT)
+        recovery_row = ttk.Frame(right)
+        recovery_row.pack(fill=tk.X, pady=(0, 8))
+        self.recovery_decision_combo = ttk.Combobox(
+            recovery_row,
+            textvariable=self.recovery_decision_var,
+            values=[],
+            state="readonly",
+            width=32,
+        )
+        self.recovery_decision_combo.pack(side=tk.LEFT)
+        self.apply_decision_btn = ttk.Button(
+            recovery_row,
+            text="Apply Decision",
+            command=self._apply_recovery_decision,
+            state=tk.DISABLED,
+        )
+        self.apply_decision_btn.pack(side=tk.LEFT, padx=(8, 0))
+        self.retry_timeout_btn = ttk.Button(
+            recovery_row,
+            text="Retry + Timeout",
+            command=lambda: self._apply_recovery_decision("retry_longer_timeout"),
+            state=tk.DISABLED,
+        )
+        self.retry_timeout_btn.pack(side=tk.LEFT, padx=(8, 0))
 
         ttk.Label(right, text="Sanitized output", style="Muted.TLabel").pack(anchor=tk.W)
         self.agent_output = self._text(right, height=22)
@@ -352,8 +396,10 @@ class OperatorUI:
     def _apply_models(self, result: dict[str, Any]) -> None:
         self.planner_combo.configure(values=self.model_names)
         self.response_combo.configure(values=self.model_names)
+        self.recovery_combo.configure(values=self.model_names)
         self.planner_model_var.set(choose_model(self.model_names, ["qwen2.5-coder", "qwen2.5"], ""))
         self.response_model_var.set(choose_model(self.model_names, ["qwen3.5", "qwen3"], ""))
+        self.recovery_model_var.set(choose_model(self.model_names, ["qwen3.5", "qwen3"], ""))
         if self.model_names:
             self.agent_status_var.set(f"{len(self.model_names)} models available.")
             self.run_btn.configure(state=tk.NORMAL)
@@ -394,6 +440,11 @@ class OperatorUI:
                 confirm_checkpoint=self.confirm_checkpoint_var.get(),
                 checkpoint=self.checkpoint_var.get(),
                 confirm_evidence=self.confirm_evidence_var.get(),
+                heartbeat=self.heartbeat_var.get(),
+                use_recovery_model=self.recovery_model_enabled_var.get(),
+                recovery_model=self.recovery_model_var.get(),
+                claim_enforcement=self.claim_enforcement_var.get() or "warn",
+                planning_workspace=self.planning_workspace_var.get(),
                 use_evidence_shelf=self.use_evidence_var.get(),
                 window_turns=int(self.window_turns_var.get() or "8"),
                 session_id=self.session_id_var.get().strip(),
@@ -401,8 +452,13 @@ class OperatorUI:
         except Exception as exc:
             messagebox.showerror(".dev-tools", str(exc))
             return
+        self.last_agent_payload = payload
         self.agent_status_var.set("Agent running...")
+        self.agent_running = True
+        import time
+        self.agent_started_at = time.time()
         self.run_btn.configure(state=tk.DISABLED)
+        self._pulse_agent_status()
         self._threaded(lambda: self._run_agent_worker(payload))
 
     def _run_agent_worker(self, payload: dict[str, Any]) -> None:
@@ -413,9 +469,56 @@ class OperatorUI:
         self.root.after(0, lambda: self._finish_agent_run(result))
 
     def _finish_agent_run(self, result: dict[str, Any]) -> None:
+        self.agent_running = False
+        self.last_agent_result = result
         self.run_btn.configure(state=tk.NORMAL if self.model_names else tk.DISABLED)
         self.agent_status_var.set(agent_recovery_status(result))
+        self._populate_recovery_decisions(result)
         self._set_text(self.agent_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
+
+    def _pulse_agent_status(self) -> None:
+        if not self.agent_running:
+            return
+        import time
+        elapsed = int(time.time() - self.agent_started_at)
+        self.agent_status_var.set(f"Agent running... {elapsed}s")
+        self.root.after(1000, self._pulse_agent_status)
+
+    def _populate_recovery_decisions(self, result: dict[str, Any]) -> None:
+        decisions = recovery_decisions(result)
+        labels = [f"{item.get('id')} - {item.get('label', item.get('id'))}" for item in decisions]
+        self.recovery_decision_combo.configure(values=labels)
+        self.recovery_decision_var.set(labels[0] if labels else "")
+        state = tk.NORMAL if labels else tk.DISABLED
+        self.apply_decision_btn.configure(state=state)
+        retry_available = any(item.get("id") == "retry_longer_timeout" for item in decisions)
+        self.retry_timeout_btn.configure(state=tk.NORMAL if retry_available else tk.DISABLED)
+
+    def _apply_recovery_decision(self, decision_id: str | None = None) -> None:
+        decisions = recovery_decisions(self.last_agent_result)
+        selected = decision_id or self.recovery_decision_var.get().split(" - ", 1)[0]
+        decision = next((item for item in decisions if item.get("id") == selected), None)
+        if not decision:
+            return
+        kind = str(decision.get("kind", ""))
+        if kind == "refresh_models":
+            self._refresh_models()
+            return
+        if decision.get("id") == "confirm_mutations":
+            self.confirm_mutations_var.set(True)
+        payload = apply_recovery_decision(self.last_agent_payload, decision)
+        if not payload or kind in {"operator", "stop"}:
+            self.agent_status_var.set(str(decision.get("label", "Decision recorded.")))
+            return
+        self.timeout_var.set(str(payload.get("timeout_seconds", self.timeout_var.get())))
+        self.last_agent_payload = payload
+        self.agent_status_var.set(f"Applying decision: {decision.get('label', selected)}")
+        self.agent_running = True
+        import time
+        self.agent_started_at = time.time()
+        self.run_btn.configure(state=tk.DISABLED)
+        self._pulse_agent_status()
+        self._threaded(lambda: self._run_agent_worker(payload))
 
     def _allowed_tools(self) -> list[str]:
         return [name for name, var in self.allowed_tool_vars.items() if var.get()]
@@ -619,16 +722,31 @@ def self_test() -> int:
         confirm_checkpoint=False,
         checkpoint=True,
         confirm_evidence=True,
+        heartbeat=True,
+        use_recovery_model=True,
+        recovery_model="qwen3.5:4b",
+        claim_enforcement="require_citation",
+        planning_workspace=True,
         use_evidence_shelf=True,
         window_turns=8,
         session_id="self-test",
     )
     assert payload["action"] == "run"
     assert payload["session_id"] == "self-test"
+    assert payload["heartbeat"] is True
+    assert payload["claim_enforcement"] == "require_citation"
     assert "Timed out" in agent_recovery_status({
         "status": "error",
-        "result": {"recovery": {"class": "request_timeout", "next_actions": ["increase_timeout", "retry_run"]}},
+        "result": {
+            "recovery": {
+                "class": "request_timeout",
+                "next_actions": ["increase_timeout", "retry_run"],
+                "decisions": [{"id": "retry_longer_timeout", "patch": {"timeout_seconds": 120}}],
+            }
+        },
     })
+    retry = apply_recovery_decision(payload, {"id": "retry_longer_timeout", "patch": {"timeout_seconds": 120}})
+    assert retry["timeout_seconds"] == 120
     assert "<toolbox_root>" in sanitize_path_text(str(ROOT / "README.md"), toolbox_root=ROOT)
     scenarios = dispatch_tool(ROOT, "teaching_sandbox_harness", {"project_root": str(ROOT), "action": "list_scenarios"})
     assert scenarios["status"] == "ok"

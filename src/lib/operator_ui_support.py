@@ -126,6 +126,11 @@ def agent_payload(
     confirm_checkpoint: bool,
     checkpoint: bool,
     confirm_evidence: bool = False,
+    heartbeat: bool = False,
+    use_recovery_model: bool = False,
+    recovery_model: str = "",
+    claim_enforcement: str = "warn",
+    planning_workspace: bool = False,
     use_evidence_shelf: bool = True,
     window_turns: int = 8,
     session_id: str = "",
@@ -144,13 +149,50 @@ def agent_payload(
         "confirm_checkpoint": confirm_checkpoint,
         "checkpoint": checkpoint,
         "confirm_evidence": confirm_evidence,
+        "heartbeat": heartbeat,
+        "use_recovery_model": use_recovery_model,
+        "claim_enforcement": claim_enforcement,
+        "planning_workspace": planning_workspace,
         "use_evidence_shelf": use_evidence_shelf,
         "window_turns": window_turns,
         "write_session": True,
     }
+    if recovery_model:
+        payload["recovery_model"] = recovery_model
     if session_id:
         payload["session_id"] = session_id
     return payload
+
+
+def recovery_decisions(result: dict[str, Any]) -> list[dict[str, Any]]:
+    payload = result.get("result", {}) if isinstance(result, dict) else {}
+    recovery = payload.get("recovery", {}) if isinstance(payload, dict) else {}
+    decisions = recovery.get("decisions", []) if isinstance(recovery, dict) else []
+    if isinstance(decisions, list):
+        return [dict(item) for item in decisions if isinstance(item, dict) and item.get("id")]
+    return []
+
+
+def apply_recovery_decision(payload: dict[str, Any], decision: dict[str, Any]) -> dict[str, Any]:
+    updated = dict(payload)
+    decision_id = str(decision.get("id", ""))
+    patch = decision.get("patch", {})
+    if isinstance(patch, dict):
+        updated.update(patch)
+    if decision_id == "confirm_mutations":
+        updated["confirm_mutations"] = True
+    elif decision_id == "confirm_evidence":
+        updated["confirm_evidence"] = True
+    elif decision_id == "confirm_checkpoint":
+        updated["confirm_checkpoint"] = True
+    elif decision_id == "retry_with_citations":
+        updated["claim_enforcement"] = "require_citation"
+        prompt = str(updated.get("prompt", "")).strip()
+        updated["prompt"] = (
+            prompt
+            + "\n\nWhen summarizing completed work, cite touched paths or evidence IDs exactly."
+        ).strip()
+    return updated
 
 
 def dispatch_tool(toolbox_root: str | Path, tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -234,6 +276,8 @@ def agent_recovery_status(result: dict[str, Any]) -> str:
         prefix = "Tool schema error."
     elif recovery_class == "tool_runtime_error":
         prefix = "Tool failed."
+    elif recovery_class == "claim_guardrail_warning":
+        prefix = "Claim guardrail warning."
     else:
         prefix = f"Recovery: {recovery_class}."
     return f"{prefix} Next: {action_text}." if action_text else prefix

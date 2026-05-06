@@ -53,6 +53,19 @@ FILE_METADATA = {
             "confirm_checkpoint": {"type": "boolean", "default": False},
             "checkpoint": {"type": "boolean", "default": True},
             "confirm_evidence": {"type": "boolean", "default": False},
+            "heartbeat": {"type": "boolean", "default": False},
+            "use_recovery_model": {"type": "boolean", "default": False},
+            "recovery_model": {"type": "string", "description": "Optional model used only to draft operator recovery advice."},
+            "mock_recovery_model_response": {
+                "type": "string",
+                "description": "Deterministic recovery-model advice for smoke tests.",
+            },
+            "claim_enforcement": {"type": "string", "enum": ["warn", "require_citation"], "default": "warn"},
+            "planning_workspace": {
+                "type": "boolean",
+                "default": False,
+                "description": "Expose a disposable ignored planning workspace path for future verification loops.",
+            },
             "session_id": {"type": "string"},
             "window_turns": {"type": "integer", "default": 8},
             "use_evidence_shelf": {"type": "boolean", "default": True},
@@ -105,6 +118,11 @@ class AgentConfig:
     confirm_checkpoint: bool = False
     checkpoint: bool = True
     confirm_evidence: bool = False
+    heartbeat: bool = False
+    use_recovery_model: bool = False
+    recovery_model: str = ""
+    claim_enforcement: str = "warn"
+    planning_workspace: bool = False
     session_id: str = ""
     window_turns: int = 8
     use_evidence_shelf: bool = True
@@ -204,6 +222,13 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         confirm_checkpoint=arguments.get("confirm_checkpoint") is True,
         checkpoint=arguments.get("checkpoint", True) is not False,
         confirm_evidence=arguments.get("confirm_evidence") is True,
+        heartbeat=arguments.get("heartbeat") is True,
+        use_recovery_model=arguments.get("use_recovery_model") is True,
+        recovery_model=str(arguments.get("recovery_model", "")).strip(),
+        claim_enforcement=str(arguments.get("claim_enforcement", "warn")).strip()
+        if str(arguments.get("claim_enforcement", "warn")).strip() in {"warn", "require_citation"}
+        else "warn",
+        planning_workspace=arguments.get("planning_workspace") is True,
         session_id=str(arguments.get("session_id", "")).strip(),
         window_turns=max(0, min(window_turns, 50)),
         use_evidence_shelf=arguments.get("use_evidence_shelf", True) is not False,
@@ -222,6 +247,45 @@ def _scan_models(base_url: str, timeout: int) -> dict[str, Any]:
     models = data.get("models", []) if isinstance(data, dict) else []
     names = [item.get("name", "") for item in models if isinstance(item, dict)]
     return {"available": True, "base_url": base_url, "models": names, "model_count": len(names)}
+
+
+def _heartbeat(
+    runtime_paths: dict[str, Path],
+    config: AgentConfig,
+    session_id: str,
+    phase: str,
+    message: str,
+) -> dict[str, Any]:
+    path = runtime_paths["logs"] / "heartbeat.jsonl"
+    if not config.heartbeat:
+        return {"enabled": False, "path": "logs/heartbeat.jsonl"}
+    event = {"ts": _now(), "session_id": session_id, "phase": phase, "message": message}
+    _append_jsonl(path, event)
+    return {"enabled": True, "path": "logs/heartbeat.jsonl", "last": event}
+
+
+def _planning_workspace(project_root: Path, runtime_paths: dict[str, Path], config: AgentConfig, session_id: str) -> dict[str, Any]:
+    rel_path = f".dev-tools/runtime/local_agent/planning_workspaces/{session_id}"
+    workspace = runtime_paths["base"] / "planning_workspaces" / session_id
+    result: dict[str, Any] = {
+        "enabled": config.planning_workspace,
+        "path": rel_path,
+        "created": False,
+        "reason": "planning_workspace=false",
+    }
+    if not config.planning_workspace:
+        return result
+    result["reason"] = "confirm_mutations=false"
+    if not config.confirm_mutations:
+        return result
+    workspace.mkdir(parents=True, exist_ok=True)
+    (workspace / "README.md").write_text(
+        "Disposable local-agent planning workspace.\n\n"
+        "This ignored runtime folder is for future verification planning notes only.\n",
+        encoding="utf-8",
+    )
+    result.update({"created": True, "reason": "created under ignored runtime state"})
+    return result
 
 
 def _model_readiness(config: AgentConfig) -> dict[str, Any]:
@@ -475,22 +539,37 @@ def _validate_touched(project_root: Path, touched_paths: list[str]) -> dict[str,
     }
 
 
-def _claim_guardrails(final_text: str, touched_paths: list[str], evidence_ids: list[str]) -> dict[str, Any]:
+def _claim_guardrails(
+    final_text: str,
+    touched_paths: list[str],
+    evidence_ids: list[str],
+    *,
+    enforcement: str = "warn",
+) -> dict[str, Any]:
     text = final_text.lower()
     claim_patterns = [
         "i created", "i modified", "i updated", "i wrote", "i validated",
         "created ", "modified ", "updated ", "wrote ", "validated ",
     ]
     claims_work = any(pattern in text for pattern in claim_patterns)
-    has_citation = bool(touched_paths or evidence_ids)
+    path_citations = [path for path in sorted(set(touched_paths)) if path and path.lower() in text]
+    evidence_citations = [item for item in evidence_ids if item and item.lower() in text]
+    has_sources = bool(touched_paths or evidence_ids)
+    has_explicit_citation = bool(path_citations or evidence_citations)
     warnings: list[str] = []
-    if claims_work and not has_citation:
+    if claims_work and not has_sources:
         warnings.append("final_text appears to claim completed work without touched paths or evidence IDs")
+    if enforcement == "require_citation" and claims_work and has_sources and not has_explicit_citation:
+        warnings.append("final_text claims completed work but does not cite a touched path or evidence ID")
     return {
         "passed": not warnings,
+        "enforcement": enforcement,
         "claims_work": claims_work,
         "has_touched_paths": bool(touched_paths),
         "has_evidence_ids": bool(evidence_ids),
+        "has_explicit_citation": has_explicit_citation,
+        "path_citations": path_citations,
+        "evidence_citations": evidence_citations,
         "warnings": warnings,
     }
 
@@ -648,7 +727,7 @@ def _recovery_from_exception(exc: Exception, config: AgentConfig) -> dict[str, A
     else:
         recovery_class = "model_request_failed"
         next_actions = ["inspect_details", "refresh_models", "retry_run"]
-    return {
+    recovery = {
         "class": recovery_class,
         "message": message,
         "next_actions": next_actions,
@@ -658,6 +737,8 @@ def _recovery_from_exception(exc: Exception, config: AgentConfig) -> dict[str, A
         },
         "timeout_seconds": config.timeout_seconds,
     }
+    recovery["decisions"] = _recovery_decisions(recovery, config)
+    return recovery
 
 
 def _recovery_from_class(
@@ -675,7 +756,7 @@ def _recovery_from_class(
         "max_rounds_exhausted": ["increase_max_tool_rounds", "narrow_task_prompt", "inspect_trace"],
         "claim_guardrail_warning": ["inspect_final_text", "cite_touched_paths_or_evidence", "retry_summary"],
     }
-    return {
+    recovery = {
         "class": recovery_class,
         "message": message,
         "next_actions": next_actions if next_actions is not None else defaults.get(recovery_class, ["inspect_details"]),
@@ -685,6 +766,79 @@ def _recovery_from_class(
         },
         "timeout_seconds": config.timeout_seconds,
     }
+    recovery["decisions"] = _recovery_decisions(recovery, config)
+    return recovery
+
+
+def _recovery_decisions(recovery: dict[str, Any], config: AgentConfig) -> list[dict[str, Any]]:
+    recovery_class = str(recovery.get("class", ""))
+    decisions: list[dict[str, Any]] = [{"id": "stop_for_review", "label": "Stop for operator review", "kind": "stop"}]
+    if recovery_class in {"request_timeout", "model_request_failed", "max_rounds_exhausted"}:
+        decisions.insert(0, {
+            "id": "retry_longer_timeout",
+            "label": "Retry with longer timeout",
+            "kind": "retry",
+            "patch": {"timeout_seconds": min(max(config.timeout_seconds * 2, 30), 300)},
+        })
+    if recovery_class in {"ollama_unreachable", "model_missing", "request_timeout", "model_request_failed"}:
+        decisions.insert(0, {"id": "refresh_models", "label": "Refresh model list", "kind": "refresh_models"})
+    if recovery_class == "model_missing":
+        decisions.insert(0, {"id": "choose_available_model", "label": "Choose available models", "kind": "operator"})
+    if recovery_class == "approval_required":
+        decisions.insert(0, {"id": "confirm_mutations", "label": "Enable mutation confirmation", "kind": "set_confirm_mutations"})
+    if recovery_class == "claim_guardrail_warning":
+        decisions.insert(0, {"id": "retry_with_citations", "label": "Retry with evidence citations", "kind": "retry"})
+    if recovery_class in {"malformed_tool_call", "tool_schema_error", "tool_runtime_error"}:
+        decisions.insert(0, {"id": "retry_same_settings", "label": "Retry same settings", "kind": "retry"})
+    seen: set[str] = set()
+    unique: list[dict[str, Any]] = []
+    for decision in decisions:
+        decision_id = str(decision.get("id", ""))
+        if decision_id and decision_id not in seen:
+            seen.add(decision_id)
+            unique.append(decision)
+    return unique
+
+
+def _recovery_model_advice(
+    recovery: dict[str, Any],
+    config: AgentConfig,
+    arguments: dict[str, Any],
+) -> dict[str, Any]:
+    if not config.use_recovery_model:
+        return {"enabled": False}
+    mock = str(arguments.get("mock_recovery_model_response", "")).strip()
+    model = config.recovery_model or config.response_model
+    if mock:
+        return {"enabled": True, "model": model, "message": mock, "mocked": True}
+    prompt = (
+        "Convert this local-agent recovery event into concise operator next steps. "
+        "Do not add authority or recommend raw terminal use.\n\n"
+        + json.dumps({
+            "class": recovery.get("class"),
+            "message": recovery.get("message"),
+            "next_actions": recovery.get("next_actions", []),
+            "decisions": recovery.get("decisions", []),
+        }, sort_keys=True)
+    )
+    try:
+        message = _ollama_chat(config, [{"role": "user", "content": prompt}], model)
+    except Exception as exc:
+        return {"enabled": True, "model": model, "status": "error", "message": str(exc)}
+    return {"enabled": True, "model": model, "status": "ok", "message": _sanitize_model_text(message)[:1200]}
+
+
+def _prepare_recovery(
+    recovery: dict[str, Any],
+    config: AgentConfig,
+    arguments: dict[str, Any],
+) -> dict[str, Any]:
+    if not recovery:
+        return recovery
+    if "decisions" not in recovery:
+        recovery["decisions"] = _recovery_decisions(recovery, config)
+    recovery["recovery_model_advice"] = _recovery_model_advice(recovery, config, arguments)
+    return recovery
 
 
 def _recovery_from_result(result: dict[str, Any], config: AgentConfig) -> dict[str, Any]:
@@ -798,6 +952,8 @@ def _finish_recovery_event(
     touched_paths: list[str],
     recovery: dict[str, Any],
 ) -> dict[str, Any]:
+    recovery = _prepare_recovery(recovery, config, arguments)
+    _heartbeat(runtime_paths, config, session_id, "recovery", f"Recovery event: {recovery['class']}")
     halted_reason = recovery["class"]
     validation = _validate_touched(project_root, touched_paths)
     evidence_archive = _archive_evidence(
@@ -904,12 +1060,15 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
     runtime_paths = _ensure_runtime(project_root)
     run_started = time.time()
     session_id = config.session_id or f"{_stamp()}_{uuid.uuid4().hex[:8]}"
+    heartbeat = _heartbeat(runtime_paths, config, session_id, "start", "Agent run started")
+    planning = _planning_workspace(project_root, runtime_paths, config, session_id)
     mock_responses = arguments.get("mock_ollama_responses")
     if not isinstance(mock_responses, list):
         mock_responses = []
     mock_responses = [str(item) for item in mock_responses]
     mock_failure = str(arguments.get("mock_ollama_failure", "")).strip()
     if config.preflight and not mock_responses and not mock_failure:
+        _heartbeat(runtime_paths, config, session_id, "preflight", "Checking model readiness")
         readiness = _model_readiness(config)
         if not readiness.get("ready"):
             recovery = _recovery_from_class(
@@ -950,6 +1109,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "evidence_session_id": session_id,
         "evidence_limit": 12,
     })
+    _heartbeat(runtime_paths, config, session_id, "bootstrap", "Loaded bootstrap, boundary, setup, and evidence context")
     boundary = run_workspace_boundary_audit({"project_root": str(project_root), "max_depth": 2})
     setup = run_project_setup({"project_root": str(project_root), "action": "audit"})
 
@@ -975,6 +1135,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
 
     for round_index in range(config.max_tool_rounds):
         try:
+            _heartbeat(runtime_paths, config, session_id, "model_round", f"Requesting model round {round_index + 1}")
             response = _sanitize_model_text(_model_response(
                 config=config,
                 messages=messages,
@@ -1007,6 +1168,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             )
         final_text = response
         calls = _parse_tool_calls(response)
+        _heartbeat(runtime_paths, config, session_id, "tool_round", f"Parsed {len(calls)} tool call(s)")
         round_results: list[dict[str, Any]] = []
         for call in calls:
             result = _execute_tool_call(
@@ -1044,6 +1206,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         config=config,
         approval_required=approval_required,
     )
+    _heartbeat(runtime_paths, config, session_id, "evidence", f"Evidence archive status: {evidence_archive.get('status', 'skipped')}")
     checkpoint = _checkpoint(project_root, touched_paths, config, prompt) if not approval_required else {
         "skipped": True,
         "approval_required": True,
@@ -1052,7 +1215,12 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
     evidence_payload = evidence_archive.get("result", evidence_archive)
     evidence_ids = _evidence_ids(evidence_archive)
     evidence_status = evidence_archive.get("status", "skipped")
-    claim_guardrails = _claim_guardrails(final_text, touched_paths, evidence_ids)
+    claim_guardrails = _claim_guardrails(
+        final_text,
+        touched_paths,
+        evidence_ids,
+        enforcement=config.claim_enforcement,
+    )
     validation["claim_guardrails"] = claim_guardrails
     if not recovery and halted_reason:
         recovery = _recovery_from_class(halted_reason, halted_reason, config)
@@ -1062,6 +1230,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "; ".join(claim_guardrails["warnings"]),
             config,
         )
+    recovery = _prepare_recovery(recovery, config, arguments)
 
     journal = run_journal_write({
         "project_root": str(project_root),
@@ -1088,6 +1257,8 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "evidence_archive": evidence_payload,
             "recovery": recovery,
             "claim_guardrails": claim_guardrails,
+            "heartbeat": heartbeat,
+            "planning_workspace": planning,
         },
     })
     journal_uid = journal.get("result", {}).get("entry", {}).get("entry_uid", "")
@@ -1124,6 +1295,8 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "trace": trace,
         "halted_reason": halted_reason,
         "approval_required": approval_required,
+        "heartbeat": heartbeat,
+        "planning_workspace": planning,
     }
     if arguments.get("write_session", True) is not False:
         write_json(runtime_paths["sessions"] / f"{session_id}.json", session)
@@ -1143,6 +1316,8 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "session_id": session_id,
             "project_root": str(project_root),
             "runtime": _public_runtime(runtime_paths, project_root),
+            "heartbeat": heartbeat,
+            "planning_workspace": planning,
             "round_count": len(rounds),
             "touched_paths": sorted(set(touched_paths)),
             "validation": validation,

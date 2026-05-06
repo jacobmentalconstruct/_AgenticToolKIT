@@ -1595,10 +1595,11 @@ def test_local_sidecar_agent() -> None:
     if (
         failure["status"] == "error"
         and failure["result"]["recovery"]["class"] == "request_timeout"
+        and any(item["id"] == "retry_longer_timeout" for item in failure["result"]["recovery"]["decisions"])
         and failure["result"]["trace"]["run_id"].startswith("R")
         and failure["result"]["evidence_archive"]["archived_count"] >= 1
     ):
-        _ok("local_sidecar_agent classifies timeout recovery and records trace/evidence")
+        _ok("local_sidecar_agent classifies timeout recovery and records trace/evidence with decisions")
     else:
         _fail("local_sidecar_agent timeout recovery", str(failure))
 
@@ -1677,6 +1678,62 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent max-round recovery", str(max_rounds))
 
+    claim_guard = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "summarize work",
+        "mock_ollama_responses": ["I updated the project and validated the result."],
+        "claim_enforcement": "require_citation",
+        "checkpoint": False,
+    })
+    if (
+        claim_guard["status"] == "ok"
+        and claim_guard["result"]["recovery"]["class"] == "claim_guardrail_warning"
+        and claim_guard["result"]["validation"]["claim_guardrails"]["passed"] is False
+    ):
+        _ok("local_sidecar_agent flags uncited filesystem claims")
+    else:
+        _fail("local_sidecar_agent claim guardrail", str(claim_guard))
+
+    heartbeat = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "inspect",
+        "mock_ollama_responses": ["No changes needed."],
+        "heartbeat": True,
+        "planning_workspace": True,
+        "confirm_mutations": True,
+        "checkpoint": False,
+        "session_id": "heartbeat-session",
+    })
+    heartbeat_log = target_root / ".dev-tools" / "runtime" / "local_agent" / "logs" / "heartbeat.jsonl"
+    planning_dir = target_root / ".dev-tools" / "runtime" / "local_agent" / "planning_workspaces" / "heartbeat-session"
+    if (
+        heartbeat["status"] == "ok"
+        and heartbeat["result"]["heartbeat"]["enabled"] is True
+        and heartbeat_log.exists()
+        and planning_dir.exists()
+    ):
+        _ok("local_sidecar_agent writes heartbeat and disposable planning workspace")
+    else:
+        _fail("local_sidecar_agent heartbeat/planning", str(heartbeat))
+
+    recovery_advice = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "inspect this project",
+        "mock_ollama_failure": "request_timeout",
+        "use_recovery_model": True,
+        "recovery_model": "qwen3.5:4b",
+        "mock_recovery_model_response": "Retry with a longer timeout after checking model availability.",
+        "checkpoint": False,
+    })
+    advice = recovery_advice["result"]["recovery"]["recovery_model_advice"]
+    if recovery_advice["status"] == "error" and advice.get("mocked") is True:
+        _ok("local_sidecar_agent attaches optional recovery-model advice")
+    else:
+        _fail("local_sidecar_agent recovery advice", str(recovery_advice))
+
 
 def test_operator_ui_support() -> None:
     print("\n── Tranche 10: Local Agent Operator UI Support ──")
@@ -1684,12 +1741,14 @@ def test_operator_ui_support() -> None:
     from lib.operator_ui_support import (
         agent_payload,
         agent_recovery_status,
+        apply_recovery_decision,
         choose_model,
         default_input_from_schema,
         dispatch_tool,
         format_json,
         is_mutating_tool,
         load_tool_metadata,
+        recovery_decisions,
         scan_privacy_leaks,
         sanitize_path_text,
         tool_index,
@@ -1740,8 +1799,18 @@ def test_operator_ui_support() -> None:
         confirm_mutations=False,
         confirm_checkpoint=False,
         checkpoint=True,
+        heartbeat=True,
+        use_recovery_model=True,
+        recovery_model="qwen3.5:4b",
+        claim_enforcement="require_citation",
+        planning_workspace=True,
     )
-    if payload["action"] == "run" and payload["allowed_tools"] == ["text_file_reader"]:
+    if (
+        payload["action"] == "run"
+        and payload["allowed_tools"] == ["text_file_reader"]
+        and payload["heartbeat"] is True
+        and payload["claim_enforcement"] == "require_citation"
+    ):
         _ok("operator UI builds agent payload")
     else:
         _fail("operator UI agent payload", str(payload))
@@ -1754,6 +1823,23 @@ def test_operator_ui_support() -> None:
         _ok("operator UI summarizes recovery status")
     else:
         _fail("operator UI recovery status", status_text)
+
+    recovery_result = {
+        "status": "error",
+        "result": {
+            "recovery": {
+                "class": "request_timeout",
+                "decisions": [{"id": "retry_longer_timeout", "patch": {"timeout_seconds": 120}}],
+                "next_actions": ["increase_timeout"],
+            }
+        },
+    }
+    decisions = recovery_decisions(recovery_result)
+    retry_payload = apply_recovery_decision({"timeout_seconds": 60, "prompt": "go"}, decisions[0])
+    if decisions[0]["id"] == "retry_longer_timeout" and retry_payload["timeout_seconds"] == 120:
+        _ok("operator UI exposes named recovery decisions")
+    else:
+        _fail("operator UI recovery decisions", str(decisions))
 
     if is_mutating_tool(tools["local_sidecar_agent"]) and not is_mutating_tool(tools["journal_manifest"]):
         _ok("operator UI identifies side-effecting tools")

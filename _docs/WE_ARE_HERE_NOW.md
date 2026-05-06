@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 13 teaching sandbox support bridge implemented)
+- 2026-05-06 (Tranche 12 recovery hardening closed after Tranche 13 support bridge)
 
 ## Fresh-thread start
 
@@ -25,10 +25,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     Local Sidecar Agent Runtime is implemented as a safe floor; Tranche 10
     Local Agent Operator UI prototype is implemented; Tranche 11 Bag of
     Evidence and Evidence Shelf are implemented; Tranche 12 Local Agent
-    Runtime Recovery and Live Model Hardening is in progress with run traces,
-    model readiness preflight, and broader recovery classification; Tranche
-    13 Teaching Sandbox Harness is implemented as a side-support bridge for
-    realistic agent practice/eval data
+    Runtime Recovery and Live Model Hardening is now closed with run traces,
+    model readiness preflight, broader recovery classification, heartbeat
+    events, optional recovery-model advice, named operator decisions,
+    one-click retry, planning workspace hooks, and evidence-backed claim
+    guardrails; Tranche 13 Teaching Sandbox Harness is implemented as a
+    side-support bridge for realistic agent practice/eval data
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -44,8 +46,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     inside the target project from `project_setup` onward; `local_sidecar_agent`
     now provides the first guarded local agent loop; `teaching_sandbox_harness`
     lets that loop practice on ignored sandbox apps; the popup/chat operator
-    surface is becoming the narrative cockpit over project LTM, Evidence Shelf,
-    run traces, and scorecards
+    surface now has the narrative cockpit floor over project LTM, Evidence
+    Shelf, run traces, recovery decisions, and scorecards
 
 ## What works right now
 
@@ -119,24 +121,29 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   through guarded static-task-tracker or Python-notes-CLI scenarios, verifies
   deterministic checks, records trace/evidence/journal links, scores the run,
   and exports scorecards. MCP now lists 49 tools.
+- Tranche 12 is now closed after its final hardening slice. `local_sidecar_agent`
+  attaches named recovery decisions, optional recovery-model advice, heartbeat
+  events, disposable planning workspace metadata, and stronger touched-path /
+  Evidence ID claim guardrails. `agent_ui.py` exposes one-click retry with a
+  longer timeout and recovery decision controls while keeping model dropdowns
+  and no-model disabled-run behavior. The root smoke suite is current at 138
+  passing checks with MCP still listing 49 tools.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck is the remaining live-model hardening
-  after the preflight/recovery foundation, now with a harness that can generate
-  repeatable sidecar traces and scorecards. The operator UI still needs richer
-  retry/status controls, heartbeat/streaming behavior, named approval choices,
-  and stronger evidence-backed final-claim enforcement.
+- The active source-shaped bottleneck is now the next capability selection:
+  use teaching-harness traces and scorecards to decide the next small builder
+  step to teach the sidecar. The current recovery floor should be exercised
+  rather than expanded into raw authority.
 
 ## Next best move
 
-- Continue Tranche 12 using the teaching harness as the practice/eval surface:
-  add heartbeat/streaming support, richer operator retry controls, named
-  approval decisions, and stronger filesystem-claim guardrails while keeping
-  the guarded toolbox boundary intact.
+- Use the Teaching Lab and `teaching_sandbox_harness` to run small sandbox
+  builds, inspect Evidence IDs/run traces/journal links, and select the next
+  tranche from observed gaps. Keep authority bounded to guarded tools.
 
 ## Current warnings
 
