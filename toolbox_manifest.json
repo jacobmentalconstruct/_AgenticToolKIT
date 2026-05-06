@@ -9,6 +9,7 @@
     "Use chat.bat, chat.sh, or agent_ui.py when a human wants to test the local sidecar agent from a desktop UI.",
     "Use session_evidence_store when a local agent needs visible session memory, Evidence Shelf context, or retrievable evidence IDs.",
     "Use agent_run_trace when a local sidecar run needs recovery metadata, auditability, or tuning/eval evidence.",
+    "Read _docs/TRAINING_RUNWAY.md before running local-agent app-builder baseline scenarios or reviewing Teaching Sandbox scorecards.",
     "Run journal_query to pick up context from the last session.",
     "Run constraint_query with your task profile to load relevant rules.",
     "Choose from builder_tools, vendable_packages, or vendable_documents based on the task."

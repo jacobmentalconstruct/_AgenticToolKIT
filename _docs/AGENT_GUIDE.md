@@ -496,10 +496,14 @@ lessons, evidence IDs, or journal-worthy decisions into durable project LTM.
 _The active app-builder training loop. Use when teaching the sidecar to build
 small apps through scored sandbox practice._
 
+Read `_docs/TRAINING_RUNWAY.md` before running this loop. It is the Tranche 14
+curriculum and baseline protocol, including the score rubric, failure taxonomy,
+trace-review checklist, and ignored run-index/export convention.
+
 ```
 BASELINE
   teaching_sandbox_harness list_scenarios → choose static_task_tracker or python_notes_cli
-  teaching_sandbox_harness run_scenario   → run a mocked or live baseline when confirmed
+  teaching_sandbox_harness run_scenario   → run with run_mode mocked or live when confirmed
 
 SCORE
   teaching_sandbox_harness score/export   → write an ignored scorecard for operator review

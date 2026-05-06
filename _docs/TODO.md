@@ -45,12 +45,12 @@ guarded scenarios, records trace/evidence/journal links, verifies deterministic
 outputs, scores runs, and exports scorecards. This gives future sidecar
 hardening work realistic data without adding raw terminal parity.
 
-**Tranche 14 is selected as the first active training tranche.** It should not
-fine-tune model weights yet. It should create the repeatable training regimen:
-baseline runs, curriculum task cards, score thresholds, failure taxonomy,
-trace-review workflow, and prompt/contract tuning loop. The artifact of the
-tranche is a training/evaluation runway the operator can run repeatedly from
-the Teaching Lab and command line.
+**Tranche 14 is parked as the first training runway tranche.** It did not
+fine-tune model weights. It created the repeatable training regimen:
+baseline runs, curriculum, score thresholds, failure taxonomy, trace-review
+workflow, and ignored run-index/export convention. The artifact of the tranche
+is `_docs/TRAINING_RUNWAY.md` plus first mocked and live baseline evidence the
+operator can rerun from the Teaching Lab and command line.
 
 Tranche 9 implemented `local_sidecar_agent`: a stdlib-first, Ollama-backed
 runtime that bootstraps project context, routes model-produced tool calls
@@ -85,7 +85,7 @@ tool failures, approval stops, and exhausted tool rounds.
 
 ### Active tasks
 
-### Active source tranche: Tranche 14 Training Curriculum And Baseline Runs
+### Recently parked source tranche: Tranche 14 Training Curriculum And Baseline Runs
 
 Purpose: begin teaching the sidecar how to build apps by turning the human
 builder process into explicit, repeatable, scored practice. This tranche should
@@ -93,39 +93,44 @@ use the existing `teaching_sandbox_harness`, `local_sidecar_agent`,
 `agent_run_trace`, `session_evidence_store`, and App Journal. It should not add
 raw terminal parity or dependency installation.
 
-- [ ] Define a training curriculum document under `_docs/` that explains the
+- [x] Define a training curriculum document under `_docs/` that explains the
       builder-loop doctrine as trainable steps: read contract, audit setup,
       plan tranche, scaffold safely, write bounded files, validate, recover,
       checkpoint, journal, and park.
-- [ ] Add a baseline-run protocol for the two existing scenarios:
+- [x] Add a baseline-run protocol for the two existing scenarios:
       `static_task_tracker` and `python_notes_cli`.
-- [ ] Add a training score rubric with thresholds for pass, partial pass,
+- [x] Add a training score rubric with thresholds for pass, partial pass,
       recoverable failure, unsafe action, and unusable output.
-- [ ] Define a failure taxonomy mapped to existing recovery classes and new
+- [x] Define a failure taxonomy mapped to existing recovery classes and new
       teaching labels: missed scaffold, invalid tool JSON, wrong file path,
       incomplete feature, failed validation, unsupported authority request,
       uncited final claim, and poor user-facing summary.
-- [ ] Add a trace-review checklist for each run: prompt, chosen models,
+- [x] Add a trace-review checklist for each run: prompt, chosen models,
       allowed tools, tool calls, touched paths, Evidence IDs, journal entry,
       scorecard, and next tuning action.
-- [ ] Add a small training-run index/export convention under ignored runtime
+- [x] Add a small training-run index/export convention under ignored runtime
       state so repeated runs can be compared without committing private
       session artifacts.
-- [ ] Extend the Teaching Lab or supporting helpers only if needed to make
-      baseline runs and scorecard comparison ergonomic.
-- [ ] Run baseline mocked and live-Ollama runs where available, then record
+- [x] Extend the Teaching Lab or supporting helpers only if needed to make
+      baseline runs and scorecard comparison ergonomic. No helper change was
+      needed; the existing harness store and export path already cover the
+      Tranche 14 baseline convention.
+- [x] Run baseline mocked and live-Ollama runs where available, then record
       the results in App Journal and `_docs/DEV_LOG.md`.
-- [ ] Park Tranche 14 with updated README, TODO, WE_ARE_HERE_NOW,
+- [x] Park Tranche 14 with updated README, TODO, WE_ARE_HERE_NOW,
       NORTHSTARS, AGENT_GUIDE, ARCHITECTURE, onboarding, DEV_LOG, app journal,
       smoke tests, and a commit.
 
-### Planned source tranche: Tranche 15 Builder Doctrine Task Cards
+### Active source tranche: Tranche 15 Builder Doctrine Task Cards
 
 Purpose: turn the way we build apps into explicit task-card primitives the
 sidecar can follow without inferring the scaffold.
 
 - [ ] Create task-card templates for project birth, feature addition, bug fix,
       validation pass, recovery pass, documentation park, and release handoff.
+- [ ] Add a sandbox-local contract/task-card reading rule so live models do not
+      chase the copied `_docs/builder_constraint_contract.md` pointer to a
+      missing root `CONTRACT.md` inside disposable Teaching Sandbox projects.
 - [ ] Add scenario metadata for which doctrine steps are required, optional, or
       forbidden.
 - [ ] Ensure each task card names allowed tools, expected artifacts,

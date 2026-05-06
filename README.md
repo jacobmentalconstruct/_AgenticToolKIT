@@ -171,12 +171,18 @@ task tracker and a stdlib Python notes CLI. This gives future hardening work
 realistic traces, Evidence IDs, journal links, and score data without adding
 raw shell execution or broader filesystem authority.
 
-**Local-Agent App-Builder Training is the active horizon.** Tranche 14 begins
-the training runway by using the Teaching Lab and current harness to run
-baseline app builds, score them, inspect traces/evidence/journal links, and
-turn repeated failures into explicit task cards, prompt/contract constraints,
-or future scenario work. This is not model weight fine-tuning yet; it is the
-project teaching the sidecar the builder loop one scored step at a time.
+**Local-Agent App-Builder Training is the active horizon.** Tranche 14 has
+parked the first training runway by using the Teaching Lab and current harness
+to run baseline app builds, score them, inspect traces/evidence/journal links,
+and turn repeated failures into explicit task cards, prompt/contract
+constraints, or future scenario work. `_docs/TRAINING_RUNWAY.md` now defines
+the curriculum, baseline protocol, score rubric, failure taxonomy,
+trace-review checklist, and ignored runtime run-index/export convention. This
+is not model weight fine-tuning yet; it is the project teaching the sidecar the
+builder loop one scored step at a time. The first Tranche 14 baselines are
+recorded there: mocked runs passed both initial scenarios, while live Ollama
+runs exposed a repeatable sandbox contract-resolution failure for Tranche 15
+to teach away.
 
 The queued local-agent implementation runway is now:
 
@@ -208,11 +214,12 @@ The queued local-agent implementation runway is now:
    create ignored practice projects, run guarded sidecar scenarios, verify and
    score outputs, archive Evidence Shelf material, link run traces and journal
    entries, and export scorecards for future tuning-data review.
-8. **Tranche 14 — Training Curriculum And Baseline Runs:** active as a
-   planning/training runway; define the curriculum, baseline protocols, score
-   rubric, failure taxonomy, trace-review checklist, and ignored training-run
-   index for repeated Teaching Lab/CLI runs.
-9. **Tranche 15-18 — Training Cycle:** planned; convert builder doctrine into
+8. **Tranche 14 — Training Curriculum And Baseline Runs:** complete as the
+   baseline/evaluation runway; `_docs/TRAINING_RUNWAY.md` defines the
+   curriculum, baseline protocols, score rubric, failure taxonomy,
+   trace-review checklist, and ignored training-run index for repeated Teaching
+   Lab/CLI runs.
+9. **Tranche 15-18 — Training Cycle:** active next; convert builder doctrine into
    task cards, expand small-app scenarios, tune from traces/scorecards, and run
    unseen graduation apps before closing the app-builder northstar.
 
@@ -346,6 +353,7 @@ python src/smoke_test.py
 | `_docs/EXPERIENTIAL_WORKFLOW.md` | Human-agent workflow rhythm and onboarding doctrine |
 | `_docs/SETUP_DOCTRINE.md` | Project setup-first doctrine for freshly armed agents |
 | `_docs/PARKING_WORKFLOW.md` | Practical tranche parking and handoff workflow |
+| `_docs/TRAINING_RUNWAY.md` | Tranche 14 curriculum, baseline protocol, rubric, failure taxonomy, trace review, and run-index convention |
 | `_docs/NORTHSTARS.md` | Release closure and active local-agent roadmap |
 | `_docs/TODO.md` | Active tranche tasks and queued implementation runway |
 | `_docs/WE_ARE_HERE_NOW.md` | Fast pickup state for the current tranche and next move |

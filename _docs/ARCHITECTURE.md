@@ -248,10 +248,15 @@ from observed traces and scorecards.
 
 ## Local-Agent Training Runway
 
-Tranche 14 starts the app-builder training layer over the existing runtime. It
+Tranche 14 parks the first app-builder training layer over the existing runtime. It
 does not introduce a new authority surface; it organizes the current harness,
 Evidence Shelf, run trace store, App Journal, and operator UI into a repeatable
 training/evaluation cycle.
+
+`_docs/TRAINING_RUNWAY.md` is the committed operator manual for this layer. It
+defines the curriculum, baseline protocol, score rubric, failure taxonomy,
+trace-review checklist, and the ignored run-index/export convention that uses
+the existing Teaching Sandbox SQLite store and export directory.
 
 The data flow is:
 
@@ -265,6 +270,11 @@ The data flow is:
    prompt/contract constraints, or future scenario changes.
 7. App Journal and `_docs/DEV_LOG.md` preserve the durable project-level
    training story.
+
+The first baseline set confirms the architecture split. Mocked runs prove the
+harness, verification, scoring, export, trace, and journal path. Live runs
+surface model-loop teaching gaps without expanding authority; the first
+repeatable gap is sandbox contract resolution before app scaffold.
 
 Tranches 15-18 continue this architecture by adding builder-doctrine task
 cards, broader small-app scenarios, trace-driven loop tuning, and unseen

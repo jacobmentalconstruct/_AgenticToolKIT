@@ -71,6 +71,7 @@ FILE_METADATA = {
             "window_turns": {"type": "integer", "default": 8},
             "use_evidence_shelf": {"type": "boolean", "default": True},
             "preflight": {"type": "boolean", "default": False},
+            "run_mode": {"type": "string", "enum": ["mocked", "live"], "default": "mocked"},
             "mock_ollama_responses": {"type": "array", "items": {"type": "string"}},
             "format": {"type": "string", "enum": ["markdown", "json"], "default": "markdown"},
         },

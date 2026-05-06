@@ -187,9 +187,16 @@ def run_agent(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
     if not project_root.is_dir():
         raise ValueError("sandbox project does not exist; run create_project first")
     session_id = str(payload.get("session_id", f"teach-{run_record['run_id']}")).strip()
+    run_mode = str(payload.get("run_mode", "mocked")).strip().lower() or "mocked"
+    if run_mode not in {"mocked", "live"}:
+        raise ValueError("run_mode must be mocked or live")
     mock_responses = payload.get("mock_ollama_responses")
-    if not isinstance(mock_responses, list) or not mock_responses:
+    if isinstance(mock_responses, list) and mock_responses:
+        mock_responses = [str(item) for item in mock_responses]
+    elif run_mode == "mocked":
         mock_responses = _mock_responses(scenario.scenario_id)
+    else:
+        mock_responses = []
     agent_input = {
         "action": "run",
         "project_root": str(project_root),
@@ -209,8 +216,9 @@ def run_agent(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
         "use_evidence_shelf": bool(payload.get("use_evidence_shelf", True)),
         "write_trace": True,
         "preflight": bool(payload.get("preflight", False)),
-        "mock_ollama_responses": mock_responses,
     }
+    if mock_responses:
+        agent_input["mock_ollama_responses"] = mock_responses
     result = run_local_sidecar_agent(agent_input)
     agent_payload = result.get("result", {}) if isinstance(result.get("result"), dict) else {}
     trace_id = str(agent_payload.get("trace", {}).get("run_id", ""))

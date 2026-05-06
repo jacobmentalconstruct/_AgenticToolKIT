@@ -281,6 +281,11 @@ setup, plan a small tranche, scaffold safely, write bounded files, validate,
 recover, checkpoint, journal, and park. The agent should learn from scored
 sandbox evidence before any model weight fine-tuning is considered.
 
+Tranche 14's parked operator manual is `_docs/TRAINING_RUNWAY.md`. It defines the
+curriculum, baseline protocol, score rubric, failure taxonomy, trace-review
+checklist, and ignored Teaching Sandbox run-index/export convention that turn
+practice runs into comparable evidence.
+
 The training runway is intentionally staged:
 
 | Tranche | Goal | Output |
@@ -295,6 +300,12 @@ The success criterion is not "the model says it understands." The sidecar must
 complete unseen small apps through guarded tools, produce valid artifacts,
 avoid unsafe authority requests, cite touched paths or Evidence IDs when
 claiming work, and leave readable App Journal/scorecard handoffs.
+
+The first Tranche 14 baselines are now informative rather than aspirational:
+mocked runs passed both initial scenarios, and live Ollama runs stayed within
+guarded tools but failed before scaffold because the sandbox-local contract
+pointer led the model toward a missing `CONTRACT.md`. That repeated failure is
+the first concrete teaching input for Tranche 15 task cards.
 
 ## Later Expansion
 

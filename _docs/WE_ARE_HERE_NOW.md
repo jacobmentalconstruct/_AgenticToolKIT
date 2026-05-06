@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 14 local-agent training runway selected)
+- 2026-05-06 (Tranche 14 parked; Tranche 15 next)
 
 ## Fresh-thread start
 
@@ -31,8 +31,11 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     one-click retry, planning workspace hooks, and evidence-backed claim
     guardrails; Tranche 13 Teaching Sandbox Harness is implemented as a
     side-support bridge for realistic agent practice/eval data; Tranche 14
-    Training Curriculum And Baseline Runs is selected as the active next
-    tranche
+    Training Curriculum And Baseline Runs is parked and now has
+    `_docs/TRAINING_RUNWAY.md` as its curriculum, baseline protocol, rubric,
+    taxonomy, trace-review checklist, ignored run-index/export convention, and
+    first mocked/live baseline evidence; Tranche 15 Builder Doctrine Task Cards
+    is the next source tranche
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -41,6 +44,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - sidecar install, setup orchestration, onboarding-site verification, and the
     local agent operator UI are live human/operator surfaces; the root smoke
     suite is current at the Tranche 13 teaching sandbox support slice
+  - Tranche 14 baseline artifacts use the existing ignored Teaching Sandbox
+    store and export path under `.dev-tools/runtime/teaching_sandbox/`
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
 - Current collaboration truth:
@@ -130,27 +135,29 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   longer timeout and recovery decision controls while keeping model dropdowns
   and no-model disabled-run behavior. The root smoke suite is current at 138
   passing checks with MCP still listing 49 tools.
-- Tranche 14 is now selected as the local-agent app-builder training runway.
-  The next work should document the curriculum, run baseline Teaching Lab /
-  `teaching_sandbox_harness` scenarios, review scorecards and traces, and turn
-  recurring failures into task cards, prompt/contract constraints, or scenario
-  expansions. This is not model weight fine-tuning yet.
+- Tranche 14 is now parked as the local-agent app-builder training
+  runway. `_docs/TRAINING_RUNWAY.md` defines the curriculum, baseline
+  protocol, score rubric, failure taxonomy, trace-review checklist, and ignored
+  runtime run-index/export convention. Mocked baselines passed both initial
+  scenarios; live Ollama baselines were reachable but failed on the same
+  sandbox contract-resolution issue, trying to read `CONTRACT.md` inside the
+  disposable sandbox after reading the copied pointer doc.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck is the Tranche 14 training regimen:
-  make baseline runs repeatable and reviewable so the sidecar can learn the
-  builder process from scored evidence instead of ad hoc inference.
+- The active source-shaped bottleneck has moved from baseline evidence to
+  Tranche 15 teaching material: make sandbox-local task cards and contract
+  reading rules explicit enough that live models do not chase a missing root
+  `CONTRACT.md` before scaffolding app files.
 
 ## Next best move
 
-- Implement Tranche 14: create the training curriculum, baseline-run protocol,
-  score rubric, failure taxonomy, trace-review checklist, and ignored
-  training-run index/export convention. Then run the first baseline scenarios
-  and park the results.
+- Implement Tranche 15 Builder Doctrine Task Cards, starting with a
+  sandbox-local contract/task-card reading rule so live models do not chase a
+  missing root `CONTRACT.md` before scaffolding app files.
 
 ## Current warnings
 
@@ -186,8 +193,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 2. `_docs/WE_ARE_HERE_NOW.md`
 3. `_docs/TODO.md`
 4. `_docs/PARKING_WORKFLOW.md`
-5. `_docs/NORTHSTARS.md`
-6. `_docs/DEV_LOG.md`
+5. `_docs/TRAINING_RUNWAY.md`
+6. `_docs/NORTHSTARS.md`
+7. `_docs/DEV_LOG.md`
 
 ## Known truth about the docs
 
@@ -196,4 +204,5 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - `WE_ARE_HERE_NOW.md` is the fast state surface.
 - `TODO.md` is the active backlog and next-tranche surface.
 - `PARKING_WORKFLOW.md` is the tranche park/handoff regimen.
+- `TRAINING_RUNWAY.md` is the Tranche 14 training/evaluation manual.
 - `NORTHSTARS.md` is the longer-range capability direction surface.

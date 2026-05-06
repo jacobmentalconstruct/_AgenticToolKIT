@@ -1635,6 +1635,87 @@ taxonomy, trace-review checklist, and ignored training-run index convention.
 
 ---
 
+## 2026-05-06 — Tranche 14 training runway implementation
+
+- Added `_docs/TRAINING_RUNWAY.md`, the Tranche 14 operator manual for the
+  local-agent app-builder training runway.
+- Defined the builder-loop curriculum as trainable steps: contract/task-card
+  reading, setup audit, bounded planning, safe scaffold, guarded writes,
+  validation, recovery, checkpointing, journaling, and parking.
+- Added baseline protocol for `static_task_tracker` and `python_notes_cli`,
+  including mocked and live run modes.
+- Added the score rubric, failure taxonomy, trace-review checklist, and
+  ignored Teaching Sandbox run-index/export convention.
+- Added `run_mode` to `teaching_sandbox_harness` so deterministic mocked runs
+  remain the default while confirmed `run_mode: "live"` baselines can exercise
+  Ollama instead of silently falling back to mocks.
+- Linked the training runway from README, toolbox manifest, AGENT_GUIDE,
+  ARCHITECTURE, NORTHSTARS, WE_ARE_HERE_NOW, TODO, and onboarding.
+- Ran first Tranche 14 baselines:
+  - `TS000004` `static_task_tracker` mocked: score 93, verification 100,
+    rubric label `pass`.
+  - `TS000003` `python_notes_cli` mocked: score 93, verification 100,
+    rubric label `pass`.
+  - `TS000005` `static_task_tracker` live: score 20, rubric label
+    `unusable_output`; teaching labels `wrong_file_path`, `missed_scaffold`,
+    and `failed_validation`.
+  - `TS000006` `python_notes_cli` live: score 40, rubric label
+    `recoverable_failure`; teaching labels `wrong_file_path`,
+    `missed_scaffold`, and `failed_validation`.
+- Exported all four scorecards under ignored
+  `.dev-tools/runtime/teaching_sandbox/exports/`.
+- Wrote App Journal entry `journal_c1d47fe3c3df` for the baseline outcome and
+  Tranche 15 teaching lesson.
+- Live Ollama preflight passed for `qwen2.5-coder:7b` and `qwen3.5:4b`.
+  Both live scenarios stayed inside guarded tools but failed before scaffold by
+  trying to read sandbox-local `CONTRACT.md` after following the copied
+  `_docs/builder_constraint_contract.md` pointer. This is the first concrete
+  Tranche 15 task-card lesson.
+
+Validation:
+
+- `python src\tools\local_sidecar_agent.py run --input-json
+  '{"action":"preflight","project_root":".","ollama_base_url":"http://localhost:11434","planner_model":"qwen2.5-coder:7b","response_model":"qwen3.5:4b","timeout_seconds":60}'`
+  -> ready.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"run_scenario","project_root":".","confirm":true,"scenario_id":"static_task_tracker","timeout_seconds":60,"max_tool_rounds":4,"preflight":false}'`
+  -> `TS000004`, score 93.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"run_scenario","project_root":".","confirm":true,"scenario_id":"python_notes_cli","timeout_seconds":60,"max_tool_rounds":4,"preflight":false}'`
+  -> `TS000003`, score 93.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"run_scenario","project_root":".","confirm":true,"scenario_id":"static_task_tracker","run_mode":"live","timeout_seconds":120,"max_tool_rounds":4,"preflight":true}'`
+  -> `TS000005`, score 20.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"run_scenario","project_root":".","confirm":true,"scenario_id":"python_notes_cli","run_mode":"live","timeout_seconds":120,"max_tool_rounds":4,"preflight":true}'`
+  -> `TS000006`, score 40.
+- Scorecard exports for `TS000003` through `TS000006` -> pass.
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\teaching_sandbox_harness.py` -> pass.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\smoke_test.py` -> 138/138 pass; MCP lists 49 tools.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Classification: spiral.
+
+- Capability increased: the local-agent training cycle now has a concrete
+  curriculum, run protocol, rubric, failure labels, review checklist, run-mode
+  switch, and baseline evidence.
+- Uncertainty decreased: mocked harness behavior is clean, and live model
+  behavior has a repeated, named first failure instead of a vague "agent is not
+  ready" impression.
+- Boundary clarified: failed live baselines did not justify broader authority;
+  they point toward clearer sandbox-local task cards and contract substrate in
+  Tranche 15.
+
+Current read: Tranche 14 is parked with its implementation spine, baseline
+evidence, and journal entry. Use Tranche 15 Builder Doctrine Task Cards to make
+the contract/task-card reading step explicit for live models.
+
+---
+
 ## Template for future entries
 
 - Files changed:
