@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 15 parked; Tranche 16 next)
+- 2026-05-06 (Tranche 16 parked; Tranche 17 next)
 
 ## Fresh-thread start
 
@@ -36,7 +36,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     taxonomy, trace-review checklist, ignored run-index/export convention, and
     first mocked/live baseline evidence; Tranche 15 Builder Doctrine Task Cards
     is parked with explicit project-birth task-card doctrine; Tranche 16
-    Curriculum Scenario Expansion is the next source tranche
+    Curriculum Scenario Expansion is parked with five additional deterministic
+    practice scenarios; Tranche 17 Trace Review And Loop Tuning is the next
+    source tranche
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -45,7 +47,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - sidecar install, setup orchestration, onboarding-site verification, and the
     local agent operator UI are live human/operator surfaces; the root smoke
     suite is current at the Tranche 13 teaching sandbox support slice
-  - Tranche 14/15 baseline artifacts use the existing ignored Teaching Sandbox
+  - Tranche 14-16 baseline artifacts use the existing ignored Teaching Sandbox
     store and export path under `.dev-tools/runtime/teaching_sandbox/`
   - `.gitignore` now covers `.claude/`, `.env*`, `*.key`/`*.pem`, credentials,
     logs, and runtime journal state
@@ -148,24 +150,30 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   steps, sandbox-local contract rules, scaffold argument examples, tool-call
   format rules, and schema guardrails for array item types and common tool-call
   closing tags. Live reruns now reach real artifact creation instead of failing
-  before scaffold. The root smoke suite is current at 140 passing checks with
+  before scaffold. The root smoke suite is current at 142 passing checks with
   MCP still listing 49 tools.
+- Tranche 16 is parked and expands the Teaching Sandbox curriculum from two
+  initial scenarios to seven total scenarios. New deterministic tasks are
+  `static_calculator`, `markdown_previewer`, `task_tracker_filter_update`,
+  `csv_cleaner_cli`, and `config_validator_cli`; each has task-card metadata,
+  mocked fixture payloads, deterministic verification, and smoke coverage.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck has moved to Tranche 16 scenario
-  expansion and Tranche 17 trace tuning: the live model can now get past
-  sandbox contract resolution, but still needs more practice around valid JSON,
-  tool-specific validation calls, and completing all deterministic checks.
+- The active source-shaped bottleneck has moved to Tranche 17 trace tuning: the
+  curriculum is broader, and the next step is to compare scorecards/traces
+  across scenarios, then promote recurring lessons into prompt, task-card,
+  schema, or recovery improvements.
 
 ## Next best move
 
-- Begin Tranche 16 Curriculum Scenario Expansion with small deterministic web
-  and stdlib Python variants, using the Tranche 15 task-card metadata as the
-  scenario substrate.
+- Begin Tranche 17 Trace Review And Loop Tuning by comparing the Tranche 15
+  live partial passes and the Tranche 16 expanded mocked baselines, then choose
+  the smallest prompt/task-card/schema change that should improve live runs
+  without broadening authority.
 
 ## Current warnings
 

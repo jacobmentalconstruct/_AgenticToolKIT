@@ -1797,6 +1797,69 @@ the contract/task-card reading step explicit for live models.
 
 ---
 
+## 2026-05-06 — Tranche 16 curriculum scenario expansion
+
+- Expanded `src/lib/teaching_sandbox_harness.py` from two initial scenarios to
+  seven total Teaching Sandbox scenarios.
+- Added static-web project-birth scenarios: `static_calculator` and
+  `markdown_previewer`.
+- Added stdlib Python project-birth scenarios: `csv_cleaner_cli` and
+  `config_validator_cli`.
+- Added `task_tracker_filter_update` as the first `feature_addition`
+  edit-after-feedback scenario, with required steps for preserving lifecycle
+  behavior and adding filters.
+- Added reusable scenario-step constants, a reusable task-card generator,
+  mocked fixture payloads, and deterministic verifier checks for each new
+  scenario.
+- Extended smoke coverage so the harness lists the expanded curriculum, exposes
+  feature-addition metadata, and runs all five new mocked baselines.
+- Wrote App Journal entry `journal_3de59af533ad` for the Tranche 16 outcome
+  and Tranche 17 handoff.
+- Updated README, TODO, WE_ARE_HERE_NOW, NORTHSTARS, ARCHITECTURE,
+  TRAINING_RUNWAY, BUILDER_DOCTRINE_TASK_CARDS, onboarding, and this dev log.
+
+Baseline results:
+
+- `TS000021` `static_calculator` mocked: score 93, verification 100.
+- `TS000022` `markdown_previewer` mocked: score 93, verification 100.
+- `TS000023` `task_tracker_filter_update` mocked: score 93, verification 100.
+- `TS000024` `csv_cleaner_cli` mocked: score 93, verification 100.
+- `TS000025` `config_validator_cli` mocked: score 93, verification 100.
+
+Validation:
+
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\smoke_test.py` -> pass.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"action":"list_scenarios","project_root":"."}'` -> reports seven
+  scenarios.
+- Mocked `run_scenario` rechecks for `static_calculator`,
+  `markdown_previewer`, `task_tracker_filter_update`, `csv_cleaner_cli`, and
+  `config_validator_cli` -> all pass with zero verifier failures.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\smoke_test.py` -> 142/142 pass; MCP lists 49 tools.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Classification: spiral.
+
+- Capability increased: the sidecar now has broader small-app practice across
+  static web, stdlib Python, and edit-after-feedback work.
+- Uncertainty decreased: each new deterministic baseline has a mocked fixture,
+  verifier, scorecard path, and smoke coverage.
+- Boundary clarified: curriculum expansion stayed inside task cards, guarded
+  text tools, deterministic verification, and ignored runtime state. No raw
+  shell, dependency installation, hidden memory, or broader filesystem
+  authority was added.
+
+Current read: Tranche 16 is parked. Move to Tranche 17 Trace Review And Loop
+Tuning by comparing live partial-pass traces against the broader deterministic
+baseline set, then promote recurring lessons into prompt, task-card, schema, or
+recovery changes.
+
+---
+
 ## Template for future entries
 
 - Files changed:

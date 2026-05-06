@@ -504,7 +504,7 @@ scenario doctrine metadata.
 
 ```
 BASELINE
-  teaching_sandbox_harness list_scenarios → choose static_task_tracker or python_notes_cli
+  teaching_sandbox_harness list_scenarios → choose from the seven current Teaching Sandbox scenarios
   teaching_sandbox_harness run_scenario   → run with run_mode mocked or live when confirmed
 
 SCORE

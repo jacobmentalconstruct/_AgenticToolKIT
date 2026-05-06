@@ -35,12 +35,18 @@ allowed-tool sets, recovery decisions, or scenario checks.
 
 ## Baseline Protocol
 
-Use the two Tranche 13 scenarios as the first baseline set:
+Use the Teaching Sandbox scenarios as the baseline set. Tranche 13 began with
+two fixtures; Tranche 16 expands the deterministic curriculum to seven:
 
 | Scenario | Baseline purpose | Required run modes |
 |---|---|---|
 | `static_task_tracker` | Static HTML/CSS/JS app with task lifecycle and localStorage. | mocked baseline; live Ollama when available |
 | `python_notes_cli` | Stdlib Python notes CLI with add/list/search and JSON persistence. | mocked baseline; live Ollama when available |
+| `static_calculator` | Static four-operation calculator with button and keyboard input. | mocked baseline; live Ollama when selected for tuning |
+| `markdown_previewer` | Static markdown previewer with textarea input and rendered preview. | mocked baseline; live Ollama when selected for tuning |
+| `task_tracker_filter_update` | Edit-after-feedback task tracker variant with all/active/completed filters. | mocked baseline; live Ollama when selected for tuning |
+| `csv_cleaner_cli` | Stdlib CSV cleaner with trim, empty-row removal, and dedupe support. | mocked baseline; live Ollama when selected for tuning |
+| `config_validator_cli` | Stdlib JSON config validator with required-key checks. | mocked baseline; live Ollama when selected for tuning |
 
 For each scenario:
 
@@ -248,3 +254,25 @@ Exports:
 
 These are not graduation runs. They are evidence that task-card doctrine moved
 the live model from pre-scaffold failure to artifact-producing partial passes.
+
+## Tranche 16 Curriculum Expansion Results
+
+_Recorded: 2026-05-06._
+
+Tranche 16 expands the deterministic Teaching Sandbox curriculum without adding
+new authority. Each new scenario has task-card metadata, expected artifacts,
+mocked fixture payloads, deterministic verifier checks, and smoke coverage.
+
+| Run | Scenario | Mode | Score | Rubric label | Teaching labels | Next action |
+|---|---|---:|---:|---|---|---|
+| `TS000021` | `static_calculator` | mocked | 93 | `pass` | none | Preserve as expanded static-web baseline. |
+| `TS000022` | `markdown_previewer` | mocked | 93 | `pass` | none | Preserve as expanded static-web baseline. |
+| `TS000023` | `task_tracker_filter_update` | mocked | 93 | `pass` | none | Preserve as edit-after-feedback baseline. |
+| `TS000024` | `csv_cleaner_cli` | mocked | 93 | `pass` | none | Preserve as expanded stdlib-Python baseline. |
+| `TS000025` | `config_validator_cli` | mocked | 93 | `pass` | none | Preserve as expanded stdlib-Python baseline. |
+
+The deterministic verifier score for each recheck was 100 with zero failed
+checks. Scorecards remain under ignored Teaching Sandbox runtime state. Tranche
+17 should compare the Tranche 15 live partial passes against this expanded
+baseline set and promote recurring lessons into prompt, task-card, schema, or
+recovery tuning before any graduation run.

@@ -1916,8 +1916,17 @@ def test_teaching_sandbox_harness() -> None:
 
     scenarios = _tool("teaching_sandbox_harness", {"project_root": str(target_root), "action": "list_scenarios"})
     scenario_ids = [item["scenario_id"] for item in scenarios["result"]["scenarios"]]
-    if scenarios["status"] == "ok" and {"static_task_tracker", "python_notes_cli"}.issubset(set(scenario_ids)):
-        _ok("teaching_sandbox_harness lists initial scenarios")
+    expected_scenarios = {
+        "static_task_tracker",
+        "python_notes_cli",
+        "static_calculator",
+        "markdown_previewer",
+        "task_tracker_filter_update",
+        "csv_cleaner_cli",
+        "config_validator_cli",
+    }
+    if scenarios["status"] == "ok" and expected_scenarios.issubset(set(scenario_ids)):
+        _ok("teaching_sandbox_harness lists expanded scenario curriculum")
     else:
         _fail("teaching_sandbox_harness scenario list", str(scenarios))
 
@@ -1938,6 +1947,21 @@ def test_teaching_sandbox_harness() -> None:
         _ok("teaching_sandbox_harness returns task card and allowed tool floor")
     else:
         _fail("teaching_sandbox_harness plan", str(plan))
+
+    feature_plan = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "plan",
+        "scenario_id": "task_tracker_filter_update",
+    })
+    if (
+        feature_plan["status"] == "ok"
+        and feature_plan["result"]["task_card_template"] == "feature_addition"
+        and "preserve_existing_task_lifecycle" in feature_plan["result"]["required_steps"]
+        and "all/active/completed filters" in feature_plan["result"]["task_card"]
+    ):
+        _ok("teaching_sandbox_harness exposes feature-addition scenario metadata")
+    else:
+        _fail("teaching_sandbox_harness feature-addition plan", str(feature_plan))
 
     create_gate = _tool("teaching_sandbox_harness", {
         "project_root": str(target_root),
@@ -2014,6 +2038,33 @@ def test_teaching_sandbox_harness() -> None:
         _ok("teaching_sandbox_harness runs Python CLI scenario with AST verification")
     else:
         _fail("teaching_sandbox_harness Python run", str(python_run))
+
+    expanded_runs = []
+    for scenario_id in [
+        "static_calculator",
+        "markdown_previewer",
+        "task_tracker_filter_update",
+        "csv_cleaner_cli",
+        "config_validator_cli",
+    ]:
+        expanded_runs.append(_tool("teaching_sandbox_harness", {
+            "project_root": str(target_root),
+            "action": "run_scenario",
+            "confirm": True,
+            "scenario_id": scenario_id,
+            "project_id": f"{scenario_id}-fixture",
+            "window_turns": 0,
+            "max_tool_rounds": 3,
+        }))
+    if all(
+        run["status"] == "ok"
+        and run["result"]["verification"]["failed"] == 0
+        and run["result"]["scorecard"]["passed"]
+        for run in expanded_runs
+    ):
+        _ok("teaching_sandbox_harness runs expanded mocked scenario baselines")
+    else:
+        _fail("teaching_sandbox_harness expanded scenario baselines", str(expanded_runs))
 
     export = _tool("teaching_sandbox_harness", {
         "project_root": str(target_root),

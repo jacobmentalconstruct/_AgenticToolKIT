@@ -77,6 +77,78 @@ TASK_CARD_TEMPLATES: dict[str, dict[str, Any]] = {
 }
 
 
+WEB_PROJECT_REQUIRED_STEPS = (
+    "read_sandbox_local_contract",
+    "read_task_card",
+    "scaffold_expected_files",
+    "validate_static_artifacts",
+    "journal_and_trace_result",
+    "cite_touched_paths",
+)
+PYTHON_PROJECT_REQUIRED_STEPS = (
+    "read_sandbox_local_contract",
+    "read_task_card",
+    "scaffold_expected_files",
+    "validate_python_artifacts",
+    "journal_and_trace_result",
+    "cite_touched_paths",
+)
+PROJECT_OPTIONAL_STEPS = ("checkpoint_private_git",)
+PROJECT_FORBIDDEN_STEPS = ("read_parent_contract", "raw_shell", "dependency_install", "outside_root_write")
+
+
+def _project_birth_card(
+    *,
+    title: str,
+    template_name: str = "project_birth",
+    expected_files: tuple[str, ...],
+    build_instruction: str,
+    success_criteria: tuple[str, ...],
+    verification_checks: tuple[str, ...],
+    final_paths: tuple[str, ...],
+    scaffold_example_path: str,
+) -> str:
+    return (
+        f"# Task Card: {title}\n\n"
+        f"Template: {template_name}\n\n"
+        "Local contract rule:\n"
+        "- Treat `_docs/builder_constraint_contract.md` as the complete sandbox-local contract.\n"
+        "- Do not read `CONTRACT.md`, `../CONTRACT.md`, parent folders, or any path outside this sandbox.\n"
+        "- If a contract pointer appears stale, continue with this task card and the sandbox-local contract.\n\n"
+        "Allowed tools:\n"
+        "- directory_scaffold\n"
+        "- text_file_reader\n"
+        "- text_file_writer\n"
+        "- text_file_validator\n"
+        "- session_evidence_store\n"
+        "- agent_run_trace\n"
+        "- journal_write\n\n"
+        "Expected artifacts:\n"
+        + "".join(f"- {path}\n" for path in expected_files)
+        + "- `_docs/TASK_CARD.md` already exists; do not overwrite it.\n\n"
+        "Scaffold argument rule:\n"
+        "- When using directory_scaffold, `entries` must be a list of objects, not a list of strings.\n"
+        f"- Each file entry must look like: {{\"type\":\"file\",\"path\":\"{scaffold_example_path}\",\"content\":\"...\",\"overwrite\":true}}.\n"
+        "- Provide real content for each expected file in the first scaffold call.\n\n"
+        "Tool-call format rule:\n"
+        "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
+        "Rewrite rule:\n"
+        "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
+        f"{build_instruction}\n\n"
+        "Success criteria:\n"
+        + "".join(f"- {item}\n" for item in success_criteria)
+        + "\nVerification checks:\n"
+        + "".join(f"- {item}\n" for item in verification_checks)
+        + "\nJournal and evidence expectations:\n"
+        "- Let the harness record trace, evidence, and journal metadata.\n"
+        f"- Final summary must cite touched paths: {', '.join(final_paths)}.\n\n"
+        "Forbidden:\n"
+        "- Do not install packages.\n"
+        "- Do not run shell commands.\n"
+        "- Do not write outside the sandbox project root.\n"
+    )
+
+
 SCENARIOS: dict[str, Scenario] = {
     "static_task_tracker": Scenario(
         scenario_id="static_task_tracker",
@@ -205,6 +277,167 @@ SCENARIOS: dict[str, Scenario] = {
             "- Do not install packages.\n"
             "- Do not run shell commands.\n"
             "- Do not write outside the sandbox project root.\n"
+        ),
+    ),
+    "static_calculator": Scenario(
+        scenario_id="static_calculator",
+        title="Static Calculator",
+        summary="Build a static four-operation calculator with keyboard/button input.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=WEB_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Static Calculator",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="index.html",
+            build_instruction="Build a tiny static calculator using only index.html, styles.css, and app.js.",
+            success_criteria=(
+                "A user can enter numbers.",
+                "A user can add, subtract, multiply, and divide.",
+                "A user can clear the calculator.",
+                "The UI is usable by opening index.html directly.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "app.js registers event listeners.",
+                "app.js supports add, subtract, multiply, divide, equals, and clear behavior.",
+                "styles.css is non-empty.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+        ),
+    ),
+    "markdown_previewer": Scenario(
+        scenario_id="markdown_previewer",
+        title="Markdown Previewer",
+        summary="Build a static markdown previewer with textarea input and rendered preview.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=WEB_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Markdown Previewer",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="app.js",
+            build_instruction="Build a tiny static markdown previewer using only index.html, styles.css, and app.js.",
+            success_criteria=(
+                "A user can type markdown in a textarea.",
+                "The preview updates without a page reload.",
+                "The preview handles headings, bold, italic, links, and line breaks.",
+                "The UI is usable by opening index.html directly.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "index.html includes a textarea and preview region.",
+                "app.js registers input event listeners.",
+                "app.js transforms markdown-like syntax into HTML.",
+                "styles.css is non-empty.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+        ),
+    ),
+    "task_tracker_filter_update": Scenario(
+        scenario_id="task_tracker_filter_update",
+        title="Task Tracker Filter Update",
+        summary="Build a task tracker variant with active/completed/all filters as an edit-after-feedback style scenario.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="feature_addition",
+        required_steps=(
+            "read_sandbox_local_contract",
+            "read_task_card",
+            "preserve_existing_task_lifecycle",
+            "add_filter_feature",
+            "validate_static_artifacts",
+            "journal_and_trace_result",
+            "cite_touched_paths",
+        ),
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Task Tracker Filter Update",
+            template_name="feature_addition",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="app.js",
+            build_instruction=(
+                "Build a static task tracker as if responding to feedback on the original tracker: "
+                "preserve add/complete/delete behavior and add all/active/completed filters."
+            ),
+            success_criteria=(
+                "A user can add a task.",
+                "A user can mark a task complete.",
+                "A user can delete a task.",
+                "A user can switch between all, active, and completed filters.",
+                "Tasks persist with localStorage.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "app.js uses localStorage and event listeners.",
+                "app.js covers delete, complete, active, completed, and filter behavior.",
+                "styles.css is non-empty.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+        ),
+    ),
+    "csv_cleaner_cli": Scenario(
+        scenario_id="csv_cleaner_cli",
+        title="CSV Cleaner CLI",
+        summary="Build a stdlib Python CSV cleaner CLI with trim, empty-row removal, and dedupe support.",
+        expected_files=("csv_cleaner.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=PYTHON_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="CSV Cleaner CLI",
+            expected_files=("csv_cleaner.py", "README.md"),
+            scaffold_example_path="csv_cleaner.py",
+            build_instruction="Build a tiny stdlib-only CSV cleaner command line app in csv_cleaner.py.",
+            success_criteria=(
+                "The CLI accepts input and output CSV paths.",
+                "It trims whitespace from cell values.",
+                "It can remove empty rows.",
+                "It can deduplicate repeated rows.",
+                "README.md documents usage.",
+            ),
+            verification_checks=(
+                "csv_cleaner.py parses as Python.",
+                "csv_cleaner.py uses argparse and csv.",
+                "csv_cleaner.py includes trim, empty-row, and dedupe behavior.",
+                "README.md documents input, output, trim, and dedupe usage.",
+            ),
+            final_paths=("csv_cleaner.py", "README.md"),
+        ),
+    ),
+    "config_validator_cli": Scenario(
+        scenario_id="config_validator_cli",
+        title="Config Validator CLI",
+        summary="Build a stdlib Python JSON config validator with required-key checks.",
+        expected_files=("config_validator.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=PYTHON_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Config Validator CLI",
+            expected_files=("config_validator.py", "README.md"),
+            scaffold_example_path="config_validator.py",
+            build_instruction="Build a tiny stdlib-only JSON config validator command line app in config_validator.py.",
+            success_criteria=(
+                "The CLI accepts a JSON config path.",
+                "It accepts required keys as arguments.",
+                "It reports missing keys clearly.",
+                "It returns a success message when validation passes.",
+                "README.md documents usage.",
+            ),
+            verification_checks=(
+                "config_validator.py parses as Python.",
+                "config_validator.py uses argparse and json.",
+                "config_validator.py includes required-key validation and missing-key reporting.",
+                "README.md documents validate, required, and JSON config usage.",
+            ),
+            final_paths=("config_validator.py", "README.md"),
         ),
     ),
 }
@@ -628,6 +861,16 @@ def _verify_scenario(project_root: Path, scenario_id: str) -> list[dict[str, Any
         return _verify_static_task_tracker(project_root)
     if scenario_id == "python_notes_cli":
         return _verify_python_notes_cli(project_root)
+    if scenario_id == "static_calculator":
+        return _verify_static_calculator(project_root)
+    if scenario_id == "markdown_previewer":
+        return _verify_markdown_previewer(project_root)
+    if scenario_id == "task_tracker_filter_update":
+        return _verify_task_tracker_filter_update(project_root)
+    if scenario_id == "csv_cleaner_cli":
+        return _verify_csv_cleaner_cli(project_root)
+    if scenario_id == "config_validator_cli":
+        return _verify_config_validator_cli(project_root)
     raise ValueError(f"unknown scenario: {scenario_id}")
 
 
@@ -667,6 +910,100 @@ def _verify_python_notes_cli(project_root: Path) -> list[dict[str, Any]]:
     return checks
 
 
+def _verify_static_calculator(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["static_calculator"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check("js-adds-event-listeners", "addEventListener" in script, "app.js registers event listeners"),
+        _check("js-has-operations", all(term in lowered for term in ["add", "subtract", "multiply", "divide", "clear"]), "app.js supports calculator operations"),
+        _check("js-computes-result", any(term in script for term in ["eval", "parseFloat", "Number("]) and "=" in script, "app.js computes a result"),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+    ])
+    return checks
+
+
+def _verify_markdown_previewer(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["markdown_previewer"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check("html-has-textarea-preview", "textarea" in index.lower() and "preview" in index.lower(), "index.html has textarea and preview"),
+        _check("js-adds-input-listener", "addEventListener" in script and "input" in lowered, "app.js listens for input"),
+        _check("js-renders-markdown", all(term in lowered for term in ["replace", "strong", "em", "href"]), "app.js renders basic markdown syntax"),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+    ])
+    return checks
+
+
+def _verify_task_tracker_filter_update(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["task_tracker_filter_update"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check("html-has-filter-controls", all(term in index.lower() for term in ["all", "active", "completed"]), "index.html has filter controls"),
+        _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
+        _check("js-adds-event-listeners", "addEventListener" in script, "app.js registers event listeners"),
+        _check("js-has-filter-lifecycle", all(term in lowered for term in ["filter", "active", "completed", "delete", "complete"]), "app.js covers filter and task lifecycle"),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+    ])
+    return checks
+
+
+def _verify_csv_cleaner_cli(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["csv_cleaner_cli"].expected_files)
+    source = _read(project_root / "csv_cleaner.py")
+    readme = _read(project_root / "README.md")
+    parses = _python_parses(source)
+    lowered = source.lower()
+    readme_lowered = readme.lower()
+    checks.extend([
+        _check("python-ast-parse", parses, "csv_cleaner.py parses as Python"),
+        _check("python-uses-argparse", "argparse" in lowered, "csv_cleaner.py uses argparse"),
+        _check("python-uses-csv", "csv" in lowered, "csv_cleaner.py uses csv"),
+        _check("python-has-cleaning", all(term in lowered for term in ["strip", "dedupe", "empty"]), "csv_cleaner.py trims, dedupes, and handles empty rows"),
+        _check("readme-docs-usage", all(term in readme_lowered for term in ["input", "output", "trim", "dedupe"]), "README documents input/output/trim/dedupe"),
+    ])
+    return checks
+
+
+def _verify_config_validator_cli(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["config_validator_cli"].expected_files)
+    source = _read(project_root / "config_validator.py")
+    readme = _read(project_root / "README.md")
+    parses = _python_parses(source)
+    lowered = source.lower()
+    readme_lowered = readme.lower()
+    checks.extend([
+        _check("python-ast-parse", parses, "config_validator.py parses as Python"),
+        _check("python-uses-argparse", "argparse" in lowered, "config_validator.py uses argparse"),
+        _check("python-uses-json", "json" in lowered, "config_validator.py uses json"),
+        _check("python-validates-required", all(term in lowered for term in ["required", "missing", "validate"]), "config_validator.py validates required keys"),
+        _check("readme-docs-usage", all(term in readme_lowered for term in ["json", "required", "validate"]), "README documents JSON validation usage"),
+    ])
+    return checks
+
+
+def _python_parses(source: str) -> bool:
+    try:
+        ast.parse(source or "")
+        return True
+    except SyntaxError:
+        return False
+
+
 def _file_checks(project_root: Path, expected_files: tuple[str, ...]) -> list[dict[str, Any]]:
     return [
         _check(f"file:{rel}", (project_root / rel).is_file(), f"{rel} exists")
@@ -684,18 +1021,42 @@ def _verification_check_ids(scenario_id: str) -> list[str]:
 
 
 def _mock_responses(scenario_id: str) -> list[str]:
-    if scenario_id == "static_task_tracker":
-        entries = [
+    entries_by_scenario = {
+        "static_task_tracker": [
             {"type": "file", "path": "index.html", "content": STATIC_INDEX, "overwrite": True},
             {"type": "file", "path": "styles.css", "content": STATIC_CSS, "overwrite": True},
             {"type": "file", "path": "app.js", "content": STATIC_JS, "overwrite": True},
-        ]
-    elif scenario_id == "python_notes_cli":
-        entries = [
+        ],
+        "python_notes_cli": [
             {"type": "file", "path": "notes.py", "content": NOTES_PY, "overwrite": True},
             {"type": "file", "path": "README.md", "content": NOTES_README, "overwrite": True},
-        ]
-    else:
+        ],
+        "static_calculator": [
+            {"type": "file", "path": "index.html", "content": CALC_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": CALC_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": CALC_JS, "overwrite": True},
+        ],
+        "markdown_previewer": [
+            {"type": "file", "path": "index.html", "content": MARKDOWN_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": MARKDOWN_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": MARKDOWN_JS, "overwrite": True},
+        ],
+        "task_tracker_filter_update": [
+            {"type": "file", "path": "index.html", "content": FILTER_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": FILTER_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": FILTER_JS, "overwrite": True},
+        ],
+        "csv_cleaner_cli": [
+            {"type": "file", "path": "csv_cleaner.py", "content": CSV_CLEANER_PY, "overwrite": True},
+            {"type": "file", "path": "README.md", "content": CSV_CLEANER_README, "overwrite": True},
+        ],
+        "config_validator_cli": [
+            {"type": "file", "path": "config_validator.py", "content": CONFIG_VALIDATOR_PY, "overwrite": True},
+            {"type": "file", "path": "README.md", "content": CONFIG_VALIDATOR_README, "overwrite": True},
+        ],
+    }
+    entries = entries_by_scenario.get(scenario_id)
+    if entries is None:
         raise ValueError(f"unknown scenario: {scenario_id}")
     call = {"tool": "directory_scaffold", "arguments": {"entries": entries, "dry_run": False, "validate_files": True}}
     return [
@@ -984,4 +1345,447 @@ NOTES_README = """# Python Notes CLI
 Use `python notes.py add "text"` to add a note.
 Use `python notes.py list` to list notes.
 Use `python notes.py search query` to search notes.
+"""
+
+
+CALC_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Static Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Calculator</h1>
+    <output id="display" aria-live="polite">0</output>
+    <div class="keys" aria-label="Calculator keys">
+      <button data-value="7">7</button>
+      <button data-value="8">8</button>
+      <button data-value="9">9</button>
+      <button data-operation="divide">/</button>
+      <button data-value="4">4</button>
+      <button data-value="5">5</button>
+      <button data-value="6">6</button>
+      <button data-operation="multiply">*</button>
+      <button data-value="1">1</button>
+      <button data-value="2">2</button>
+      <button data-value="3">3</button>
+      <button data-operation="subtract">-</button>
+      <button data-value="0">0</button>
+      <button data-action="clear">Clear</button>
+      <button data-action="equals">=</button>
+      <button data-operation="add">+</button>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+CALC_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #f4f7f8;
+  color: #18242f;
+}
+main {
+  max-width: 22rem;
+}
+output {
+  display: block;
+  padding: 1rem;
+  margin-bottom: .75rem;
+  background: #111827;
+  color: white;
+  text-align: right;
+  font-size: 2rem;
+}
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+}
+button {
+  min-height: 3rem;
+}
+"""
+
+
+CALC_JS = """const display = document.querySelector('#display');
+const keys = document.querySelector('.keys');
+let storedValue = null;
+let pendingOperation = null;
+let freshInput = true;
+
+function show(value) {
+  display.textContent = String(value);
+}
+
+function currentNumber() {
+  return parseFloat(display.textContent || '0');
+}
+
+function calculate(left, right, operation) {
+  if (operation === 'add') return left + right;
+  if (operation === 'subtract') return left - right;
+  if (operation === 'multiply') return left * right;
+  if (operation === 'divide') return right === 0 ? 'Cannot divide by zero' : left / right;
+  return right;
+}
+
+function enterNumber(value) {
+  if (freshInput || display.textContent === '0') {
+    show(value);
+    freshInput = false;
+  } else {
+    show(display.textContent + value);
+  }
+}
+
+function chooseOperation(operation) {
+  if (pendingOperation !== null && !freshInput) {
+    storedValue = calculate(storedValue, currentNumber(), pendingOperation);
+    show(storedValue);
+  } else {
+    storedValue = currentNumber();
+  }
+  pendingOperation = operation;
+  freshInput = true;
+}
+
+function clearCalculator() {
+  storedValue = null;
+  pendingOperation = null;
+  freshInput = true;
+  show(0);
+}
+
+keys.addEventListener('click', event => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  if (button.dataset.value) enterNumber(button.dataset.value);
+  if (button.dataset.operation) chooseOperation(button.dataset.operation);
+  if (button.dataset.action === 'clear') clearCalculator();
+  if (button.dataset.action === 'equals' && pendingOperation) {
+    const result = calculate(storedValue, currentNumber(), pendingOperation);
+    show(result);
+    storedValue = typeof result === 'number' ? result : null;
+    pendingOperation = null;
+    freshInput = true;
+  }
+});
+
+document.addEventListener('keydown', event => {
+  const operationKeys = { '+': 'add', '-': 'subtract', '*': 'multiply', '/': 'divide' };
+  if (/^[0-9]$/.test(event.key)) enterNumber(event.key);
+  if (operationKeys[event.key]) chooseOperation(operationKeys[event.key]);
+  if (event.key === 'Enter' && pendingOperation) {
+    show(calculate(storedValue, currentNumber(), pendingOperation));
+    pendingOperation = null;
+    freshInput = true;
+  }
+  if (event.key === 'Escape') clearCalculator();
+});
+"""
+
+
+MARKDOWN_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markdown Previewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Markdown Previewer</h1>
+    <label for="source">Markdown</label>
+    <textarea id="source" rows="12"># Hello
+
+Write **strong**, *em*, and [links](https://example.com).</textarea>
+    <section id="preview" aria-live="polite"></section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+MARKDOWN_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #fbfbf7;
+  color: #1f2933;
+}
+main {
+  display: grid;
+  gap: 1rem;
+  max-width: 54rem;
+}
+textarea,
+#preview {
+  min-height: 14rem;
+  padding: 1rem;
+  border: 1px solid #b8c2cc;
+}
+#preview {
+  background: white;
+}
+"""
+
+
+MARKDOWN_JS = """const source = document.querySelector('#source');
+const preview = document.querySelector('#preview');
+
+function escapeHtml(value) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
+function renderMarkdown(markdown) {
+  return escapeHtml(markdown)
+    .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+    .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+    .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')
+    .replace(/\\*(.*?)\\*/g, '<em>$1</em>')
+    .replace(/\\[(.*?)\\]\\((.*?)\\)/g, '<a href="$2">$1</a>')
+    .replace(/\\n/g, '<br>');
+}
+
+function updatePreview() {
+  preview.innerHTML = renderMarkdown(source.value);
+}
+
+source.addEventListener('input', updatePreview);
+updatePreview();
+"""
+
+
+FILTER_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task Tracker Filters</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Task Tracker</h1>
+    <form id="task-form">
+      <input id="task-input" aria-label="Task" placeholder="New task">
+      <button type="submit">Add</button>
+    </form>
+    <nav aria-label="Task filters">
+      <button data-filter="all">All</button>
+      <button data-filter="active">Active</button>
+      <button data-filter="completed">Completed</button>
+    </nav>
+    <ul id="task-list"></ul>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+FILTER_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #f6f8fb;
+  color: #15202b;
+}
+main {
+  max-width: 42rem;
+}
+nav {
+  display: flex;
+  gap: .5rem;
+  margin: 1rem 0;
+}
+li {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin: .5rem 0;
+}
+.completed span {
+  text-decoration: line-through;
+  color: #68778a;
+}
+.active-filter {
+  font-weight: bold;
+}
+"""
+
+
+FILTER_JS = """const form = document.querySelector('#task-form');
+const input = document.querySelector('#task-input');
+const list = document.querySelector('#task-list');
+const filterButtons = document.querySelectorAll('[data-filter]');
+let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+let filter = 'all';
+
+function save() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function visibleTasks() {
+  if (filter === 'active') return tasks.filter(task => !task.complete);
+  if (filter === 'completed') return tasks.filter(task => task.complete);
+  return tasks;
+}
+
+function render() {
+  list.innerHTML = '';
+  filterButtons.forEach(button => {
+    button.classList.toggle('active-filter', button.dataset.filter === filter);
+  });
+  visibleTasks().forEach(task => {
+    const index = tasks.indexOf(task);
+    const item = document.createElement('li');
+    item.className = task.complete ? 'completed' : 'active';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = task.complete;
+    checkbox.addEventListener('change', () => {
+      task.complete = checkbox.checked;
+      save();
+      render();
+    });
+    const label = document.createElement('span');
+    label.textContent = task.text;
+    const del = document.createElement('button');
+    del.textContent = 'Delete';
+    del.addEventListener('click', () => {
+      tasks.splice(index, 1);
+      save();
+      render();
+    });
+    item.append(checkbox, label, del);
+    list.appendChild(item);
+  });
+}
+
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  tasks.push({ text, complete: false });
+  input.value = '';
+  save();
+  render();
+});
+
+filterButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    filter = button.dataset.filter;
+    render();
+  });
+});
+
+render();
+"""
+
+
+CSV_CLEANER_PY = """import argparse
+import csv
+
+
+def clean_rows(rows, remove_empty=False, dedupe=False):
+    cleaned = []
+    seen = set()
+    for row in rows:
+        trimmed = [cell.strip() for cell in row]
+        if remove_empty and all(cell == '' for cell in trimmed):
+            continue
+        key = tuple(trimmed)
+        if dedupe and key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(trimmed)
+    return cleaned
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Trim and clean CSV files')
+    parser.add_argument('input')
+    parser.add_argument('output')
+    parser.add_argument('--remove-empty', action='store_true', help='Drop empty rows')
+    parser.add_argument('--dedupe', action='store_true', help='Remove duplicate rows')
+    args = parser.parse_args()
+
+    with open(args.input, newline='', encoding='utf-8') as source:
+        rows = list(csv.reader(source))
+
+    rows = clean_rows(rows, remove_empty=args.remove_empty, dedupe=args.dedupe)
+
+    with open(args.output, 'w', newline='', encoding='utf-8') as target:
+        csv.writer(target).writerows(rows)
+
+    print(f'wrote {len(rows)} rows')
+
+
+if __name__ == '__main__':
+    main()
+"""
+
+
+CSV_CLEANER_README = """# CSV Cleaner CLI
+
+Clean a CSV file using only the Python standard library.
+
+Usage: `python csv_cleaner.py input.csv output.csv --remove-empty --dedupe`
+
+The cleaner trims whitespace from every cell, can remove empty rows, and can dedupe repeated rows before writing output.
+"""
+
+
+CONFIG_VALIDATOR_PY = """import argparse
+import json
+import sys
+
+
+def validate(config, required):
+    missing = [key for key in required if key not in config]
+    if missing:
+        return False, missing
+    return True, []
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Validate required JSON config keys')
+    parser.add_argument('config_path')
+    parser.add_argument('--required', nargs='+', default=[], help='Required config keys')
+    args = parser.parse_args()
+
+    with open(args.config_path, encoding='utf-8') as source:
+        config = json.load(source)
+
+    ok, missing = validate(config, args.required)
+    if not ok:
+        print('missing required keys: ' + ', '.join(missing))
+        sys.exit(1)
+
+    print('validate passed')
+
+
+if __name__ == '__main__':
+    main()
+"""
+
+
+CONFIG_VALIDATOR_README = """# Config Validator CLI
+
+Validate that a JSON config includes required keys.
+
+Usage: `python config_validator.py config.json --required name version owner`
+
+The command reads JSON, checks every required key, reports missing keys, and prints a validate success message when the config passes.
 """

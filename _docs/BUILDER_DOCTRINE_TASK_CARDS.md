@@ -64,9 +64,11 @@ Every Teaching Sandbox task card must say:
 
 ## Scenario Metadata
 
-The initial Teaching Sandbox scenarios use `project_birth`.
+The Teaching Sandbox curriculum now uses task-card metadata across both
+project-birth and feature-addition practice.
 
-`static_task_tracker` requires:
+The project-birth static web scenarios are `static_task_tracker`,
+`static_calculator`, and `markdown_previewer`. They require:
 
 - `read_sandbox_local_contract`
 - `read_task_card`
@@ -75,7 +77,8 @@ The initial Teaching Sandbox scenarios use `project_birth`.
 - `journal_and_trace_result`
 - `cite_touched_paths`
 
-`python_notes_cli` requires:
+The project-birth stdlib Python scenarios are `python_notes_cli`,
+`csv_cleaner_cli`, and `config_validator_cli`. They require:
 
 - `read_sandbox_local_contract`
 - `read_task_card`
@@ -84,11 +87,22 @@ The initial Teaching Sandbox scenarios use `project_birth`.
 - `journal_and_trace_result`
 - `cite_touched_paths`
 
-Both scenarios allow:
+The edit-after-feedback scenario is `task_tracker_filter_update`. It uses the
+`feature_addition` template and requires:
+
+- `read_sandbox_local_contract`
+- `read_task_card`
+- `preserve_existing_task_lifecycle`
+- `add_filter_feature`
+- `validate_static_artifacts`
+- `journal_and_trace_result`
+- `cite_touched_paths`
+
+All current scenarios allow:
 
 - `checkpoint_private_git`
 
-Both scenarios forbid:
+All current scenarios forbid:
 
 - `read_parent_contract`
 - `raw_shell`

@@ -166,10 +166,12 @@ cockpit floor over project LTM, Evidence Shelf, run traces, and scorecards.
 `teaching_sandbox_harness` creates ignored runtime sandbox projects, copies in
 the builder-contract/task-card substrate, runs the local sidecar agent through
 guarded mocked or live model flows, verifies deterministic scenario checks,
-scores the result, and exports scorecards. The first scenarios are a static
-task tracker and a stdlib Python notes CLI. This gives future hardening work
-realistic traces, Evidence IDs, journal links, and score data without adding
-raw shell execution or broader filesystem authority.
+scores the result, and exports scorecards. The curriculum now covers the
+original static task tracker and Python notes CLI plus calculator, markdown
+previewer, task-tracker filter update, CSV cleaner, and JSON config validator
+scenarios. This gives future hardening work realistic traces, Evidence IDs,
+journal links, and score data without adding raw shell execution or broader
+filesystem authority.
 
 **Local-Agent App-Builder Training is the active horizon.** Tranche 14 has
 parked the first training runway by using the Teaching Lab and current harness
@@ -186,6 +188,9 @@ to teach away. Tranche 15 added `_docs/BUILDER_DOCTRINE_TASK_CARDS.md`,
 project-birth task-card metadata, sandbox-local contract rules, scaffold/tool
 call format rules, and schema guardrails. The first live reruns improved from
 pre-scaffold failures to real artifact creation and partial scorecards.
+Tranche 16 expands the deterministic curriculum with five more small-app
+scenarios across static web, stdlib Python, and an edit-after-feedback variant;
+mocked baselines pass for all new scenarios.
 
 The queued local-agent implementation runway is now:
 
@@ -226,9 +231,11 @@ The queued local-agent implementation runway is now:
    doctrine into explicit task-card primitives, beginning with project-birth
    cards, sandbox-local contract reading, allowed tools, expected artifacts,
    verification checks, journaling, and claim-citation rules.
-10. **Tranche 16-18 — Training Cycle:** active next; expand small-app scenarios,
-   tune from traces/scorecards, and run unseen graduation apps before closing
-   the app-builder northstar.
+10. **Tranche 16 — Curriculum Scenario Expansion:** complete; five additional
+   deterministic scenarios now exercise calculator, markdown previewer,
+   task-tracker filter, CSV cleaner, and config-validator builds.
+11. **Tranche 17-18 — Training Cycle:** active next; tune from traces/scorecards,
+   and run unseen graduation apps before closing the app-builder northstar.
 
 ### Tier 2: Vendable Packages (`packages/`)
 

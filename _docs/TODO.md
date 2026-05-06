@@ -137,18 +137,20 @@ sidecar can follow without inferring the scaffold.
       verification checks, journaling expectations, and claim-citation rules.
 - [x] Add smoke coverage proving task-card parsing and defaults are stable.
 
-### Active source tranche: Tranche 16 Curriculum Scenario Expansion
+### Recently parked source tranche: Tranche 16 Curriculum Scenario Expansion
 
 Purpose: teach across varied but small apps, not just the two initial fixtures.
 
-- [ ] Add additional static web scenarios such as calculator, timer, habit
-      tracker, markdown previewer, and simple budget table.
-- [ ] Add additional stdlib Python scenarios such as CSV cleaner, file indexer,
-      config validator, and tiny Tkinter utility.
-- [ ] Add scenario variations that require edit-after-feedback rather than
-      first-pass creation only.
-- [ ] Keep every scenario deterministic, stdlib-only, and disposable under
+- [x] Add additional static web scenarios: `static_calculator` and
+      `markdown_previewer`.
+- [x] Add additional stdlib Python scenarios: `csv_cleaner_cli` and
+      `config_validator_cli`.
+- [x] Add a scenario variation that requires edit-after-feedback:
+      `task_tracker_filter_update`.
+- [x] Keep every scenario deterministic, stdlib-only, and disposable under
       ignored runtime state.
+- [x] Add mocked fixture payloads, deterministic verifiers, and smoke coverage
+      proving the expanded baseline set passes.
 
 ### Planned source tranche: Tranche 17 Trace Review And Loop Tuning
 

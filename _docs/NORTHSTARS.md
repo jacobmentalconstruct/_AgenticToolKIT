@@ -292,7 +292,7 @@ The training runway is intentionally staged:
 |---|---|---|
 | Tranche 14 | Baseline the current sidecar and define the training regimen. | Curriculum, score rubric, failure taxonomy, trace-review checklist, baseline results. |
 | Tranche 15 | Turn builder doctrine into explicit task cards. | Reusable task-card templates for project birth, feature work, recovery, validation, docs, and handoff. |
-| Tranche 16 | Expand the small-app curriculum. | More deterministic static web and stdlib Python scenarios, including edit-after-feedback variants. |
+| Tranche 16 | Expand the small-app curriculum. | Complete: calculator, markdown previewer, task-tracker filter update, CSV cleaner, and config-validator scenarios with passing mocked baselines. |
 | Tranche 17 | Tune from traces rather than guesses. | Prompt/task-card/schema improvements derived from scorecards, Evidence IDs, and run traces. |
 | Tranche 18 | Test graduation on unseen apps. | Pass/fail decision for the app-builder northstar and documented residual scope. |
 
@@ -316,6 +316,13 @@ sandbox-local contract instead of copying the root-contract pointer. Live
 reruns now get past contract resolution and into real artifact creation, leaving
 more specific next labels around JSON formatting, validation calls, and
 deterministic feature completion.
+
+Tranche 16 then broadened the curriculum while preserving the same safety
+envelope. The Teaching Sandbox has seven deterministic scenarios: the original
+task tracker and notes CLI plus calculator, markdown previewer, task-tracker
+filter update, CSV cleaner, and config validator. All five new mocked baselines
+pass, so Tranche 17 can tune from a broader trace set rather than overfitting to
+the original two fixtures.
 
 ## Later Expansion
 

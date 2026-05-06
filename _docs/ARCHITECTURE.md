@@ -226,8 +226,10 @@ Shelf, run trace store, App Journal, and future tuning-data work.
 It creates disposable sandbox projects, copies in a task card plus the builder
 constraint contract, runs `local_sidecar_agent` with either mocked or live
 Ollama responses, verifies scenario outputs, scores the run, and exports a
-sanitized scorecard. The first scenarios are `static_task_tracker` and
-`python_notes_cli`.
+sanitized scorecard. The current scenario set is `static_task_tracker`,
+`python_notes_cli`, `static_calculator`, `markdown_previewer`,
+`task_tracker_filter_update`, `csv_cleaner_cli`, and
+`config_validator_cli`.
 
 The teaching harness is not an authority expansion. It adds no raw shell
 execution, package installation, broad CLI sandbox, hidden memory, or tracked
@@ -288,6 +290,12 @@ complete `_docs/builder_constraint_contract.md` so the live model does not need
 to chase parent/root contract paths. The local agent also classifies array item
 schema mistakes before tool execution and tolerates a common `[/tool_call]`
 closing tag without treating otherwise valid JSON as unusable.
+
+Tranche 16 expands the curriculum layer without changing the authority model.
+The harness now includes five additional deterministic baselines across static
+web apps, stdlib Python CLIs, and an edit-after-feedback feature-addition
+scenario. Each new scenario has mocked fixture payloads and verifier checks so
+trace tuning can compare broader app-building behavior before graduation runs.
 
 ## Local Agent Operator UI
 
