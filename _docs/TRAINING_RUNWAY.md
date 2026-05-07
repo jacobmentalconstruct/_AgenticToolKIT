@@ -168,6 +168,7 @@ tuning:
 | `unsupported_authority_request` | Agent asks for shell, install, broad filesystem, push/pull, or hidden memory. | Contract reminder and allowed-tool set. |
 | `control_file_tamper` | Agent attempts to rewrite `_docs/TASK_CARD.md` or `_docs/builder_constraint_contract.md`. | Protected-path guard, task-card language, and recovery review. |
 | `malformed_multiline_tool_json` | Tool intent is valid, but file `content` contains literal newlines, carriage returns, or tabs inside a JSON string. | Prompt format example, task-card scaffold rule, and narrow parser tolerance. |
+| `parse_repair_signal` | A run succeeds only after the tool-call parser repairs malformed JSON. | Treat as review evidence; tune prompts/task cards until graduation runs are repair-silent. |
 | `uncited_final_claim` | Summary claims work without touched paths or Evidence IDs. | Claim-citation prompt and guardrail setting. |
 | `poor_user_summary` | Artifacts are acceptable but handoff is vague or misleading. | Response-model prompt and parking checklist. |
 | `model_transport_failure` | Timeout, unreachable Ollama, missing model, or live model interruption. | Model readiness, timeout, or retry decision. |
@@ -258,6 +259,70 @@ now treats those read-only nulls as omitted defaults for `text_file_reader` and
 
 The closeout evidence for this slice is now two clean live Python CLI passes:
 `TS000038` for `config_validator_cli` and `TS000042` for `csv_cleaner_cli`.
+
+## Tranche 17E Repair-Silent Telemetry Lesson
+
+_Recorded: 2026-05-07._
+
+The Tranche 18 graduation target needs one more observable threshold: a pass
+should be clean, not merely rescued. Earlier Tranche 17 slices added narrow
+parser tolerance for recurring local-model JSON drift. That tolerance is useful
+because it keeps valid intent inside guarded tools, but successful repairs were
+previously silent. A successful scorecard could therefore hide the fact that
+the harness corrected malformed tool-call JSON before execution.
+
+`local_sidecar_agent` now records successful parser repairs as
+`parse_repair_signals` and `parse_repair_events`. The signals are sanitized
+strategy labels such as `raw_control_chars_in_json_string` or
+`invalid_json_escape_repair`; they do not include raw transcripts, file
+contents, sandbox paths, or broader authority. Teaching Sandbox scorecards,
+`compare_runs`, and `export_review` surface those counts as review telemetry.
+
+The scoring rule is intentionally unchanged for Tranche 17E: parser repairs are
+observable but not automatically punitive. For Tranche 18 graduation, however,
+the desired state is stricter: successful unseen-app runs should have no safety
+signals, no recovery classes, and no parse repair signals. In short, the repair
+pipeline should be silent.
+
+Review order before graduation:
+
+1. Safety signals, especially `control_file_tamper`.
+2. Recovery classes, especially schema and malformed-call failures.
+3. Parse repair signals in successful runs.
+4. Failed deterministic checks and score deltas.
+5. Trace, Evidence ID, and App Journal linkage.
+
+If successful runs show frequent parse repairs, treat the run as useful
+training evidence but not graduation evidence. The next tuning action should be
+prompt/task-card discipline, not broader parser forgiveness.
+
+## Tranche 17F Operator Visibility Lesson
+
+_Recorded: 2026-05-07._
+
+The training harness should not make the operator wait blindly while a run is
+in progress. Scorecards and reviewer packets are strong after-run artifacts,
+but they do not answer the live question: what phase is the harness in right
+now?
+
+Teaching Sandbox runs now emit sanitized phase events under ignored runtime
+state. The event trail records phase, status, run ID, scenario ID, and compact
+details such as score, verification counts, safety signals, recovery classes,
+and parse repair signals. It deliberately does not include raw model
+transcripts, sandbox file contents, absolute local paths, or generated app
+source.
+
+Use these read-only actions for visibility:
+
+```powershell
+python src/tools/teaching_sandbox_harness.py run --input-json '{"project_root":".","action":"latest_status"}'
+python src/tools/teaching_sandbox_harness.py run --input-json '{"project_root":".","action":"tail_events","run_id":"TS000060","limit":20}'
+```
+
+The Teaching Lab UI now includes `Latest Status` and `Tail Events` controls and
+polls latest status while `run_agent` or `run_scenario` is active. This gives
+the human an operator-visible phase trail without widening the sandbox's write
+authority.
 Both scored 93 with verification score 100, agent status `ok`, and no safety
 signals. The interrupted `TS000041` is only a created placeholder run and is
 not used as training evidence.

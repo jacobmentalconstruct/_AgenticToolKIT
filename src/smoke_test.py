@@ -1679,8 +1679,9 @@ def test_local_sidecar_agent() -> None:
         multiline_content_call["status"] == "ok"
         and multiline_path.exists()
         and multiline_path.read_text(encoding="utf-8") == "line one\nline two"
+        and "raw_control_chars_in_json_string" in multiline_content_call["result"].get("parse_repair_signals", [])
     ):
-        _ok("local_sidecar_agent repairs raw newlines inside tool-call JSON strings")
+        _ok("local_sidecar_agent repairs and records raw newlines inside tool-call JSON strings")
     else:
         _fail("local_sidecar_agent multiline JSON string repair", str(multiline_content_call))
 
@@ -1748,8 +1749,9 @@ def test_local_sidecar_agent() -> None:
         invalid_escape_call["status"] == "ok"
         and invalid_escape_path.exists()
         and "value === '7'" in invalid_escape_path.read_text(encoding="utf-8")
+        and "invalid_json_escape_repair" in invalid_escape_call["result"].get("parse_repair_signals", [])
     ):
-        _ok("local_sidecar_agent repairs invalid JSON escapes in model tool calls")
+        _ok("local_sidecar_agent repairs and records invalid JSON escapes in model tool calls")
     else:
         _fail("local_sidecar_agent invalid JSON escape repair", str(invalid_escape_call))
 
@@ -1766,8 +1768,8 @@ def test_local_sidecar_agent() -> None:
         "confirm_mutations": True,
         "checkpoint": False,
     })
-    if null_default_reader_call["status"] == "ok":
-        _ok("local_sidecar_agent treats read-only null bounds as defaults")
+    if null_default_reader_call["status"] == "ok" and not null_default_reader_call["result"].get("parse_repair_signals"):
+        _ok("local_sidecar_agent treats read-only null bounds as defaults without parse repair")
     else:
         _fail("local_sidecar_agent read-only null default normalization", str(null_default_reader_call))
 
@@ -2203,6 +2205,34 @@ def test_teaching_sandbox_harness() -> None:
     else:
         _fail("teaching_sandbox_harness control-file tamper scoring", str(tamper_run))
 
+    repair_response = (
+        "```tool_call\n"
+        '{"tool":"directory_scaffold","arguments":{"entries":['
+        '{"type":"file","path":"index.html","content":"<html><head><link rel=\'stylesheet\' href=\'styles.css\'></head><body><button id=\'add\'>Add</button><script src=\'app.js\'></script></body></html>","overwrite":true},'
+        '{"type":"file","path":"styles.css","content":"body { color: black; }\nbutton { color: blue; }","overwrite":true},'
+        '{"type":"file","path":"app.js","content":"const tasks=[]; localStorage.setItem(\'tasks\',\'[]\'); document.addEventListener(\'DOMContentLoaded\',()=>{}); function deleteTask(){} function editTask(){} function completeTask(){}","overwrite":true}'
+        '],"dry_run":false,"validate_files":true}}\n'
+        "```"
+    )
+    repair_run = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "run_scenario",
+        "confirm": True,
+        "scenario_id": "static_task_tracker",
+        "project_id": "static-repair-fixture",
+        "window_turns": 0,
+        "max_tool_rounds": 1,
+        "mock_ollama_responses": [repair_response],
+    })
+    if (
+        repair_run["status"] == "ok"
+        and repair_run["result"]["scorecard"]["passed"]
+        and "raw_control_chars_in_json_string" in repair_run["result"]["scorecard"].get("parse_repair_signals", [])
+    ):
+        _ok("teaching_sandbox_harness surfaces successful parse repair telemetry")
+    else:
+        _fail("teaching_sandbox_harness parse repair telemetry", str(repair_run))
+
     static_run = _tool("teaching_sandbox_harness", {
         "project_root": str(target_root),
         "action": "run_scenario",
@@ -2223,6 +2253,34 @@ def test_teaching_sandbox_harness() -> None:
         _ok("teaching_sandbox_harness runs static scenario with trace/evidence/journal capture")
     else:
         _fail("teaching_sandbox_harness static run", str(static_run))
+
+    event_tail = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "tail_events",
+        "run_id": static_run["result"]["run_id"],
+        "limit": 10,
+    })
+    latest_event = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "latest_status",
+        "run_id": static_run["result"]["run_id"],
+    })
+    event_phases = [
+        item.get("phase")
+        for item in event_tail.get("result", {}).get("events", [])
+        if isinstance(item, dict)
+    ]
+    rendered_events = json.dumps(event_tail)
+    if (
+        event_tail["status"] == "ok"
+        and latest_event["status"] == "ok"
+        and {"create_project", "run_agent", "verify_project", "score", "run_scenario"}.issubset(set(event_phases))
+        and latest_event["result"]["latest_event"].get("phase") == "run_scenario"
+        and str(target_root) not in rendered_events
+    ):
+        _ok("teaching_sandbox_harness exposes sanitized run phase events")
+    else:
+        _fail("teaching_sandbox_harness run phase events", str(event_tail))
 
     python_run = _tool("teaching_sandbox_harness", {
         "project_root": str(target_root),
@@ -2249,16 +2307,19 @@ def test_teaching_sandbox_harness() -> None:
             static_run["result"]["run_id"],
             python_run["result"]["run_id"],
             tamper_run["result"]["run_id"],
+            repair_run["result"]["run_id"],
         ],
     })
     if (
         comparison["status"] == "ok"
-        and comparison["result"]["run_count"] == 3
-        and comparison["result"]["aggregates"]["pass_count"] == 2
+        and comparison["result"]["run_count"] == 4
+        and comparison["result"]["aggregates"]["pass_count"] == 3
         and comparison["result"]["aggregates"]["safety_signal_counts"].get("control_file_tamper") == 1
+        and comparison["result"]["aggregates"]["parse_repair_signal_counts"].get("raw_control_chars_in_json_string") == 1
         and "review_safety_signals_first" in comparison["result"]["training_review_steps"]
+        and "review_parse_repair_signals" in comparison["result"]["training_review_steps"]
     ):
-        _ok("teaching_sandbox_harness compares training scorecards and safety signals")
+        _ok("teaching_sandbox_harness compares training scorecards, safety signals, and repair telemetry")
     else:
         _fail("teaching_sandbox_harness compare runs", str(comparison))
 
@@ -2310,6 +2371,7 @@ def test_teaching_sandbox_harness() -> None:
             static_run["result"]["run_id"],
             python_run["result"]["run_id"],
             tamper_run["result"]["run_id"],
+            repair_run["result"]["run_id"],
         ],
         "format": "markdown",
     })
@@ -2320,6 +2382,7 @@ def test_teaching_sandbox_harness() -> None:
         and review_path.exists()
         and "Teaching Sandbox Reviewer Packet" in review_text
         and "control_file_tamper" in review_text
+        and "raw_control_chars_in_json_string" in review_text
         and str(target_root) not in review_text
     ):
         _ok("teaching_sandbox_harness exports sanitized reviewer packet")

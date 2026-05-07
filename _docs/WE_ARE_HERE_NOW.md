@@ -223,6 +223,19 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   sanitized scorecard summaries, failed checks, recovery classes, safety
   signals, aggregate counts, and reviewer checklist steps without raw model
   transcripts, sandbox file contents, or absolute local paths.
+- Tranche 17E has started after the graduation-risk review. The key new lesson
+  is that a successful run can still be harness-assisted if tool-call JSON was
+  silently repaired. `local_sidecar_agent` now records successful parser repair
+  strategies as `parse_repair_signals`, and Teaching Sandbox scorecards,
+  comparisons, and reviewer exports surface those signals for pre-graduation
+  review.
+- Tranche 17F adds operator visibility while Teaching Sandbox runs are in
+  progress. The harness now writes sanitized phase events under ignored runtime
+  state, exposes read-only `latest_status` and `tail_events` actions, and the
+  Teaching Lab UI can poll latest status during `run_agent` and `run_scenario`.
+- Future tranche docs and App Journal entries should include a compact code
+  reference manifest with approximate file names and line ranges for meaningful
+  source changes.
 
 ## Current bottleneck
 
@@ -231,18 +244,18 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   attach`, plus registry publication.
 - The active source-shaped bottleneck remains Tranche 17 trace tuning. The
   first lessons are now encoded: inside-root is not the same as safe-to-write
-  for sandbox control files, and valid multiline scaffold intent should not be
-  lost to a common JSON-control-character drift. The next live-run lesson is
-  encoded in task cards: quote-heavy content must stay valid JSON, and required
-  verification APIs must be implemented before final summary. The current
-  remaining work is to commit this refinement set and then compare across the
-  broader scenario set before graduation shaping.
+  for sandbox control files, valid multiline scaffold intent should not be lost
+  to common JSON drift, successful parser repairs must be visible before
+  graduation, and operators need a phase trail while runs are active. The
+  current remaining work is to validate and park this visibility slice, then
+  compare across the broader scenario set before graduation shaping.
 
 ## Next best move
 
-- Finish Tranche 17D validation and commit, then move to the final Tranche 17
-  compare/park slice and decide whether a richer trace-level export is needed
-  before graduation runs.
+- Finish Tranche 17F validation and commit, then export a final reviewer packet
+  and event tail over the selected pass set. The parking threshold is a pass set
+  with no safety signals, no recovery classes, and no parse repair signals,
+  plus an operator-visible event trail for harness phases.
 
 ## Current warnings
 
@@ -272,6 +285,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   `_docs/builder_constraint_contract.md` are code-protected during sidecar
   write tools. Treat any attempted rewrite as a `control_file_tamper` safety
   signal, not normal app-artifact work.
+- Successful parser repairs are visible as `parse_repair_signals`. They are
+  useful teaching telemetry in Tranche 17, but Tranche 18 graduation runs should
+  be repair-silent.
+- Teaching Sandbox event logs are sanitized status trails, not raw transcripts.
+  Use them for operator visibility, not as a place to preserve generated app
+  source or private local paths.
 - Committed docs and onboarding surfaces should use relative paths or
   placeholders such as `<project_root>` and `<toolbox_root>`. `LICENSE.md` is
   the intentional exception for copyright holder identity.

@@ -301,6 +301,7 @@ class OperatorUI:
         self.teaching_session_var = tk.StringVar(value="teaching-default")
         self.teaching_confirm_var = tk.BooleanVar(value=False)
         self.teaching_status_var = tk.StringVar(value="Teaching Lab is ready.")
+        self.teaching_poll_active = False
         self.teaching_scenarios: list[str] = ["static_task_tracker", "python_notes_cli"]
 
         self._combo(left, "Scenario", self.teaching_scenario_var)
@@ -317,6 +318,8 @@ class OperatorUI:
         ttk.Button(left, text="Score", command=lambda: self._run_teaching_action("score")).pack(fill=tk.X, pady=(8, 0))
         ttk.Button(left, text="Run Scenario", style="Accent.TButton", command=lambda: self._run_teaching_action("run_scenario")).pack(fill=tk.X, pady=(8, 0))
         ttk.Button(left, text="Export Scorecard", command=lambda: self._run_teaching_action("export")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Latest Status", command=lambda: self._run_teaching_action("latest_status")).pack(fill=tk.X, pady=(8, 0))
+        ttk.Button(left, text="Tail Events", command=lambda: self._run_teaching_action("tail_events")).pack(fill=tk.X, pady=(8, 0))
         ttk.Label(left, textvariable=self.teaching_status_var, style="Muted.TLabel", wraplength=260).pack(anchor=tk.W, pady=(10, 0))
 
         ttk.Label(right, text="Sanitized Teaching Lab output", style="Muted.TLabel").pack(anchor=tk.W)
@@ -639,7 +642,7 @@ class OperatorUI:
         self._set_text(self.teaching_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
 
     def _run_teaching_action(self, action: str) -> None:
-        mutating = action in {"create_project", "run_agent", "run_scenario", "export"}
+        mutating = action in {"create_project", "run_agent", "run_scenario", "export", "export_review"}
         if mutating and not self.teaching_confirm_var.get():
             messagebox.showwarning(".dev-tools", "Sandbox writes and runs require the teaching confirmation box.")
             return
@@ -666,6 +669,9 @@ class OperatorUI:
         if action == "export":
             payload["format"] = "markdown"
         self.teaching_status_var.set(f"Running teaching {action}...")
+        if action in {"run_agent", "run_scenario"}:
+            self.teaching_poll_active = True
+            self._schedule_teaching_status_poll()
         self._threaded(lambda: self._run_teaching_worker(action, payload))
 
     def _run_teaching_worker(self, action: str, payload: dict[str, Any]) -> None:
@@ -676,6 +682,7 @@ class OperatorUI:
         self.root.after(0, lambda: self._finish_teaching_run(action, result))
 
     def _finish_teaching_run(self, action: str, result: dict[str, Any]) -> None:
+        self.teaching_poll_active = False
         self.teaching_status_var.set(f"Teaching {action} finished: {result.get('status', 'unknown')}")
         payload = result.get("result", {}) if isinstance(result.get("result"), dict) else {}
         run_id = payload.get("run_id")
@@ -684,6 +691,37 @@ class OperatorUI:
         if run_id:
             self.teaching_run_id_var.set(str(run_id))
         self._set_text(self.teaching_output, format_json(result, project_root=self._project_root(), toolbox_root=self.toolbox_root))
+
+    def _schedule_teaching_status_poll(self) -> None:
+        if not self.teaching_poll_active:
+            return
+        self._threaded(self._teaching_status_poll_worker)
+        self.root.after(1500, self._schedule_teaching_status_poll)
+
+    def _teaching_status_poll_worker(self) -> None:
+        payload: dict[str, Any] = {
+            "project_root": self._project_root(),
+            "action": "latest_status",
+        }
+        run_id = self.teaching_run_id_var.get().strip()
+        if run_id:
+            payload["run_id"] = run_id
+        try:
+            result = dispatch_tool(self.toolbox_root, "teaching_sandbox_harness", payload)
+        except Exception as exc:
+            result = {"status": "error", "tool": "teaching_sandbox_harness", "result": {"message": str(exc)}}
+        self.root.after(0, lambda: self._finish_teaching_status_poll(result))
+
+    def _finish_teaching_status_poll(self, result: dict[str, Any]) -> None:
+        if not self.teaching_poll_active:
+            return
+        payload = result.get("result", {}) if isinstance(result.get("result"), dict) else {}
+        latest = payload.get("latest_event", {}) if isinstance(payload, dict) else {}
+        if isinstance(latest, dict) and latest:
+            phase = latest.get("phase", "")
+            status = latest.get("status", "")
+            run_id = latest.get("run_id", "")
+            self.teaching_status_var.set(f"Teaching run {run_id}: {phase} {status}")
 
     def _desanitize_tool_input(self, value: Any) -> Any:
         if isinstance(value, str):

@@ -206,6 +206,14 @@ fine-tuning.
       `TS000057`, and `TS000060` all scored 93 with verification 100.
 - [x] Add a sanitized reviewer packet export for selected run comparisons
       through `teaching_sandbox_harness export_review`.
+- [x] Surface successful parser repairs as `parse_repair_signals` in local
+      agent results, Teaching Sandbox scorecards, run comparisons, and reviewer
+      exports.
+- [x] Add Teaching Sandbox operator visibility with sanitized phase events,
+      read-only latest-status/tail-events actions, and Teaching Lab polling.
+- [x] Add the code reference manifest habit to the parking workflow so future
+      docs and App Journal entries include approximate file/line references for
+      implementation changes.
 - [ ] Promote any remaining recurring lessons into prompt snippets,
       task-card constraints, recovery decisions, or tool schema improvements.
 - [x] Maintain a sanitized scorecard/reviewer export format that includes run
@@ -214,6 +222,9 @@ fine-tuning.
 - [ ] Decide whether a richer trace-level tuning export is needed before
       graduation, without committing raw transcripts, sandbox file contents, or
       absolute local paths.
+- [x] Before parking Tranche 17, export a final reviewer packet and confirm the
+      selected pass set is quiet for safety signals, recovery classes, and
+      parse repair signals.
 - [ ] Keep private paths and verbatim local session data out of committed
       artifacts.
 
@@ -227,6 +238,11 @@ reliably.
       checkpoint, journal, score, and park.
 - [ ] Require passing score thresholds, no unsafe authority requests, valid
       artifacts, accurate final claims, and readable journal/scorecard output.
+- [ ] Require graduation passes to be repair-silent: no safety signals, no
+      recovery classes, and no `parse_repair_signals` in the selected review
+      packet.
+- [ ] Watch for overfitting by comparing current recipes against unseen app
+      requirements, not only the known Qwen/local-model failure shapes.
 - [ ] If graduation fails, feed failures back into Tranche 15-17 style task
       cards, scenarios, or prompt/contract tuning.
 - [ ] If graduation passes, close the local-agent app-builder northstar and

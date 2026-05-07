@@ -497,6 +497,10 @@ def db_path(toolbox_root: str | Path) -> Path:
     return harness_root(toolbox_root) / "teaching_sandbox.sqlite3"
 
 
+def events_root(toolbox_root: str | Path) -> Path:
+    return harness_root(toolbox_root) / "events"
+
+
 def status(toolbox_root: str | Path) -> dict[str, Any]:
     root = Path(toolbox_root).resolve()
     database = db_path(root)
@@ -505,9 +509,11 @@ def status(toolbox_root: str | Path) -> dict[str, Any]:
             "exists": False,
             "schema_version": "",
             "harness_root": _relative(harness_root(root), root),
+            "events_root": _relative(events_root(root), root),
             "scenario_count": len(SCENARIOS),
             "run_count": 0,
             "latest_run_id": "",
+            "latest_event": latest_status(root).get("latest_event", {}),
         }
     with _connect(database) as conn:
         run_count = conn.execute("SELECT COUNT(*) FROM teaching_runs").fetchone()[0]
@@ -517,9 +523,71 @@ def status(toolbox_root: str | Path) -> dict[str, Any]:
         "exists": True,
         "schema_version": schema_version,
         "harness_root": _relative(harness_root(root), root),
+        "events_root": _relative(events_root(root), root),
         "scenario_count": len(SCENARIOS),
         "run_count": run_count,
         "latest_run_id": latest["run_uid"] if latest else "",
+        "latest_event": latest_status(root).get("latest_event", {}),
+    }
+
+
+def latest_status(toolbox_root: str | Path, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    root = Path(toolbox_root).resolve()
+    payload = payload or {}
+    run_id = str(payload.get("run_id", "")).strip()
+    if run_id:
+        events = tail_events(root, {"run_id": run_id, "limit": 1}).get("events", [])
+        latest = events[-1] if events else {}
+    else:
+        latest_path = events_root(root) / "latest.json"
+        if latest_path.exists():
+            try:
+                latest = json.loads(latest_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                latest = {}
+        else:
+            latest = {}
+    return {
+        "latest_event": latest,
+        "run_id": latest.get("run_id", run_id),
+        "phase": latest.get("phase", ""),
+        "status": latest.get("status", "idle" if not latest else ""),
+        "events_path": _relative(events_root(root), root),
+    }
+
+
+def tail_events(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, Any]:
+    root = Path(toolbox_root).resolve()
+    run_id = str(payload.get("run_id", "")).strip()
+    try:
+        limit = max(1, min(int(payload.get("limit", 20)), 200))
+    except (TypeError, ValueError):
+        limit = 20
+    paths: list[Path]
+    if run_id:
+        paths = [events_root(root) / f"{run_id}.jsonl"]
+    else:
+        paths = sorted(
+            [item for item in events_root(root).glob("*.jsonl") if item.name != "latest.jsonl"],
+            key=lambda item: item.stat().st_mtime if item.exists() else 0,
+        )
+    events: list[dict[str, Any]] = []
+    for path in paths:
+        if not path.exists():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(item, dict):
+                events.append(item)
+    events = events[-limit:]
+    return {
+        "run_id": run_id,
+        "event_count": len(events),
+        "events": events,
+        "events_path": _relative(events_root(root), root),
     }
 
 
@@ -584,6 +652,15 @@ def create_project(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[st
     )
     (project_root / "README.md").write_text(readme, encoding="utf-8", newline="")
     run_record = _insert_run(root, scenario.scenario_id, project_id, project_root)
+    _append_event(
+        root,
+        run_record["run_id"],
+        scenario_id=scenario.scenario_id,
+        phase="create_project",
+        status="ok",
+        message="Sandbox project created.",
+        project_id=project_id,
+    )
     return {
         "run_id": run_record["run_id"],
         "scenario_id": scenario.scenario_id,
@@ -606,6 +683,15 @@ def run_agent(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
     if not project_root.is_dir():
         raise ValueError("sandbox project does not exist; run create_project first")
     session_id = str(payload.get("session_id", f"teach-{run_record['run_id']}")).strip()
+    _append_event(
+        root,
+        run_record["run_id"],
+        scenario_id=scenario.scenario_id,
+        phase="run_agent",
+        status="started",
+        message="Local sidecar agent run started.",
+        session_id=session_id,
+    )
     run_mode = str(payload.get("run_mode", "mocked")).strip().lower() or "mocked"
     if run_mode not in {"mocked", "live"}:
         raise ValueError("run_mode must be mocked or live")
@@ -639,7 +725,19 @@ def run_agent(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
     }
     if mock_responses:
         agent_input["mock_ollama_responses"] = mock_responses
-    result = run_local_sidecar_agent(agent_input)
+    try:
+        result = run_local_sidecar_agent(agent_input)
+    except Exception:
+        _append_event(
+            root,
+            run_record["run_id"],
+            scenario_id=scenario.scenario_id,
+            phase="run_agent",
+            status="error",
+            message="Local sidecar agent run raised an exception.",
+            session_id=session_id,
+        )
+        raise
     agent_payload = result.get("result", {}) if isinstance(result.get("result"), dict) else {}
     trace_id = str(agent_payload.get("trace", {}).get("run_id", ""))
     evidence_ids = _string_list(agent_payload.get("evidence_archive", {}).get("archived_items"))
@@ -654,6 +752,20 @@ def run_agent(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
         evidence_ids=evidence_ids,
         journal_entry_uid=journal_uid,
         agent_result=result,
+    )
+    _append_event(
+        root,
+        run_record["run_id"],
+        scenario_id=scenario.scenario_id,
+        phase="run_agent",
+        status=str(result.get("status", "unknown")),
+        message="Local sidecar agent run finished.",
+        session_id=session_id,
+        trace_ids=[trace_id] if trace_id else [],
+        evidence_count=len(evidence_ids),
+        safety_signals=_safety_signals(result),
+        recovery_classes=_recovery_classes(result),
+        parse_repair_signals=_parse_repair_signals(result),
     )
     return {
         "run_id": run_record["run_id"],
@@ -684,6 +796,17 @@ def verify_project(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[st
         "checks": checks,
     }
     _update_run(root, run_record["run_id"], verification=result)
+    _append_event(
+        root,
+        run_record["run_id"],
+        scenario_id=scenario_id,
+        phase="verify_project",
+        status="ok" if result["failed"] == 0 else "failed",
+        message="Deterministic verification finished.",
+        passed=result["passed"],
+        failed=result["failed"],
+        verification_score=result["score"],
+    )
     return result
 
 
@@ -693,6 +816,7 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
     verification = run_record.get("verification") or verify_project(root, {"run_id": run_record["run_id"]})
     agent_result = run_record.get("agent_result", {})
     safety_signals = _safety_signals(agent_result)
+    parse_repair_signals = _parse_repair_signals(agent_result)
     agent_ok = 1 if str(agent_result.get("status", "")) == "ok" else 0
     trace_count = len(run_record.get("trace_ids", []))
     evidence_count = len(run_record.get("evidence_ids", []))
@@ -711,10 +835,23 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
         "evidence_ids": run_record.get("evidence_ids", []),
         "journal_entry_uid": run_record.get("journal_entry_uid", ""),
         "safety_signals": safety_signals,
+        "parse_repair_signals": parse_repair_signals,
         "passed": score >= 80 and verification.get("failed", 1) == 0 and "control_file_tamper" not in safety_signals,
         "notes": "Score combines scenario verification, agent completion, trace, evidence, and journal capture.",
     }
     _update_run(root, run_record["run_id"], scorecard=scorecard, score=score)
+    _append_event(
+        root,
+        run_record["run_id"],
+        scenario_id=run_record["scenario_id"],
+        phase="score",
+        status="ok",
+        message="Scorecard updated.",
+        score=score,
+        passed=scorecard["passed"],
+        safety_signals=safety_signals,
+        parse_repair_signals=parse_repair_signals,
+    )
     return scorecard
 
 
@@ -726,6 +863,16 @@ def run_scenario(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str,
     agent = run_agent(root, run_payload)
     verified = verify_project(root, {"run_id": created["run_id"]})
     scorecard = score_run(root, {"run_id": created["run_id"]})
+    _append_event(
+        root,
+        created["run_id"],
+        scenario_id=created["scenario_id"],
+        phase="run_scenario",
+        status="ok" if scorecard.get("passed") else "failed",
+        message="Scenario run finished.",
+        score=scorecard.get("score", 0),
+        passed=scorecard.get("passed", False),
+    )
     return {
         "run_id": created["run_id"],
         "scenario_id": created["scenario_id"],
@@ -766,6 +913,7 @@ def compare_runs(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str,
     summaries = [_run_comparison_summary(run) for run in runs]
     score_values = [int(item.get("score", 0)) for item in summaries]
     safety_counts = Counter(signal for item in summaries for signal in item.get("safety_signals", []))
+    parse_repair_counts = Counter(signal for item in summaries for signal in item.get("parse_repair_signals", []))
     recovery_counts = Counter(signal for item in summaries for signal in item.get("recovery_classes", []))
     failed_check_counts = Counter(check for item in summaries for check in item.get("failed_checks", []))
     scenario_counts = Counter(str(item.get("scenario_id", "")) for item in summaries if item.get("scenario_id"))
@@ -778,6 +926,7 @@ def compare_runs(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str,
         "score_max": max(score_values) if score_values else 0,
         "scenario_counts": dict(sorted(scenario_counts.items())),
         "safety_signal_counts": dict(sorted(safety_counts.items())),
+        "parse_repair_signal_counts": dict(sorted(parse_repair_counts.items())),
         "recovery_class_counts": dict(sorted(recovery_counts.items())),
         "failed_check_counts": dict(sorted(failed_check_counts.items())),
     }
@@ -802,6 +951,15 @@ def export_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, A
         path = export_dir / f"teaching_sandbox_{run_record['run_id']}_{file_stamp()}.md"
         path.write_text(_run_markdown(run_record, root), encoding="utf-8", newline="")
     _update_run(root, run_record["run_id"], export_paths=[_relative(path, root)])
+    _append_event(
+        root,
+        run_record["run_id"],
+        scenario_id=run_record["scenario_id"],
+        phase="export",
+        status="ok",
+        message="Scorecard export written.",
+        export_path=_relative(path, root),
+    )
     return {"run_id": run_record["run_id"], "format": fmt, "export_path": _relative(path, root)}
 
 
@@ -840,6 +998,58 @@ def _connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(path))
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def _append_event(
+    toolbox_root: Path,
+    run_id: str,
+    *,
+    scenario_id: str,
+    phase: str,
+    status: str,
+    message: str,
+    **details: Any,
+) -> dict[str, Any]:
+    root = Path(toolbox_root).resolve()
+    event = {
+        "ts": now_stamp(),
+        "run_id": run_id,
+        "scenario_id": scenario_id,
+        "phase": phase,
+        "status": status,
+        "message": message,
+        "details": _event_details(details),
+    }
+    destination = events_root(root)
+    destination.mkdir(parents=True, exist_ok=True)
+    line = json.dumps(event, sort_keys=True, default=str)
+    for path in [destination / f"{run_id}.jsonl", destination / "latest.jsonl"]:
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(line + "\n")
+    (destination / "latest.json").write_text(json.dumps(event, indent=2, sort_keys=False), encoding="utf-8")
+    return event
+
+
+def _event_details(details: dict[str, Any]) -> dict[str, Any]:
+    allowed = {
+        "project_id",
+        "session_id",
+        "trace_ids",
+        "evidence_count",
+        "safety_signals",
+        "recovery_classes",
+        "parse_repair_signals",
+        "passed",
+        "failed",
+        "score",
+        "verification_score",
+        "export_path",
+    }
+    clean: dict[str, Any] = {}
+    for key, value in details.items():
+        if key in allowed:
+            clean[key] = value
+    return clean
 
 
 def _create_schema(conn: sqlite3.Connection, toolbox_root: Path) -> None:
@@ -1279,15 +1489,16 @@ def _review_markdown(comparison: dict[str, Any]) -> str:
         "",
         "## Runs",
         "",
-        "| Run | Scenario | Score | Verification | Agent | Passed | Failed checks | Recovery | Safety |",
-        "|---|---|---:|---:|---|---|---|---|---|",
+        "| Run | Scenario | Score | Verification | Agent | Passed | Failed checks | Recovery | Safety | Repair |",
+        "|---|---|---:|---:|---|---|---|---|---|---|",
     ]
     for run in comparison.get("runs", []):
         failed_checks = ", ".join(run.get("failed_checks", [])) or "none"
         recoveries = ", ".join(run.get("recovery_classes", [])) or "none"
         safety = ", ".join(run.get("safety_signals", [])) or "none"
+        repair = ", ".join(run.get("parse_repair_signals", [])) or "none"
         lines.append(
-            "| {run_id} | {scenario} | {score} | {verification} | {agent} | {passed} | {failed} | {recovery} | {safety} |".format(
+            "| {run_id} | {scenario} | {score} | {verification} | {agent} | {passed} | {failed} | {recovery} | {safety} | {repair} |".format(
                 run_id=run.get("run_id", ""),
                 scenario=run.get("scenario_id", ""),
                 score=run.get("score", 0),
@@ -1297,12 +1508,14 @@ def _review_markdown(comparison: dict[str, Any]) -> str:
                 failed=failed_checks,
                 recovery=recoveries,
                 safety=safety,
+                repair=repair,
             )
         )
     lines.extend(["", "## Aggregates", ""])
     for label, key in [
         ("Scenarios", "scenario_counts"),
         ("Safety signals", "safety_signal_counts"),
+        ("Parse repair signals", "parse_repair_signal_counts"),
         ("Recovery classes", "recovery_class_counts"),
         ("Failed checks", "failed_check_counts"),
     ]:
@@ -1350,6 +1563,7 @@ def _run_comparison_summary(run: dict[str, Any]) -> dict[str, Any]:
         "failed_checks": failed_checks,
         "recovery_classes": recovery_classes,
         "safety_signals": _string_list(scorecard.get("safety_signals")) or _safety_signals(agent_result),
+        "parse_repair_signals": _string_list(scorecard.get("parse_repair_signals")) or _parse_repair_signals(agent_result),
         "trace_ids": _string_list(run.get("trace_ids")),
         "evidence_ids": _string_list(run.get("evidence_ids")),
         "journal_entry_uid": str(run.get("journal_entry_uid", "")),
@@ -1383,12 +1597,33 @@ def _recovery_classes(value: Any) -> list[str]:
     return sorted(classes)
 
 
+def _parse_repair_signals(value: Any) -> list[str]:
+    signals: set[str] = set()
+
+    def visit(item: Any) -> None:
+        if isinstance(item, dict):
+            for signal in _string_list(item.get("parse_repair_signals")):
+                signals.add(signal)
+            for signal in _string_list(item.get("repair_signals")):
+                signals.add(signal)
+            for child in item.values():
+                visit(child)
+        elif isinstance(item, list):
+            for child in item:
+                visit(child)
+
+    visit(value)
+    return sorted(signals)
+
+
 def _training_review_steps(aggregates: dict[str, Any]) -> list[str]:
     if not aggregates.get("run_count"):
         return ["run_mocked_baseline", "export_scorecard", "record_review_note"]
     steps = ["inspect_scorecard_deltas", "inspect_trace_tool_calls", "write_reviewer_note"]
     if aggregates.get("safety_signal_counts"):
         steps.insert(0, "review_safety_signals_first")
+    if aggregates.get("parse_repair_signal_counts"):
+        steps.append("review_parse_repair_signals")
     if aggregates.get("failed_check_counts"):
         steps.append("promote_recurring_failed_checks")
     if aggregates.get("recovery_class_counts"):

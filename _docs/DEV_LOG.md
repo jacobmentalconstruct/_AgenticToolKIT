@@ -2168,6 +2168,116 @@ graduation.
 
 ---
 
+## 2026-05-07 — Tranche 17E repair-silent telemetry
+
+- Recorded the external graduation-risk review as a useful Tranche 17 lesson:
+  successful runs can still be harness-assisted when parser repair happens
+  silently.
+- Added successful parser repair telemetry to `local_sidecar_agent`:
+  - parsed tool calls carry sanitized `repair_signals` when a repair strategy
+    is needed before JSON loads;
+  - completed runs return `parse_repair_signals` and `parse_repair_events`;
+  - validation metadata, action journal rows, App Journal turn metadata, and
+    run traces preserve the same sanitized signal labels.
+- Surfaced those signals through Teaching Sandbox scorecards, `compare_runs`
+  aggregate counts, reviewer-table rows, reviewer aggregate sections, and
+  review checklist steps.
+- Kept scoring unchanged for Tranche 17E. Repairs are review telemetry, not an
+  automatic failure. Tranche 18 graduation should be stricter: selected unseen
+  app passes should have no safety signals, no recovery classes, and no parse
+  repair signals.
+- Updated `_docs/TRAINING_RUNWAY.md`, `_docs/TODO.md`, and
+  `_docs/WE_ARE_HERE_NOW.md` with the new repair-silent criterion and the
+  overfitting/post-success-overreach review response.
+- Wrote App Journal entry `journal_a337dbcc516a`.
+
+Validation so far:
+
+- `python -m py_compile src\tools\local_sidecar_agent.py
+  src\lib\teaching_sandbox_harness.py src\tools\teaching_sandbox_harness.py
+  src\smoke_test.py` -> pass.
+- `python src\smoke_test.py` -> 154/154 pass; MCP lists 49 tools.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"project_root":".","action":"compare_runs","run_ids":["TS000058","TS000057","TS000060"],"limit":12}'`
+  -> 3/3 pass, average score 93, and empty safety, recovery, failed-check,
+  and parse-repair aggregate counts.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"project_root":".","action":"export_review","confirm":true,"run_ids":["TS000058","TS000057","TS000060"],"format":"markdown"}'`
+  -> exported reviewer packet:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T132422Z.md`.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"project_root":".","action":"export_review","confirm":true,"run_ids":["TS000058","TS000057","TS000060"],"format":"json"}'`
+  -> exported reviewer packet:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T132508Z.json`.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Current read: this slice gives Tranche 18 a measurable "repair pipeline is
+silent" gate instead of a philosophical one. The selected clean live pass set is
+quiet for safety signals, recovery classes, failed checks, and parse repair
+signals.
+
+---
+
+## 2026-05-07 — Tranche 17F Teaching Sandbox operator visibility
+
+- Added a sanitized Teaching Sandbox phase-event trail under ignored runtime
+  state so the operator can inspect what the harness is doing while a run is in
+  progress.
+- Added read-only `latest_status` and `tail_events` harness actions.
+- Added Teaching Lab UI controls for `Latest Status` and `Tail Events`, plus
+  lightweight polling while `run_agent` or `run_scenario` is active.
+- Updated the parking workflow with the new code reference manifest practice:
+  future tranche docs and App Journal entries should include approximate file
+  names and line ranges for meaningful source changes.
+- Wrote App Journal entry `journal_f8f2935ae91e`.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:534-580`
+  Read-only operator visibility actions: `latest_status` and `tail_events`.
+- `src/lib/teaching_sandbox_harness.py:631-875`
+  Harness phase integrations: create, agent run, verification, scoring, and
+  scenario completion append sanitized events.
+- `src/lib/teaching_sandbox_harness.py:1003-1058`
+  Event writer and detail allowlist. Keeps raw transcripts, file contents, and
+  absolute local paths out of event logs.
+- `src/tools/teaching_sandbox_harness.py:21-58, 143-146`
+  CLI/MCP action registration for `latest_status` and `tail_events`.
+- `agent_ui.py:304-322, 673-722`
+  Teaching Lab buttons and polling loop for live-ish status visibility.
+- `src/smoke_test.py:2255-2283`
+  Smoke coverage proving sanitized run phase events are emitted and readable.
+- `_docs/PARKING_WORKFLOW.md:80-112`
+  Documentation habit for future code reference manifests.
+- `_docs/TRAINING_RUNWAY.md:299-324`
+  Training-runway lesson for operator visibility before Tranche 18.
+
+Validation:
+
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\teaching_sandbox_harness.py agent_ui.py src\smoke_test.py` -> pass.
+- `python src\smoke_test.py` -> 155/155 pass; MCP lists 49 tools.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- Mocked project-runtime visibility exercise:
+  - `TS000061` `static_task_tracker` scored 100 with verification 100.
+  - `latest_status` returned phase `run_scenario`, status `ok`.
+  - `tail_events` returned six sanitized phase events:
+    `create_project`, `run_agent` started, `run_agent` ok,
+    `verify_project`, `score`, and `run_scenario`.
+- Clean live pass comparison over `TS000057`, `TS000058`, and `TS000060`
+  remains quiet for safety signals, recovery classes, failed checks, and parse
+  repair signals.
+
+Current read: Tranche 17 now has both after-run review evidence and in-progress
+operator visibility. The next park step is final diff hygiene and commit.
+
+---
+
 ## Template for future entries
 
 - Files changed:

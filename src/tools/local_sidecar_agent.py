@@ -401,20 +401,21 @@ def _parse_tool_calls(text: str) -> list[dict[str, Any]]:
         raw = ""
         payload: Any = None
         error = ""
+        repair_signals: list[str] = []
         close_at = -1
         while True:
             close_at = text.find("```", search_at)
             if close_at == -1:
                 raw = text[content_start:].strip()
                 try:
-                    payload = _load_tool_call_payload(raw)
+                    payload, repair_signals = _load_tool_call_payload_with_repair(raw)
                 except json.JSONDecodeError as exc:
                     error = str(exc)
                 position = len(text)
                 break
             raw = text[content_start:close_at].strip()
             try:
-                payload = _load_tool_call_payload(raw)
+                payload, repair_signals = _load_tool_call_payload_with_repair(raw)
                 position = close_at + 3
                 break
             except json.JSONDecodeError as exc:
@@ -432,38 +433,54 @@ def _parse_tool_calls(text: str) -> list[dict[str, Any]]:
         if not isinstance(arguments, dict):
             calls.append({"tool": "__malformed__", "arguments": {}, "raw": raw, "error": "arguments must be an object"})
             continue
-        calls.append({"tool": tool_name, "arguments": arguments, "raw": raw})
+        call = {"tool": tool_name, "arguments": arguments, "raw": raw}
+        if repair_signals:
+            call["repair_signals"] = repair_signals
+        calls.append(call)
     return calls
 
 
 def _load_tool_call_payload(raw: str) -> Any:
+    payload, _repair_signals = _load_tool_call_payload_with_repair(raw)
+    return payload
+
+
+def _load_tool_call_payload_with_repair(raw: str) -> tuple[Any, list[str]]:
     decoder = json.JSONDecoder()
-    candidates = [raw]
-    for repair in (
-        _escape_string_control_chars,
-        _unescape_model_escaped_quotes,
-        _repair_invalid_json_escapes,
-        _escape_content_string_quotes,
+    candidates: list[tuple[str, list[str]]] = [(raw, [])]
+    seen = {raw}
+    for signal, repair in (
+        ("raw_control_chars_in_json_string", _escape_string_control_chars),
+        ("model_escaped_structural_quotes", _unescape_model_escaped_quotes),
+        ("invalid_json_escape_repair", _repair_invalid_json_escapes),
+        ("content_string_quote_repair", _escape_content_string_quotes),
     ):
-        for candidate in list(candidates):
+        for candidate, signals in list(candidates):
             repaired = repair(candidate)
-            if repaired != candidate and repaired not in candidates:
-                candidates.append(repaired)
-    for candidate in list(candidates):
+            if repaired != candidate and repaired not in seen:
+                seen.add(repaired)
+                candidates.append((repaired, signals + [signal]))
+    for candidate, signals in list(candidates):
         repaired = _escape_content_string_quotes(_repair_invalid_json_escapes(_escape_string_control_chars(candidate)))
-        if repaired != candidate and repaired not in candidates:
-            candidates.append(repaired)
+        if repaired != candidate and repaired not in seen:
+            seen.add(repaired)
+            combined = list(dict.fromkeys(signals + [
+                "raw_control_chars_in_json_string",
+                "invalid_json_escape_repair",
+                "content_string_quote_repair",
+            ]))
+            candidates.append((repaired, combined))
     last_error: json.JSONDecodeError | None = None
-    for candidate in candidates:
+    for candidate, signals in candidates:
         try:
             payload, end = decoder.raw_decode(candidate)
             trailing = candidate[end:].strip()
             if trailing in {"", "[/tool_call]"}:
-                return payload
+                return payload, signals
         except json.JSONDecodeError as exc:
             last_error = exc
     try:
-        return json.loads(raw)
+        return json.loads(raw), []
     except json.JSONDecodeError as original:
         raise last_error or original
 
@@ -1170,7 +1187,11 @@ def _trace_payload(
         },
         "allowed_tools": config.allowed_tools,
         "tool_calls": [
-            {"round": item.get("round"), "tool_call_count": item.get("tool_call_count", 0)}
+            {
+                "round": item.get("round"),
+                "tool_call_count": item.get("tool_call_count", 0),
+                "parse_repair_signals": item.get("parse_repair_signals", []),
+            }
             for item in rounds
         ],
         "tool_results": tool_results,
@@ -1393,6 +1414,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
 
     touched_paths: list[str] = []
     rounds: list[dict[str, Any]] = []
+    parse_repair_events: list[dict[str, Any]] = []
     final_text = ""
     approval_required = False
     halted_reason = ""
@@ -1433,6 +1455,20 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             )
         final_text = response
         calls = _parse_tool_calls(response)
+        round_repair_signals = sorted({
+            signal
+            for call in calls
+            for signal in call.get("repair_signals", [])
+            if isinstance(signal, str) and signal
+        })
+        for call in calls:
+            signals = [str(signal) for signal in call.get("repair_signals", []) if str(signal).strip()]
+            if signals:
+                parse_repair_events.append({
+                    "round": round_index + 1,
+                    "tool": call.get("tool", ""),
+                    "signals": signals,
+                })
         _heartbeat(runtime_paths, config, session_id, "tool_round", f"Parsed {len(calls)} tool call(s)")
         round_results: list[dict[str, Any]] = []
         for call in calls:
@@ -1453,7 +1489,13 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
                 recovery = _recovery_from_result(result, config)
                 halted_reason = recovery["class"]
                 break
-        rounds.append({"round": round_index + 1, "tool_call_count": len(calls), "results": round_results, "response": response})
+        rounds.append({
+            "round": round_index + 1,
+            "tool_call_count": len(calls),
+            "parse_repair_signals": round_repair_signals,
+            "results": round_results,
+            "response": response,
+        })
         if approval_required or halted_reason or not calls:
             break
         messages.append({"role": "assistant", "content": response})
@@ -1487,6 +1529,13 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         enforcement=config.claim_enforcement,
     )
     validation["claim_guardrails"] = claim_guardrails
+    parse_repair_signals = sorted({
+        signal
+        for event in parse_repair_events
+        for signal in event.get("signals", [])
+        if isinstance(signal, str) and signal
+    })
+    validation["parse_repair_signals"] = parse_repair_signals
     if not recovery and halted_reason:
         recovery = _recovery_from_class(halted_reason, halted_reason, config)
     if not recovery and not claim_guardrails["passed"]:
@@ -1522,6 +1571,8 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "evidence_archive": evidence_payload,
             "recovery": recovery,
             "claim_guardrails": claim_guardrails,
+            "parse_repair_signals": parse_repair_signals,
+            "parse_repair_events": parse_repair_events,
             "heartbeat": heartbeat,
             "planning_workspace": planning,
         },
@@ -1572,6 +1623,7 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         "summary": prompt[:160],
         "touched_paths": sorted(set(touched_paths)),
         "halted_reason": halted_reason,
+        "parse_repair_signals": parse_repair_signals,
     })
 
     return tool_result(
@@ -1586,6 +1638,8 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
             "round_count": len(rounds),
             "touched_paths": sorted(set(touched_paths)),
             "validation": validation,
+            "parse_repair_signals": parse_repair_signals,
+            "parse_repair_events": parse_repair_events,
             "recovery": recovery,
             "evidence_shelf": evidence_shelf.get("result", {}),
             "evidence_archive": evidence_archive.get("result", evidence_archive),

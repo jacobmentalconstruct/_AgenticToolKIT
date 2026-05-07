@@ -18,12 +18,14 @@ from lib.teaching_sandbox_harness import (
     export_review,
     export_run,
     init_store,
+    latest_status,
     list_scenarios,
     run_agent,
     run_scenario,
     scenario_plan,
     score_run,
     status,
+    tail_events,
     verify_project,
 )
 from lib.text_workspace import resolve_project_root
@@ -52,6 +54,8 @@ FILE_METADATA = {
                     "score",
                     "compare_runs",
                     "export_review",
+                    "latest_status",
+                    "tail_events",
                     "run_scenario",
                     "export",
                 ],
@@ -136,6 +140,10 @@ def run(arguments: dict[str, Any]) -> dict[str, Any]:
             result = compare_runs(project_root, arguments)
         elif action == "export_review":
             result = export_review(project_root, arguments)
+        elif action == "latest_status":
+            result = latest_status(project_root, arguments)
+        elif action == "tail_events":
+            result = tail_events(project_root, arguments)
         elif action == "run_scenario":
             result = run_scenario(project_root, arguments)
         else:

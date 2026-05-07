@@ -57,6 +57,7 @@ Record the things the next session would otherwise have to rediscover:
 - relevant outputs
 - trust-boundary notes
 - any runtime or packaged-surface truth that changed
+- approximate code references for meaningful source changes
 
 ### 4. Name the parked tranche
 
@@ -85,6 +86,24 @@ Update the docs that future sessions actually use:
 - `_docs/EXPERIENTIAL_WORKFLOW.md` when the collaboration method changed
 - `README.md` when user-facing entry or architecture understanding changed
 - package or authority readmes when their local truth changed
+
+When docs mention implementation changes, include a compact code reference
+manifest. Use approximate file names and line ranges so the note survives small
+edits while still acting as a navigation map:
+
+```text
+Code reference manifest:
+- src/tools/example_tool.py:120-180
+  New parser or guard behavior.
+- src/lib/example_support.py:300-360
+  Integration point used by the higher-level harness.
+- src/smoke_test.py:900-940
+  Smoke coverage for the new behavior.
+```
+
+Prefer the manifest in `_docs/DEV_LOG.md` and App Journal entries for each
+meaningful tranche slice. Use exact line numbers only when they are naturally
+available; approximate ranges are acceptable for continuity.
 
 ### 6. Journal and backlog discipline
 
@@ -162,6 +181,7 @@ Every meaningful park should leave these truths visible:
 - what changed
 - why it changed
 - what was verified
+- where to inspect the main code changes
 - whether the tranche was spiral, orbit, or blocked
 - what remains
 - what the next bounded move is
