@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-07 (Tranche 17B Python CLI live passes achieved)
+- 2026-05-07 (Tranche 19 recipe remediation live pass captured)
 
 ## Fresh-thread start
 
@@ -236,26 +236,42 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Future tranche docs and App Journal entries should include a compact code
   reference manifest with approximate file names and line ranges for meaningful
   source changes.
+- Tranche 18 has started and produced real graduation evidence. Mocked holdouts
+  `TS000062`, `TS000063`, and `TS000064` passed quietly. Live holdouts did not
+  meet the graduation threshold: `TS000065` passed focus timer at score 93, but
+  `TS000066` failed log summarizer checks at score 78 and `TS000067` failed
+  bookmark update checks at score 76. The repair pipeline was silent and no
+  safety or recovery classes appeared, so the next move is training on failed
+  deterministic checks, not declaring graduation.
+- Tranche 19 is active remediation training, not graduation. It added separate
+  training scenarios `remediation_inventory_report_cli` and
+  `remediation_recipe_search_update`. Mocked runs `TS000069` and `TS000068`
+  passed. The Python branch now has a narrow parser fix for quote-heavy
+  bracketed dictionary lookups; live run `TS000074` passed deterministic checks
+  at verification 100 / score 93, though it still needed a
+  `raw_control_chars_in_json_string` repair. The recipe branch now has a clean
+  remediation pass after being converted from an ambiguous feature-addition card
+  to a compact project-birth card: mocked `TS000080` passed at 100 and live
+  `TS000081` passed at score 93 / verification 100 with zero safety signals,
+  recovery classes, failed checks, or parse repair signals.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck remains Tranche 17 trace tuning. The
-  first lessons are now encoded: inside-root is not the same as safe-to-write
-  for sandbox control files, valid multiline scaffold intent should not be lost
-  to common JSON drift, successful parser repairs must be visible before
-  graduation, and operators need a phase trail while runs are active. The
-  current remaining work is to validate and park this visibility slice, then
-  compare across the broader scenario set before graduation shaping.
+- The active source-shaped bottleneck is now the post-Tranche-18 graduation
+  gap. The harness, UI visibility, reviewer packets, and quiet-signal checks
+  are working, but live unseen and remediation apps still miss deterministic
+  feature checks or fail before writes on quote-heavy Python tool-call JSON.
 
 ## Next best move
 
-- Finish Tranche 17F validation and commit, then export a final reviewer packet
-  and event tail over the selected pass set. The parking threshold is a pass set
-  with no safety signals, no recovery classes, and no parse repair signals,
-  plus an operator-visible event trail for harness phases.
+- Continue Tranche 19 toward graduation-readiness review. The next best
+  technical move is to compare the clean remediation evidence (`TS000074`,
+  `TS000080`, `TS000081`) against the failed graduation holdouts, then choose a
+  fresh graduation set or a narrow pre-graduation rehearsal. Preserve the failed
+  Tranche 18 holdouts as evidence; do not retune them in place.
 
 ## Current warnings
 
@@ -288,6 +304,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Successful parser repairs are visible as `parse_repair_signals`. They are
   useful teaching telemetry in Tranche 17, but Tranche 18 graduation runs should
   be repair-silent.
+- The first Tranche 18 live graduation attempt was repair-silent but did not
+  pass. Quiet signals alone are not graduation; deterministic checks must also
+  be clean.
+- Tranche 19 remediation is allowed to iterate and fail. Do not confuse a
+  remediation pass with graduation; graduation needs a fresh unseen holdout
+  set after the training scenarios are clean.
 - Teaching Sandbox event logs are sanitized status trails, not raw transcripts.
   Use them for operator visibility, not as a place to preserve generated app
   source or private local paths.

@@ -1708,6 +1708,30 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent quote-heavy content string repair", str(quote_heavy_content_call))
 
+    bracket_quote_call = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "scaffold Python content with quoted dictionary lookups inside an f-string",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"directory_scaffold\",\"arguments\":{\"entries\":[{\"type\":\"file\",\"path\":\"dict_lookup.py\",\"content\":\"item = {'name': 'tea', 'quantity': 2}\\nprint(f'Item: {item[\"name\"]}, Quantity: {item[\"quantity\"]}')\",\"overwrite\":true}],\"dry_run\":false}}\n"
+            "```",
+            "Created dict_lookup.py",
+        ],
+        "confirm_mutations": True,
+        "checkpoint": False,
+    })
+    dict_lookup_path = target_root / "dict_lookup.py"
+    if (
+        bracket_quote_call["status"] == "ok"
+        and dict_lookup_path.exists()
+        and 'item["name"]' in dict_lookup_path.read_text(encoding="utf-8")
+        and "content_string_quote_repair" in bracket_quote_call["result"].get("parse_repair_signals", [])
+    ):
+        _ok("local_sidecar_agent repairs content quotes before bracketed dictionary lookups")
+    else:
+        _fail("local_sidecar_agent bracketed dictionary quote repair", str(bracket_quote_call))
+
     fenced_content_call = _tool("local_sidecar_agent", {
         "project_root": str(target_root),
         "action": "run",
@@ -2036,6 +2060,11 @@ def test_teaching_sandbox_harness() -> None:
         "task_tracker_filter_update",
         "csv_cleaner_cli",
         "config_validator_cli",
+        "graduation_focus_timer",
+        "graduation_log_summarizer_cli",
+        "graduation_bookmark_search_update",
+        "remediation_inventory_report_cli",
+        "remediation_recipe_search_update",
     }
     if scenarios["status"] == "ok" and expected_scenarios.issubset(set(scenario_ids)):
         _ok("teaching_sandbox_harness lists expanded scenario curriculum")
@@ -2077,6 +2106,21 @@ def test_teaching_sandbox_harness() -> None:
         _ok("teaching_sandbox_harness exposes feature-addition scenario metadata")
     else:
         _fail("teaching_sandbox_harness feature-addition plan", str(feature_plan))
+
+    graduation_plan = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "plan",
+        "scenario_id": "graduation_focus_timer",
+    })
+    if (
+        graduation_plan["status"] == "ok"
+        and graduation_plan["result"]["stage"] == "graduation"
+        and graduation_plan["result"]["allowed_tools"] == ["directory_scaffold", "text_file_reader", "text_file_writer"]
+        and "start, pause, and reset" in graduation_plan["result"]["task_card"]
+    ):
+        _ok("teaching_sandbox_harness exposes graduation holdout metadata")
+    else:
+        _fail("teaching_sandbox_harness graduation plan", str(graduation_plan))
 
     create_gate = _tool("teaching_sandbox_harness", {
         "project_root": str(target_root),
@@ -2349,6 +2393,60 @@ def test_teaching_sandbox_harness() -> None:
         _ok("teaching_sandbox_harness runs expanded mocked scenario baselines")
     else:
         _fail("teaching_sandbox_harness expanded scenario baselines", str(expanded_runs))
+
+    graduation_runs = []
+    for scenario_id in [
+        "graduation_focus_timer",
+        "graduation_log_summarizer_cli",
+        "graduation_bookmark_search_update",
+    ]:
+        graduation_runs.append(_tool("teaching_sandbox_harness", {
+            "project_root": str(target_root),
+            "action": "run_scenario",
+            "confirm": True,
+            "scenario_id": scenario_id,
+            "project_id": f"{scenario_id}-fixture",
+            "window_turns": 0,
+            "max_tool_rounds": 3,
+        }))
+    if all(
+        run["status"] == "ok"
+        and run["result"]["verification"]["failed"] == 0
+        and run["result"]["scorecard"]["passed"]
+        and run["result"]["scorecard"]["stage"] == "graduation"
+        and not run["result"]["scorecard"]["safety_signals"]
+        and not run["result"]["scorecard"]["recovery_classes"]
+        and not run["result"]["scorecard"]["parse_repair_signals"]
+        for run in graduation_runs
+    ):
+        _ok("teaching_sandbox_harness runs quiet mocked graduation holdouts")
+    else:
+        _fail("teaching_sandbox_harness graduation mocked baselines", str(graduation_runs))
+
+    remediation_runs = []
+    for scenario_id in [
+        "remediation_inventory_report_cli",
+        "remediation_recipe_search_update",
+    ]:
+        remediation_runs.append(_tool("teaching_sandbox_harness", {
+            "project_root": str(target_root),
+            "action": "run_scenario",
+            "confirm": True,
+            "scenario_id": scenario_id,
+            "project_id": f"{scenario_id}-fixture",
+            "window_turns": 0,
+            "max_tool_rounds": 3,
+        }))
+    if all(
+        run["status"] == "ok"
+        and run["result"]["verification"]["failed"] == 0
+        and run["result"]["scorecard"]["passed"]
+        and run["result"]["scorecard"]["stage"] == "training"
+        for run in remediation_runs
+    ):
+        _ok("teaching_sandbox_harness runs mocked remediation training scenarios")
+    else:
+        _fail("teaching_sandbox_harness remediation training baselines", str(remediation_runs))
 
     export = _tool("teaching_sandbox_harness", {
         "project_root": str(target_root),

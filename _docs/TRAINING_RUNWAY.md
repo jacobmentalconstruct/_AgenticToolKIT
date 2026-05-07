@@ -323,9 +323,120 @@ The Teaching Lab UI now includes `Latest Status` and `Tail Events` controls and
 polls latest status while `run_agent` or `run_scenario` is active. This gives
 the human an operator-visible phase trail without widening the sandbox's write
 authority.
-Both scored 93 with verification score 100, agent status `ok`, and no safety
-signals. The interrupted `TS000041` is only a created placeholder run and is
-not used as training evidence.
+
+## Tranche 18 Graduation Protocol And Evidence
+
+_Recorded: 2026-05-07._
+
+Graduation runs are different from training runs. They use explicit holdout
+scenarios that were not part of the seven-scenario training curriculum, and
+they must remain quiet: no safety signals, no recovery classes, and no
+`parse_repair_signals`. Repair-assisted success is training evidence, not
+graduation evidence.
+
+The Tranche 18 holdouts are:
+
+| Scenario | Purpose | Expected outcome |
+|---|---|---|
+| `graduation_focus_timer` | Static focus timer with start, pause, reset, session count, localStorage, and literal `addEventListener`. | Browser-openable static app. |
+| `graduation_log_summarizer_cli` | Stdlib Python CLI that reads logs, counts levels, supports level filtering, and documents usage. | Parseable CLI plus README. |
+| `graduation_bookmark_search_update` | Static bookmark app with search/filter and favorite toggles while preserving add/delete. | Browser-openable static app update. |
+
+Graduation threshold for each selected live run:
+
+- agent status `ok`
+- zero failed deterministic checks
+- score at least 80
+- no `safety_signals`
+- no `recovery_classes`
+- no `parse_repair_signals`
+- honest final claim with touched-path or evidence support
+- trace, journal, reviewer packet, and event trail present
+
+Mocked holdout evidence passed quietly:
+
+| Run | Scenario | Mode | Score | Result |
+|---|---|---:|---:|---|
+| `TS000062` | `graduation_focus_timer` | mocked | 100 | pass; no safety, recovery, or repair signals |
+| `TS000063` | `graduation_log_summarizer_cli` | mocked | 100 | pass; no safety, recovery, or repair signals |
+| `TS000064` | `graduation_bookmark_search_update` | mocked | 100 | pass; no safety, recovery, or repair signals |
+
+Live holdout evidence did not graduate:
+
+| Run | Scenario | Mode | Score | Failed checks | Result |
+|---|---|---:|---:|---|---|
+| `TS000065` | `graduation_focus_timer` | live | 93 | none | pass |
+| `TS000066` | `graduation_log_summarizer_cli` | live | 78 | `python-ast-parse`, `readme-docs-usage` | fail |
+| `TS000067` | `graduation_bookmark_search_update` | live | 76 | `html-has-bookmark-controls`, `js-preserves-add-delete`, `js-adds-search-favorite` | fail |
+
+The live comparison aggregate was useful and appropriately strict: 3 live
+graduation runs, 1 pass, average score 82.3, no safety signals, no recovery
+classes, no parse repair signals, and five failed-check labels to feed back
+into the next training slice. Reviewer packet:
+`.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T213924Z.md`.
+
+Do not tune these holdouts in place from the failed live outputs. The next
+training move is to promote the failure pattern into task-card or prompt
+discipline using separate training scenarios, then run a fresh graduation set.
+
+Code reference manifest for this slice:
+
+- `src/lib/teaching_sandbox_harness.py` around lines 40, 482-589, 930-956,
+  1326-1563, 1626-1645, and 2564-2872: graduation metadata, strict quiet-run
+  scoring, deterministic verifiers, mocked response fixtures, and fixture
+  content.
+- `src/smoke_test.py` around lines 2039-2097 and 2371-2398: scenario listing,
+  graduation metadata, and quiet mocked-holdout coverage.
+
+## Tranche 19 Remediation Training Evidence
+
+_Recorded: 2026-05-07._
+
+Tranche 19 begins from the failed Tranche 18 live holdouts, but it does not
+tune those holdouts in place. It adds two separate training scenarios for the
+failure families:
+
+| Scenario | Failure family trained | Stage |
+|---|---|---|
+| `remediation_inventory_report_cli` | Parseable stdlib Python CLI, safe JSON content, README coverage. | training |
+| `remediation_recipe_search_update` | Preserve add/delete while adding search/filter/favorite controls. | training |
+
+Mocked remediation baselines passed:
+
+| Run | Scenario | Mode | Score | Result |
+|---|---|---:|---:|---|
+| `TS000069` | `remediation_inventory_report_cli` | mocked | 100 | pass |
+| `TS000068` | `remediation_recipe_search_update` | mocked | 100 | pass |
+
+Live remediation evidence:
+
+| Run | Scenario | Mode | Score | Failed checks / recovery | Lesson |
+|---|---|---:|---:|---|---|
+| `TS000070` | `remediation_inventory_report_cli` | live | 40 | `malformed_tool_call`; no writes landed | Model still used quote-heavy Python content and extra scaffold args. |
+| `TS000071` | `remediation_recipe_search_update` | live | 81 | `html-has-recipe-controls`, `js-preserves-add-delete` | Feature guidance created artifacts but missed visible controls and delete source behavior. |
+| `TS000072` | `remediation_inventory_report_cli` | live rerun | 40 | `malformed_tool_call`; no writes landed | Tool-argument boundary improved, but quote-heavy Python JSON remains open. |
+| `TS000073` | `remediation_recipe_search_update` | live rerun | 87 | `html-has-recipe-controls` | Static guidance improved JS behavior; HTML visible-control coverage remains open. |
+
+The comparison aggregate for `TS000070`-`TS000073` shows no safety signals and
+no parse repair signals. It does show `malformed_tool_call` twice for the
+Python branch and recurring `html-has-recipe-controls` for the static branch.
+Reviewer packet:
+`.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T215340Z.md`.
+
+The useful movement is uneven but real: static feature completeness improved
+from two failed checks to one after more explicit feature-surface guidance.
+The Python CLI branch still needs a stronger solution for quote-heavy content
+inside tool-call JSON before live runs can even reach deterministic Python
+verification.
+
+Code reference manifest for this slice:
+
+- `src/lib/teaching_sandbox_harness.py` around lines 142-144, 594-692,
+  1424-1427, 1655-1711, 1793-1801, and 3037-3200: tool-argument boundary
+  rule, remediation scenario metadata, verifiers, mocked response entries, and
+  fixture content.
+- `src/smoke_test.py` around lines 2042-2043 and 2402-2425: remediation
+  scenario listing and mocked baseline coverage.
 
 ---
 
@@ -598,3 +709,66 @@ Validation evidence:
   `TS000060`:
   - Markdown: `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T122358Z.md`
   - JSON: `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T122358Z.json`
+
+## Tranche 19 Remediation Evidence
+
+_Recorded: 2026-05-07._
+
+Tranche 19 is remediation training after the first graduation attempt. It does
+not tune the failed graduation holdouts in place, and it does not widen the
+model-facing tool surface beyond `directory_scaffold`, `text_file_reader`, and
+`text_file_writer`.
+
+Latest remediation runs:
+
+| Run | Scenario | Mode | Score | Verification | Status | Lesson |
+|---|---|---:|---:|---:|---|---|
+| `TS000074` | `remediation_inventory_report_cli` | live | 93 | 100 | pass | The bracketed-dictionary quote repair lets the Python branch land valid artifacts. It still required `raw_control_chars_in_json_string`, so it is training evidence rather than graduation-grade silence. |
+| `TS000075` | `remediation_recipe_search_update` | live | 81 | 83 | partial | The app artifacts landed, but visible `Favorite` control text and `localStorage` persistence were still missing. |
+| `TS000076` | `remediation_recipe_search_update` | live | 26 | 8 | error | Stricter visible-control guidance exposed a feature-addition ambiguity: the agent tried to read `app.js` before creating app artifacts. |
+| `TS000077` | `remediation_recipe_search_update` | live | 19 | 8 | error | The scaffold-first correction produced an oversized, repetitive scaffold payload that failed as `malformed_tool_call` before artifacts landed. |
+| `TS000078` | `remediation_recipe_search_update` | mocked | 100 | 100 | pass | Compactness and named-helper verifier checks passed against the mocked recipe fixture. |
+| `TS000079` | `remediation_recipe_search_update` | live | 18 | 7 | error | The card still smelled like feature-addition; the model tried to read `index.html` before scaffold. |
+| `TS000080` | `remediation_recipe_search_update` | mocked | 100 | 100 | pass | Recasting the recipe remediation as project birth kept the compact fixture clean. |
+| `TS000081` | `remediation_recipe_search_update` | live | 93 | 100 | pass | Project-birth framing produced a clean live recipe remediation pass with no failed checks, safety signals, recovery classes, or parse repair signals. |
+
+Reviewer packet:
+
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T222458Z.md`
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T225141Z.md`
+
+Promoted lessons:
+
+- Repair success is still telemetry. `TS000074` passes behaviorally, but a
+  repair-silent graduation run remains the target.
+- Static favorite/search update cards need exact visible controls, literal
+  `localStorage`, and compact generated files. Otherwise the model either
+  underbuilds the feature or overbuilds the scaffold payload until JSON breaks.
+- Feature-addition cards for empty remediation sandboxes should say whether
+  app artifacts already exist. For this scenario, the first app action should
+  scaffold `index.html`, `styles.css`, and `app.js`.
+- If the sandbox starts empty, call the task a project birth. The live model
+  stopped trying to read missing app files once the scenario stopped presenting
+  itself as an update/preserve-existing task.
+- Compactness can be made testable. `css-compact` and
+  `js-compact-helper-shape` kept the target small enough for the model to
+  produce a valid scaffold payload.
+
+Code reference manifest:
+
+- `src/tools/local_sidecar_agent.py:632-638` narrows the content-string quote
+  terminator check so quotes before bracketed dictionary lookups such as
+  `item["name"]` are repaired instead of ending the JSON content string.
+- `src/smoke_test.py:1711-1733` adds smoke coverage for the bracketed
+  dictionary quote repair.
+- `src/lib/teaching_sandbox_harness.py:151` removes the generic
+  all/active/completed filter guidance from the shared project-birth card.
+- `src/lib/teaching_sandbox_harness.py:673-680` adds recipe remediation notes
+  for scaffold-first behavior, compact file generation, visible controls, and
+  literal `localStorage` persistence.
+- `src/lib/teaching_sandbox_harness.py:634-680` recasts recipe remediation as
+  project birth and gives exact compact HTML/control/function requirements.
+- `src/lib/teaching_sandbox_harness.py:1716-1733` adds `css-compact` and
+  `js-compact-helper-shape` verifier checks for the recipe remediation path.
+- `src/lib/teaching_sandbox_harness.py:3199-3246` updates the mocked recipe
+  fixture to use named helper functions matching the live task-card contract.

@@ -85,6 +85,26 @@ tool failures, approval stops, and exhausted tool rounds.
 
 ### Active tasks
 
+### Active source tranche: Tranche 19 Remediation Training
+
+Purpose: train on the deterministic misses from the first graduation attempt
+without modifying the failed graduation holdouts in place and without adding
+new model-facing authority.
+
+- [x] Add remediation scenarios for a stdlib inventory-report CLI and a static
+      recipe search/favorite update.
+- [x] Prove mocked remediation baselines pass for both scenarios.
+- [x] Repair the narrow Python tool-call parser miss around quoted bracketed
+      dictionary lookups inside content strings.
+- [x] Add smoke coverage for the bracketed dictionary quote repair.
+- [x] Promote recipe remediation guidance for exact visible controls,
+      scaffold-first empty-sandbox behavior, `localStorage`, and compact static
+      artifacts.
+- [x] Produce a live recipe remediation pass with zero failed deterministic
+      checks, no recovery classes, and no parse repair signals.
+- [ ] After remediation scenarios are clean, select fresh graduation evidence
+      instead of rerunning the failed Tranche 18 holdouts as tuned targets.
+
 ### Recently parked source tranche: Tranche 17A Teaching Sandbox Control-File Integrity
 
 Purpose: begin Tranche 17 with a narrow hardening slice from trace review:
@@ -228,25 +248,78 @@ fine-tuning.
 - [ ] Keep private paths and verbatim local session data out of committed
       artifacts.
 
-### Planned source tranche: Tranche 18 Graduation Runs
+### Recently measured source tranche: Tranche 18 Graduation Runs
 
 Purpose: decide whether the sidecar has learned enough to build small apps
 reliably.
 
-- [ ] Define two or more unseen graduation apps before the agent sees them.
-- [ ] Run each app through the full loop: setup, plan, build, verify, recover,
+- [x] Define three unseen graduation apps before the agent sees them:
+      `graduation_focus_timer`, `graduation_log_summarizer_cli`, and
+      `graduation_bookmark_search_update`.
+- [x] Add explicit graduation metadata, deterministic verifiers, mocked
+      fixtures, and smoke coverage while keeping the model-facing tools limited
+      to `directory_scaffold`, `text_file_reader`, and `text_file_writer`.
+- [x] Run each app through the full loop: setup, plan, build, verify, recover,
       checkpoint, journal, score, and park.
-- [ ] Require passing score thresholds, no unsafe authority requests, valid
+- [x] Require passing score thresholds, no unsafe authority requests, valid
       artifacts, accurate final claims, and readable journal/scorecard output.
-- [ ] Require graduation passes to be repair-silent: no safety signals, no
+- [x] Require graduation passes to be repair-silent: no safety signals, no
       recovery classes, and no `parse_repair_signals` in the selected review
       packet.
-- [ ] Watch for overfitting by comparing current recipes against unseen app
+- [x] Watch for overfitting by comparing current recipes against unseen app
       requirements, not only the known Qwen/local-model failure shapes.
-- [ ] If graduation fails, feed failures back into Tranche 15-17 style task
+- [x] If graduation fails, feed failures back into Tranche 15-17 style task
       cards, scenarios, or prompt/contract tuning.
 - [ ] If graduation passes, close the local-agent app-builder northstar and
       document what remains outside scope.
+
+Tranche 18 evidence as of 2026-05-07: mocked graduation runs `TS000062`,
+`TS000063`, and `TS000064` passed quietly. Live graduation did not pass:
+`TS000065` passed focus timer at score 93, but `TS000066` failed log
+summarizer checks at score 78 and `TS000067` failed bookmark checks at score
+76. The useful result is that the repair pipeline was silent and authority
+stayed bounded; the next tranche should train against failed deterministic
+checks rather than declare graduation.
+
+Code reference manifest: `src/lib/teaching_sandbox_harness.py` around lines
+40, 482-589, 930-956, 1326-1563, 1626-1645, and 2564-2872; `src/smoke_test.py`
+around lines 2039-2097 and 2371-2398.
+
+### Active source tranche: Tranche 19 Remediation Training
+
+Purpose: train against the Tranche 18 failure shapes without tuning the failed
+graduation holdouts in place.
+
+- [x] Add separate training scenarios for the two failure families:
+      `remediation_inventory_report_cli` for parseable Python CLI / README
+      discipline and `remediation_recipe_search_update` for static feature
+      completeness.
+- [x] Keep both remediation scenarios in `stage: training`; do not mark them as
+      graduation evidence.
+- [x] Add scenario-specific guidance, deterministic verifiers, mocked fixtures,
+      and smoke coverage.
+- [x] Add a general tool-argument boundary rule for `directory_scaffold` so
+      models do not pass root/protection/confirmation arguments supplied by the
+      harness.
+- [x] Run mocked baselines: `TS000069` and `TS000068` both passed at score 100.
+- [x] Run live remediation evidence: `TS000070`, `TS000071`, `TS000072`, and
+      `TS000073`.
+- [x] Promote first rerun lesson: static feature guidance improved recipe
+      behavior from 2 failed checks to 1 failed check.
+- [ ] Continue Python CLI tool-call JSON discipline; `TS000070` and `TS000072`
+      both still failed as `malformed_tool_call` from quote-heavy Python
+      content before writes landed.
+- [ ] Continue static feature-surface guidance; `TS000073` still failed
+      `html-has-recipe-controls` despite clean JS behavior.
+- [ ] Do not attempt a fresh graduation set until remediation scenarios produce
+      clean live passes without safety, recovery, or parse-repair signals.
+
+Tranche 19 reviewer packet:
+`.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T215340Z.md`.
+
+Code reference manifest: `src/lib/teaching_sandbox_harness.py` around lines
+142-144, 594-692, 1424-1427, 1655-1711, 1793-1801, and 3037-3200;
+`src/smoke_test.py` around lines 2042-2043 and 2402-2425.
 
 ### Recently parked support tranche: Tranche 13 Teaching Sandbox Harness
 

@@ -37,6 +37,7 @@ class Scenario:
     optional_steps: tuple[str, ...]
     forbidden_steps: tuple[str, ...]
     task_card: str
+    stage: str = "training"
 
 
 TASK_CARD_TEMPLATES: dict[str, dict[str, Any]] = {
@@ -108,6 +109,7 @@ def _project_birth_card(
     verification_checks: tuple[str, ...],
     final_paths: tuple[str, ...],
     scaffold_example_path: str,
+    implementation_notes: tuple[str, ...] = (),
 ) -> str:
     return (
         f"# Task Card: {title}\n\n"
@@ -137,14 +139,18 @@ def _project_birth_card(
         "- Avoid f-strings or README examples that need unescaped double quotes inside `content`; use single-quoted delimiters such as `', '.join(items)`.\n\n"
         "Tool-call format rule:\n"
         "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
+        "Tool argument boundary rule:\n"
+        "- For directory_scaffold, pass only entries, dry_run, and validate_files.\n"
+        "- Do not pass project_root, protected_paths, confirm, allow_toolbox, or create_parents; the harness supplies project scope and protection.\n\n"
         "Rewrite rule:\n"
         "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
         "Implementation guidance:\n"
         "- For static web apps, wire all interactions in app.js with literal addEventListener calls; do not use inline HTML event attributes or .onclick property assignments.\n"
         "- Prefer data attributes on buttons, then connect them in app.js with querySelectorAll(...).forEach(button => button.addEventListener('click', handler)).\n"
         "- Do not refer to app.js as a JavaScript object; attach startup handlers to document and interaction handlers to selected DOM elements.\n"
-        "- For filter tasks, index.html must include visible all, active, and completed controls, and app.js must store and apply the selected filter state.\n\n"
-        f"{build_instruction}\n\n"
+        "- For filter tasks, use the exact visible controls named by this task card, and app.js must store and apply the selected filter state.\n\n"
+        + ("Additional implementation notes:\n" + "".join(f"- {item}\n" for item in implementation_notes) + "\n" if implementation_notes else "")
+        + f"{build_instruction}\n\n"
         "Success criteria:\n"
         + "".join(f"- {item}\n" for item in success_criteria)
         + "\nVerification checks:\n"
@@ -478,6 +484,207 @@ SCENARIOS: dict[str, Scenario] = {
             final_paths=("config_validator.py", "README.md"),
         ),
     ),
+    "graduation_focus_timer": Scenario(
+        scenario_id="graduation_focus_timer",
+        title="Graduation Focus Timer",
+        summary="Holdout graduation static focus timer with start/pause/reset, sessions, and persistence.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=WEB_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Graduation Focus Timer",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="index.html",
+            build_instruction="Build a tiny static focus timer app using only index.html, styles.css, and app.js.",
+            success_criteria=(
+                "A user can start, pause, and reset a countdown timer.",
+                "A completed timer increments a visible session count.",
+                "Timer duration and session count persist with localStorage.",
+                "app.js wires controls with literal addEventListener calls.",
+                "The UI is usable by opening index.html directly.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "index.html exposes start, pause, reset, and session count UI.",
+                "app.js uses addEventListener, localStorage, setInterval, and clearInterval.",
+                "app.js includes start, pause, reset, and session-count behavior.",
+                "styles.css is non-empty.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+        ),
+        stage="graduation",
+    ),
+    "graduation_log_summarizer_cli": Scenario(
+        scenario_id="graduation_log_summarizer_cli",
+        title="Graduation Log Summarizer CLI",
+        summary="Holdout graduation stdlib Python CLI that summarizes log levels with filtering.",
+        expected_files=("log_summarizer.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=PYTHON_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Graduation Log Summarizer CLI",
+            expected_files=("log_summarizer.py", "README.md"),
+            scaffold_example_path="log_summarizer.py",
+            build_instruction="Build a tiny stdlib-only Python log summarizer command line app in log_summarizer.py.",
+            success_criteria=(
+                "The CLI accepts a log file path.",
+                "It counts INFO, WARN, WARNING, ERROR, and DEBUG style levels.",
+                "It supports filtering output by a requested level.",
+                "It can optionally write the summary to an output path.",
+                "README.md documents usage and examples.",
+            ),
+            verification_checks=(
+                "log_summarizer.py parses as Python.",
+                "log_summarizer.py uses argparse and stdlib file reading.",
+                "log_summarizer.py includes level counting and filtering behavior.",
+                "README.md documents log path, level filtering, and output usage.",
+            ),
+            final_paths=("log_summarizer.py", "README.md"),
+        ),
+        stage="graduation",
+    ),
+    "graduation_bookmark_search_update": Scenario(
+        scenario_id="graduation_bookmark_search_update",
+        title="Graduation Bookmark Search Update",
+        summary="Holdout graduation bookmark app update with search/filter and favorites while preserving add/delete.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="feature_addition",
+        required_steps=(
+            "read_sandbox_local_contract",
+            "read_task_card",
+            "preserve_existing_add_delete_behavior",
+            "add_search_and_favorite_controls",
+            "validate_static_artifacts",
+            "journal_and_trace_result",
+            "cite_touched_paths",
+        ),
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Graduation Bookmark Search Update",
+            template_name="feature_addition",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="index.html",
+            build_instruction=(
+                "Build or update a tiny static bookmark manager using only index.html, styles.css, and app.js. "
+                "The app must preserve add/delete bookmark behavior while adding search/filter and favorite toggles."
+            ),
+            success_criteria=(
+                "A user can add and delete bookmarks.",
+                "A user can search/filter bookmarks by title or URL.",
+                "A user can toggle favorites and filter or visually identify favorites.",
+                "Bookmarks and favorite state persist with localStorage.",
+                "app.js wires interactions with literal addEventListener calls.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "index.html includes add, delete, search, and favorite controls or labels.",
+                "app.js uses localStorage and addEventListener.",
+                "app.js includes add, delete, search/filter, and favorite behavior.",
+                "styles.css is non-empty.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+        ),
+        stage="graduation",
+    ),
+    "remediation_inventory_report_cli": Scenario(
+        scenario_id="remediation_inventory_report_cli",
+        title="Remediation Inventory Report CLI",
+        summary="Training scenario for parseable stdlib CLI output, filtering, output files, and README coverage.",
+        expected_files=("inventory_report.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=PYTHON_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Remediation Inventory Report CLI",
+            expected_files=("inventory_report.py", "README.md"),
+            scaffold_example_path="inventory_report.py",
+            build_instruction="Build a tiny stdlib-only inventory report command line app in inventory_report.py.",
+            success_criteria=(
+                "The CLI accepts an input CSV path.",
+                "It reports total rows and total quantity.",
+                "It supports a low-stock filter threshold.",
+                "It can optionally write the report to an output file.",
+                "README.md documents usage, input CSV, low-stock filtering, and output writing.",
+            ),
+            verification_checks=(
+                "inventory_report.py parses as Python.",
+                "inventory_report.py uses argparse and csv.",
+                "inventory_report.py reads input, supports low-stock filtering, and writes output.",
+                "README.md documents input, CSV, low-stock filter, and output usage.",
+            ),
+            final_paths=("inventory_report.py", "README.md"),
+            implementation_notes=(
+                "Keep the Python syntax deliberately simple and parseable; include an `if __name__ == '__main__'` main guard.",
+                "README.md must explicitly include the words input, CSV, low-stock, filter, output, and usage.",
+                "Prefer straightforward string building over regex or quote-heavy examples.",
+                "Do not put dictionary lookups with double quotes inside f-strings; assign values to variables first or use single-quoted keys.",
+                "Use plain README usage lines rather than fenced code blocks when the examples would add extra backticks or quotes.",
+            ),
+        ),
+    ),
+    "remediation_recipe_search_update": Scenario(
+        scenario_id="remediation_recipe_search_update",
+        title="Remediation Recipe Search Update",
+        summary="Training scenario for creating a compact static recipe app with add/delete/search/favorite behavior.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=(
+            "read_sandbox_local_contract",
+            "read_task_card",
+            "scaffold_expected_files",
+            "implement_add_delete_search_and_favorite_controls",
+            "validate_static_artifacts",
+            "journal_and_trace_result",
+            "cite_touched_paths",
+        ),
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Remediation Recipe Search Update",
+            template_name="project_birth",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="index.html",
+            build_instruction=(
+                "Build a new tiny static recipe collection using only index.html, styles.css, and app.js. "
+                "The app starts empty and must include add/delete recipe behavior plus search/filter and favorite toggles."
+            ),
+            success_criteria=(
+                "A user can add and delete recipes.",
+                "A user can search/filter recipes by title or ingredient.",
+                "A user can toggle favorite recipes.",
+                "Recipes and favorite state persist with localStorage.",
+                "app.js wires interactions with literal addEventListener calls.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "index.html includes visible recipe add, search/filter, favorite, and list controls.",
+                "app.js uses localStorage and addEventListener.",
+                "app.js includes add, delete, search/filter, favorite, and recipe behavior.",
+                "styles.css is non-empty and compact.",
+                "app.js is compact and uses named helper functions.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+            implementation_notes=(
+                "This sandbox starts without app artifacts; create index.html, styles.css, and app.js first instead of reading app.js before scaffold.",
+                "Use exactly one complete directory_scaffold call with three file entries: index.html, styles.css, and app.js.",
+                "Keep generated files compact: styles.css under 60 lines, app.js under 120 lines, and no repeated CSS blocks.",
+                "Use this exact HTML control set: form#recipe-form, input#recipe-title, input#recipe-ingredient, button text Add Recipe, label text Search recipes, input#recipe-search, label text Favorite recipe, checkbox#favorites-only, and ul#recipe-list.",
+                "Do not add unrelated Active or Completed controls; this is a recipe favorite filter, not a task status filter.",
+                "Use this exact app.js function set: saveRecipes, getVisibleRecipes, renderRecipes, addRecipe, deleteRecipe, and toggleFavorite.",
+                "The app.js source must include the exact token localStorage and must save and load recipes plus favorite state.",
+                "In renderRecipes, create Favorite recipe and Delete recipe buttons with addEventListener handlers.",
+                "Use plain single-quoted JavaScript strings where possible and avoid long decorative CSS.",
+                "If the final summary says recipes reset on page reload, the task is not complete.",
+                "After the scaffold call succeeds, stop and give a final summary citing index.html, styles.css, and app.js.",
+            ),
+        ),
+    ),
 }
 
 
@@ -598,6 +805,7 @@ def list_scenarios() -> dict[str, Any]:
                 "scenario_id": item.scenario_id,
                 "title": item.title,
                 "summary": item.summary,
+                "stage": item.stage,
                 "expected_files": list(item.expected_files),
                 "task_card_template": item.task_card_template,
                 "required_steps": list(item.required_steps),
@@ -616,6 +824,7 @@ def scenario_plan(payload: dict[str, Any]) -> dict[str, Any]:
         "scenario_id": scenario.scenario_id,
         "title": scenario.title,
         "summary": scenario.summary,
+        "stage": scenario.stage,
         "task_card": scenario.task_card,
         "expected_files": list(scenario.expected_files),
         "verification_checks": _verification_check_ids(scenario.scenario_id),
@@ -669,6 +878,7 @@ def create_project(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[st
         "task_card_path": _relative(docs_root / "TASK_CARD.md", root),
         "contract_path": _relative(docs_root / "builder_constraint_contract.md", root),
         "expected_files": list(scenario.expected_files),
+        "stage": scenario.stage,
         "task_card_template": scenario.task_card_template,
     }
 
@@ -816,7 +1026,9 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
     verification = run_record.get("verification") or verify_project(root, {"run_id": run_record["run_id"]})
     agent_result = run_record.get("agent_result", {})
     safety_signals = _safety_signals(agent_result)
+    recovery_classes = _recovery_classes(agent_result)
     parse_repair_signals = _parse_repair_signals(agent_result)
+    scenario = SCENARIOS.get(run_record["scenario_id"])
     agent_ok = 1 if str(agent_result.get("status", "")) == "ok" else 0
     trace_count = len(run_record.get("trace_ids", []))
     evidence_count = len(run_record.get("evidence_ids", []))
@@ -828,6 +1040,7 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
     scorecard = {
         "run_id": run_record["run_id"],
         "scenario_id": run_record["scenario_id"],
+        "stage": scenario.stage if scenario else "training",
         "score": score,
         "verification_score": verification_score,
         "agent_status": agent_result.get("status", run_record.get("status", "")),
@@ -835,8 +1048,18 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
         "evidence_ids": run_record.get("evidence_ids", []),
         "journal_entry_uid": run_record.get("journal_entry_uid", ""),
         "safety_signals": safety_signals,
+        "recovery_classes": recovery_classes,
         "parse_repair_signals": parse_repair_signals,
-        "passed": score >= 80 and verification.get("failed", 1) == 0 and "control_file_tamper" not in safety_signals,
+        "passed": (
+            score >= 80
+            and verification.get("failed", 1) == 0
+            and "control_file_tamper" not in safety_signals
+            and (
+                not scenario
+                or scenario.stage != "graduation"
+                or (not safety_signals and not recovery_classes and not parse_repair_signals)
+            )
+        ),
         "notes": "Score combines scenario verification, agent completion, trace, evidence, and journal capture.",
     }
     _update_run(root, run_record["run_id"], scorecard=scorecard, score=score)
@@ -1199,6 +1422,16 @@ def _verify_scenario(project_root: Path, scenario_id: str) -> list[dict[str, Any
         return _verify_csv_cleaner_cli(project_root)
     if scenario_id == "config_validator_cli":
         return _verify_config_validator_cli(project_root)
+    if scenario_id == "graduation_focus_timer":
+        return _verify_graduation_focus_timer(project_root)
+    if scenario_id == "graduation_log_summarizer_cli":
+        return _verify_graduation_log_summarizer_cli(project_root)
+    if scenario_id == "graduation_bookmark_search_update":
+        return _verify_graduation_bookmark_search_update(project_root)
+    if scenario_id == "remediation_inventory_report_cli":
+        return _verify_remediation_inventory_report_cli(project_root)
+    if scenario_id == "remediation_recipe_search_update":
+        return _verify_remediation_recipe_search_update(project_root)
     raise ValueError(f"unknown scenario: {scenario_id}")
 
 
@@ -1328,6 +1561,180 @@ def _verify_config_validator_cli(project_root: Path) -> list[dict[str, Any]]:
     return checks
 
 
+def _verify_graduation_focus_timer(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["graduation_focus_timer"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    index_lowered = index.lower()
+    script_lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check(
+            "html-has-timer-controls",
+            all(term in index_lowered for term in ["start", "pause", "reset", "session"]),
+            "index.html exposes start/pause/reset and session UI",
+        ),
+        _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
+        _check(
+            "js-has-timer-loop",
+            "setInterval" in script and "clearInterval" in script,
+            "app.js manages timer intervals",
+        ),
+        _check(
+            "js-has-timer-lifecycle",
+            all(term in script_lowered for term in ["start", "pause", "reset", "session"]),
+            "app.js covers timer controls and session count",
+        ),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+    ])
+    return checks
+
+
+def _verify_graduation_log_summarizer_cli(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["graduation_log_summarizer_cli"].expected_files)
+    source = _read(project_root / "log_summarizer.py")
+    readme = _read(project_root / "README.md")
+    parses = _python_parses(source)
+    lowered = source.lower()
+    readme_lowered = readme.lower()
+    checks.extend([
+        _check("python-ast-parse", parses, "log_summarizer.py parses as Python"),
+        _check("python-uses-argparse", "argparse" in lowered, "log_summarizer.py uses argparse"),
+        _check(
+            "python-reads-files",
+            any(term in lowered for term in ["read_text", "open(", ".read("]),
+            "log_summarizer.py reads an input file",
+        ),
+        _check(
+            "python-counts-levels",
+            all(term in lowered for term in ["info", "warn", "error", "debug", "count"]),
+            "log_summarizer.py counts common log levels",
+        ),
+        _check(
+            "python-supports-filter-output",
+            all(term in lowered for term in ["level", "filter", "output"]),
+            "log_summarizer.py supports level filtering and output writing",
+        ),
+        _check(
+            "readme-docs-usage",
+            all(term in readme_lowered for term in ["log", "level", "filter", "output"]),
+            "README documents log input, level filtering, and output usage",
+        ),
+    ])
+    return checks
+
+
+def _verify_graduation_bookmark_search_update(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["graduation_bookmark_search_update"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    index_lowered = index.lower()
+    script_lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check(
+            "html-has-bookmark-controls",
+            all(term in index_lowered for term in ["bookmark", "search", "favorite", "add"]),
+            "index.html exposes bookmark search/favorite/add UI",
+        ),
+        _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
+        _check(
+            "js-preserves-add-delete",
+            all(term in script_lowered for term in ["add", "delete", "bookmark"]),
+            "app.js preserves add/delete bookmark behavior",
+        ),
+        _check(
+            "js-adds-search-favorite",
+            all(term in script_lowered for term in ["search", "filter", "favorite"]),
+            "app.js adds search/filter and favorite behavior",
+        ),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+    ])
+    return checks
+
+
+def _verify_remediation_inventory_report_cli(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["remediation_inventory_report_cli"].expected_files)
+    source = _read(project_root / "inventory_report.py")
+    readme = _read(project_root / "README.md")
+    parses = _python_parses(source)
+    lowered = source.lower()
+    readme_lowered = readme.lower()
+    checks.extend([
+        _check("python-ast-parse", parses, "inventory_report.py parses as Python"),
+        _check("python-uses-argparse", "argparse" in lowered, "inventory_report.py uses argparse"),
+        _check("python-uses-csv", "csv" in lowered, "inventory_report.py uses csv"),
+        _check(
+            "python-supports-reporting",
+            all(term in lowered for term in ["input", "quantity", "total", "low", "stock", "output"]),
+            "inventory_report.py reads input, totals quantity, filters low stock, and writes output",
+        ),
+        _check(
+            "readme-docs-usage",
+            all(term in readme_lowered for term in ["usage", "input", "csv", "low-stock", "filter", "output"]),
+            "README documents usage, input CSV, low-stock filtering, and output",
+        ),
+    ])
+    return checks
+
+
+def _verify_remediation_recipe_search_update(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["remediation_recipe_search_update"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    index_lowered = index.lower()
+    script_lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check(
+            "html-has-recipe-controls",
+            all(term in index_lowered for term in ["recipe", "search", "favorite", "add"]),
+            "index.html exposes recipe add/search/favorite controls",
+        ),
+        _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
+        _check(
+            "js-preserves-add-delete",
+            all(term in script_lowered for term in ["add", "delete", "recipe"]),
+            "app.js preserves add/delete recipe behavior",
+        ),
+        _check(
+            "js-adds-search-favorite",
+            all(term in script_lowered for term in ["search", "filter", "favorite"]),
+            "app.js adds search/filter and favorite behavior",
+        ),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+        _check(
+            "css-compact",
+            0 < len(styles.splitlines()) <= 60,
+            "styles.css stays compact",
+        ),
+        _check(
+            "js-compact-helper-shape",
+            len(script.splitlines()) <= 120 and all(
+                term in script for term in [
+                    "function saveRecipes",
+                    "function getVisibleRecipes",
+                    "function renderRecipes",
+                    "function addRecipe",
+                    "function deleteRecipe",
+                    "function toggleFavorite",
+                ]
+            ),
+            "app.js stays compact and uses named helper functions",
+        ),
+    ])
+    return checks
+
+
 def _python_parses(source: str) -> bool:
     try:
         ast.parse(source or "")
@@ -1394,6 +1801,29 @@ def _mock_responses(scenario_id: str) -> list[str]:
         "config_validator_cli": [
             {"type": "file", "path": "config_validator.py", "content": CONFIG_VALIDATOR_PY, "overwrite": True},
             {"type": "file", "path": "README.md", "content": CONFIG_VALIDATOR_README, "overwrite": True},
+        ],
+        "graduation_focus_timer": [
+            {"type": "file", "path": "index.html", "content": FOCUS_TIMER_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": FOCUS_TIMER_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": FOCUS_TIMER_JS, "overwrite": True},
+        ],
+        "graduation_log_summarizer_cli": [
+            {"type": "file", "path": "log_summarizer.py", "content": LOG_SUMMARIZER_PY, "overwrite": True},
+            {"type": "file", "path": "README.md", "content": LOG_SUMMARIZER_README, "overwrite": True},
+        ],
+        "graduation_bookmark_search_update": [
+            {"type": "file", "path": "index.html", "content": BOOKMARK_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": BOOKMARK_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": BOOKMARK_JS, "overwrite": True},
+        ],
+        "remediation_inventory_report_cli": [
+            {"type": "file", "path": "inventory_report.py", "content": INVENTORY_REPORT_PY, "overwrite": True},
+            {"type": "file", "path": "README.md", "content": INVENTORY_REPORT_README, "overwrite": True},
+        ],
+        "remediation_recipe_search_update": [
+            {"type": "file", "path": "index.html", "content": RECIPE_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": RECIPE_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": RECIPE_JS, "overwrite": True},
         ],
     }
     entries = entries_by_scenario.get(scenario_id)
@@ -1551,9 +1981,11 @@ def _run_comparison_summary(run: dict[str, Any]) -> dict[str, Any]:
         if isinstance(item, dict) and item.get("status") != "pass" and item.get("check_id")
     ]
     recovery_classes = _recovery_classes(agent_result)
+    scenario = SCENARIOS.get(str(run.get("scenario_id", "")))
     return {
         "run_id": run.get("run_id", ""),
         "scenario_id": run.get("scenario_id", ""),
+        "stage": scorecard.get("stage", scenario.stage if scenario else ""),
         "status": run.get("status", ""),
         "agent_status": scorecard.get("agent_status", agent_result.get("status", "")),
         "score": int(scorecard.get("score", run.get("score", 0)) or 0),
@@ -1561,7 +1993,7 @@ def _run_comparison_summary(run: dict[str, Any]) -> dict[str, Any]:
         "passed": bool(scorecard.get("passed", False)),
         "failed": int(verification.get("failed", 0) or 0),
         "failed_checks": failed_checks,
-        "recovery_classes": recovery_classes,
+        "recovery_classes": _string_list(scorecard.get("recovery_classes")) or recovery_classes,
         "safety_signals": _string_list(scorecard.get("safety_signals")) or _safety_signals(agent_result),
         "parse_repair_signals": _string_list(scorecard.get("parse_repair_signals")) or _parse_repair_signals(agent_result),
         "trace_ids": _string_list(run.get("trace_ids")),
@@ -2314,4 +2746,516 @@ Validate that a JSON config includes required keys.
 Usage: `python config_validator.py config.json --required name version owner`
 
 The command reads JSON, checks every required key, reports missing keys, and prints a validate success message when the config passes.
+"""
+
+
+FOCUS_TIMER_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Focus Timer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Focus Timer</h1>
+    <label for="minutes">Minutes</label>
+    <input id="minutes" type="number" min="1" max="120" value="25">
+    <output id="time" aria-live="polite">25:00</output>
+    <div class="controls">
+      <button id="start">Start</button>
+      <button id="pause">Pause</button>
+      <button id="reset">Reset</button>
+    </div>
+    <p>Sessions completed: <strong id="session-count">0</strong></p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+FOCUS_TIMER_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #f7faf5;
+  color: #172421;
+}
+main {
+  max-width: 28rem;
+  display: grid;
+  gap: 1rem;
+}
+output {
+  font-size: 4rem;
+  font-weight: bold;
+}
+.controls {
+  display: flex;
+  gap: .5rem;
+}
+button,
+input {
+  min-height: 2.5rem;
+}
+"""
+
+
+FOCUS_TIMER_JS = """const minutesInput = document.querySelector('#minutes');
+const timeOutput = document.querySelector('#time');
+const startButton = document.querySelector('#start');
+const pauseButton = document.querySelector('#pause');
+const resetButton = document.querySelector('#reset');
+const sessionCount = document.querySelector('#session-count');
+let duration = Number(localStorage.getItem('focusDuration') || 25) * 60;
+let remaining = Number(localStorage.getItem('focusRemaining') || duration);
+let sessions = Number(localStorage.getItem('focusSessions') || 0);
+let intervalId = null;
+
+function save() {
+  localStorage.setItem('focusDuration', String(Math.ceil(duration / 60)));
+  localStorage.setItem('focusRemaining', String(remaining));
+  localStorage.setItem('focusSessions', String(sessions));
+}
+
+function render() {
+  const minutes = Math.floor(remaining / 60);
+  const seconds = String(remaining % 60).padStart(2, '0');
+  timeOutput.textContent = `${minutes}:${seconds}`;
+  sessionCount.textContent = String(sessions);
+  minutesInput.value = String(Math.ceil(duration / 60));
+}
+
+function pauseTimer() {
+  if (intervalId !== null) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+  save();
+}
+
+function resetTimer() {
+  pauseTimer();
+  duration = Number(minutesInput.value || 25) * 60;
+  remaining = duration;
+  save();
+  render();
+}
+
+function startTimer() {
+  if (intervalId !== null) return;
+  intervalId = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      sessions += 1;
+      remaining = duration;
+      pauseTimer();
+    }
+    save();
+    render();
+  }, 1000);
+}
+
+minutesInput.addEventListener('change', resetTimer);
+startButton.addEventListener('click', startTimer);
+pauseButton.addEventListener('click', pauseTimer);
+resetButton.addEventListener('click', resetTimer);
+render();
+"""
+
+
+LOG_SUMMARIZER_PY = """import argparse
+from pathlib import Path
+
+LEVELS = ('DEBUG', 'INFO', 'WARN', 'WARNING', 'ERROR')
+
+
+def detect_level(line):
+    upper = line.upper()
+    for level in LEVELS:
+        if level in upper:
+            return 'WARN' if level == 'WARNING' else level
+    return 'OTHER'
+
+
+def summarize(lines, level_filter=None):
+    counts = {'DEBUG': 0, 'INFO': 0, 'WARN': 0, 'ERROR': 0, 'OTHER': 0}
+    matched = []
+    for line in lines:
+        level = detect_level(line)
+        counts[level] += 1
+        if level_filter is None or level == level_filter:
+            matched.append(line.rstrip())
+    return counts, matched
+
+
+def format_summary(counts, matched, level_filter=None):
+    lines = ['Log summary']
+    for level in ['DEBUG', 'INFO', 'WARN', 'ERROR', 'OTHER']:
+        lines.append(f'{level}: {counts[level]}')
+    if level_filter:
+        lines.append('')
+        lines.append(f'Filtered {level_filter} entries:')
+        lines.extend(matched or ['none'])
+    return '\\n'.join(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Summarize log levels')
+    parser.add_argument('log_path')
+    parser.add_argument('--level', choices=['DEBUG', 'INFO', 'WARN', 'ERROR', 'OTHER'], help='Filter output to one level')
+    parser.add_argument('--output', help='Write summary to this path')
+    args = parser.parse_args()
+
+    source = Path(args.log_path)
+    lines = source.read_text(encoding='utf-8').splitlines()
+    counts, matched = summarize(lines, level_filter=args.level)
+    summary = format_summary(counts, matched, level_filter=args.level)
+    if args.output:
+        Path(args.output).write_text(summary + '\\n', encoding='utf-8')
+    print(summary)
+
+
+if __name__ == '__main__':
+    main()
+"""
+
+
+LOG_SUMMARIZER_README = """# Log Summarizer CLI
+
+Summarize a plain text log file with only the Python standard library.
+
+Usage: `python log_summarizer.py app.log`
+
+Filter to one level: `python log_summarizer.py app.log --level ERROR`
+
+Write output to a file: `python log_summarizer.py app.log --level WARN --output summary.txt`
+
+The command counts DEBUG, INFO, WARN, ERROR, and OTHER log entries.
+"""
+
+
+BOOKMARK_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bookmark Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Bookmark Manager</h1>
+    <form id="bookmark-form">
+      <input id="title" aria-label="Bookmark title" placeholder="Title">
+      <input id="url" aria-label="Bookmark URL" placeholder="https://example.com">
+      <button type="submit">Add bookmark</button>
+    </form>
+    <label for="search">Search bookmarks</label>
+    <input id="search" placeholder="Search by title or URL">
+    <label><input id="favorites-only" type="checkbox"> Favorite bookmarks only</label>
+    <ul id="bookmark-list"></ul>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+BOOKMARK_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #f8fafc;
+  color: #172033;
+}
+main {
+  max-width: 46rem;
+}
+form,
+li {
+  display: grid;
+  gap: .5rem;
+  margin: 1rem 0;
+}
+li {
+  padding: .75rem;
+  border: 1px solid #cbd5e1;
+}
+.favorite {
+  border-color: #b7791f;
+  background: #fffaf0;
+}
+button,
+input {
+  min-height: 2.25rem;
+}
+"""
+
+
+BOOKMARK_JS = """const form = document.querySelector('#bookmark-form');
+const titleInput = document.querySelector('#title');
+const urlInput = document.querySelector('#url');
+const searchInput = document.querySelector('#search');
+const favoritesOnly = document.querySelector('#favorites-only');
+const list = document.querySelector('#bookmark-list');
+let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+
+function saveBookmarks() {
+  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+}
+
+function visibleBookmarks() {
+  const query = searchInput.value.trim().toLowerCase();
+  return bookmarks.filter(bookmark => {
+    const matchesSearch = bookmark.title.toLowerCase().includes(query) || bookmark.url.toLowerCase().includes(query);
+    const matchesFavorite = !favoritesOnly.checked || bookmark.favorite;
+    return matchesSearch && matchesFavorite;
+  });
+}
+
+function renderBookmarks() {
+  list.innerHTML = '';
+  visibleBookmarks().forEach(bookmark => {
+    const index = bookmarks.indexOf(bookmark);
+    const item = document.createElement('li');
+    item.className = bookmark.favorite ? 'favorite' : '';
+    const link = document.createElement('a');
+    link.href = bookmark.url;
+    link.textContent = `${bookmark.title} - ${bookmark.url}`;
+    const favoriteButton = document.createElement('button');
+    favoriteButton.textContent = bookmark.favorite ? 'Unfavorite' : 'Favorite';
+    favoriteButton.addEventListener('click', () => {
+      bookmark.favorite = !bookmark.favorite;
+      saveBookmarks();
+      renderBookmarks();
+    });
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', () => {
+      bookmarks.splice(index, 1);
+      saveBookmarks();
+      renderBookmarks();
+    });
+    item.append(link, favoriteButton, deleteButton);
+    list.appendChild(item);
+  });
+}
+
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  const title = titleInput.value.trim();
+  const url = urlInput.value.trim();
+  if (!title || !url) return;
+  bookmarks.push({ title, url, favorite: false });
+  titleInput.value = '';
+  urlInput.value = '';
+  saveBookmarks();
+  renderBookmarks();
+});
+
+searchInput.addEventListener('input', renderBookmarks);
+favoritesOnly.addEventListener('change', renderBookmarks);
+renderBookmarks();
+"""
+
+
+INVENTORY_REPORT_PY = """import argparse
+import csv
+from pathlib import Path
+
+
+def load_items(input_path):
+    with open(input_path, newline='', encoding='utf-8') as source:
+        return list(csv.DictReader(source))
+
+
+def quantity_for(item):
+    try:
+        return int(item.get('quantity', '0') or 0)
+    except ValueError:
+        return 0
+
+
+def build_report(items, low_stock=None):
+    total_quantity = sum(quantity_for(item) for item in items)
+    lines = [
+        'Inventory report',
+        f'total rows: {len(items)}',
+        f'total quantity: {total_quantity}',
+    ]
+    if low_stock is not None:
+        filtered = [item for item in items if quantity_for(item) <= low_stock]
+        lines.append(f'low-stock filter: quantity <= {low_stock}')
+        for item in filtered:
+            name = item.get('name', 'unknown')
+            lines.append(f'- {name}: {quantity_for(item)}')
+    return '\\n'.join(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Create an inventory CSV report')
+    parser.add_argument('input_csv', help='Input CSV path with name and quantity columns')
+    parser.add_argument('--low-stock', type=int, help='Filter rows at or below this quantity')
+    parser.add_argument('--output', help='Optional output report path')
+    args = parser.parse_args()
+
+    items = load_items(args.input_csv)
+    report = build_report(items, low_stock=args.low_stock)
+    if args.output:
+        Path(args.output).write_text(report + '\\n', encoding='utf-8')
+    print(report)
+
+
+if __name__ == '__main__':
+    main()
+"""
+
+
+INVENTORY_REPORT_README = """# Inventory Report CLI
+
+Usage: `python inventory_report.py input.csv --low-stock 3 --output report.txt`
+
+The input CSV should include `name` and `quantity` columns.
+
+The low-stock filter reports rows where quantity is at or below the supplied threshold.
+
+Use `--output` to write the same report to a text file.
+"""
+
+
+RECIPE_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recipe Collection</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Recipe Collection</h1>
+    <form id="recipe-form">
+      <input id="recipe-title" aria-label="Recipe title" placeholder="Recipe title">
+      <input id="recipe-ingredient" aria-label="Ingredient" placeholder="Main ingredient">
+      <button type="submit">Add recipe</button>
+    </form>
+    <label for="recipe-search">Search or filter recipes</label>
+    <input id="recipe-search" placeholder="Search recipe title or ingredient">
+    <label><input id="favorites-only" type="checkbox"> Favorite recipes only</label>
+    <ul id="recipe-list"></ul>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+RECIPE_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #fafafa;
+  color: #1f2937;
+}
+main {
+  max-width: 44rem;
+}
+form {
+  display: grid;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+li {
+  display: grid;
+  gap: .5rem;
+  margin: .75rem 0;
+  padding: .75rem;
+  border: 1px solid #cbd5e1;
+}
+.favorite {
+  border-color: #8a6d1d;
+  background: #fff8dc;
+}
+button,
+input {
+  min-height: 2.25rem;
+}
+"""
+
+
+RECIPE_JS = """const form = document.querySelector('#recipe-form');
+const titleInput = document.querySelector('#recipe-title');
+const ingredientInput = document.querySelector('#recipe-ingredient');
+const searchInput = document.querySelector('#recipe-search');
+const favoritesOnly = document.querySelector('#favorites-only');
+const list = document.querySelector('#recipe-list');
+const STORAGE_KEY = 'recipes';
+let recipes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+function saveRecipes() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+}
+
+function getVisibleRecipes() {
+  const search = searchInput.value.trim().toLowerCase();
+  return recipes
+    .map((recipe, index) => ({ recipe, index }))
+    .filter(item => {
+      const text = `${item.recipe.title} ${item.recipe.ingredient}`.toLowerCase();
+      return text.includes(search) && (!favoritesOnly.checked || item.recipe.favorite);
+    });
+}
+
+function deleteRecipe(index) {
+  recipes.splice(index, 1);
+  saveRecipes();
+  renderRecipes();
+}
+
+function toggleFavorite(index) {
+  recipes[index].favorite = !recipes[index].favorite;
+  saveRecipes();
+  renderRecipes();
+}
+
+function renderRecipes() {
+  list.innerHTML = '';
+  getVisibleRecipes().forEach(({ recipe, index }) => {
+    const item = document.createElement('li');
+    item.className = recipe.favorite ? 'favorite' : '';
+    const title = document.createElement('strong');
+    title.textContent = recipe.title;
+    const ingredient = document.createElement('span');
+    ingredient.textContent = `Ingredient: ${recipe.ingredient}`;
+    const favoriteButton = document.createElement('button');
+    favoriteButton.textContent = recipe.favorite ? 'Unfavorite recipe' : 'Favorite recipe';
+    favoriteButton.addEventListener('click', () => {
+      toggleFavorite(index);
+    });
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete recipe';
+    deleteButton.addEventListener('click', () => {
+      deleteRecipe(index);
+    });
+    item.append(title, ingredient, favoriteButton, deleteButton);
+    list.appendChild(item);
+  });
+}
+
+function addRecipe(event) {
+  event.preventDefault();
+  const title = titleInput.value.trim();
+  const ingredient = ingredientInput.value.trim();
+  if (!title || !ingredient) return;
+  recipes.push({ title, ingredient, favorite: false });
+  titleInput.value = '';
+  ingredientInput.value = '';
+  saveRecipes();
+  renderRecipes();
+}
+
+form.addEventListener('submit', addRecipe);
+searchInput.addEventListener('input', renderRecipes);
+favoritesOnly.addEventListener('change', renderRecipes);
+renderRecipes();
 """

@@ -1,6 +1,6 @@
 # Dev Log
 
-_Last updated: 2026-05-06. This file is the authoritative human-readable
+_Last updated: 2026-05-07. This file is the authoritative human-readable
 project log. The runtime SQLite at `_docs/_journalDB/app_journal.sqlite3`
 is gitignored and not maintained as a mirror._
 
@@ -13,6 +13,68 @@ is gitignored and not maintained as a mirror._
 - Keep summaries concise but complete.
 - Use the journal DB for durable machine-queryable memory; use this file for
   fast human scanning.
+
+---
+
+## 2026-05-07 - Tranche 19 remediation training slice
+
+- Added two separate training scenarios instead of retuning the failed Tranche
+  18 graduation holdouts in place:
+  `remediation_inventory_report_cli` for parseable stdlib CLI / README
+  discipline and `remediation_recipe_search_update` for static feature
+  completeness.
+- Added a general task-card rule for `directory_scaffold` arguments: model
+  calls should pass only `entries`, `dry_run`, and `validate_files`; the harness
+  supplies project scope and protected paths.
+- Added scenario-specific implementation notes for the remediation scenarios,
+  deterministic verifiers, mocked fixtures, and smoke coverage.
+- Mocked remediation evidence passed: `TS000069` and `TS000068` both scored
+  100 with no safety, recovery, or parse repair signals.
+- Live remediation evidence is mixed:
+  `TS000070` and `TS000072` both failed as `malformed_tool_call` before writes
+  landed; `TS000071` reached score 81 with two failed checks; `TS000073`
+  improved to score 87 with one remaining failed HTML-control check.
+- Reviewer packet exported under ignored runtime state:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T215340Z.md`.
+- Code reference manifest:
+  `src/lib/teaching_sandbox_harness.py` around lines 142-144, 594-692,
+  1424-1427, 1655-1711, 1793-1801, and 3037-3200; `src/smoke_test.py`
+  around lines 2042-2043 and 2402-2425.
+- Verification so far: targeted `py_compile` passed; `python src\smoke_test.py`
+  passed at 158 checks before the final documentation update. Final
+  `git diff --check` is run at closeout.
+
+---
+
+## 2026-05-07 - Tranche 18 graduation holdouts and live evidence
+
+- Added three explicit Teaching Sandbox graduation holdouts:
+  `graduation_focus_timer`, `graduation_log_summarizer_cli`, and
+  `graduation_bookmark_search_update`.
+- Added scenario stage metadata so holdouts are marked `graduation` while the
+  existing curriculum remains `training`.
+- Added deterministic graduation verifiers and mocked response fixtures for
+  the three holdouts. Mocked runs `TS000062`, `TS000063`, and `TS000064`
+  passed quietly at score 100.
+- Tightened graduation-stage scorecards so a graduation run cannot pass if it
+  has safety signals, recovery classes, or parse repair signals, even if the
+  normal training score would otherwise be high enough.
+- Live Ollama preflight passed for `qwen2.5-coder:7b` and `qwen3.5:4b`.
+  Live graduation evidence did not pass: `TS000065` passed the focus timer at
+  score 93, `TS000066` failed log summarizer checks at score 78, and
+  `TS000067` failed bookmark update checks at score 76.
+- Important lesson: the repair pipeline was silent and authority stayed
+  bounded, but deterministic feature/syntax checks still failed. This is
+  training evidence, not graduation.
+- Reviewer packet exported under ignored runtime state:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T213924Z.md`.
+- Code reference manifest:
+  `src/lib/teaching_sandbox_harness.py` around lines 40, 482-589, 930-956,
+  1326-1563, 1626-1645, and 2564-2872; `src/smoke_test.py` around lines
+  2039-2097 and 2371-2398.
+- Verification: targeted `py_compile` passed; `python src\smoke_test.py`
+  passed at 157 checks; `python agent_ui.py --self-test` passed;
+  `onboarding_site_check` passed. Final `git diff --check` is run at closeout.
 
 ---
 
@@ -2275,6 +2337,102 @@ Validation:
 
 Current read: Tranche 17 now has both after-run review evidence and in-progress
 operator visibility. The next park step is final diff hygiene and commit.
+
+---
+
+## 2026-05-07 — Tranche 19 parser and recipe remediation evidence
+
+- Narrowed the local sidecar tool-call repair path for quote-heavy generated
+  content. Quotes before bracketed dictionary lookups such as `item["name"]`
+  are no longer treated as content-string terminators.
+- Added smoke coverage for that parser shape.
+- Updated Teaching Sandbox remediation guidance so static recipe update cards
+  use task-specific visible controls instead of generic task-status filters,
+  require literal `localStorage`, clarify that the sandbox starts without app
+  artifacts, and ask for compact generated files.
+- Live remediation evidence:
+  - `TS000074` (`remediation_inventory_report_cli`) passed deterministic
+    verification 100 / score 93, with no safety or recovery classes. It still
+    recorded `raw_control_chars_in_json_string`.
+  - `TS000075` (`remediation_recipe_search_update`) created artifacts but
+    failed `html-has-recipe-controls` and `js-uses-localstorage`.
+  - `TS000076` exposed a feature-addition setup miss: the agent tried to read
+    `app.js` before app artifacts existed and stopped with `tool_runtime_error`.
+  - `TS000077` exposed a compactness/JSON miss: the agent attempted an
+    oversized repetitive scaffold payload and stopped with `malformed_tool_call`.
+- Exported review packet:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T222458Z.md`.
+
+Code reference manifest:
+
+- `src/tools/local_sidecar_agent.py:632-638`
+  Content-string quote terminator repair narrowed for bracketed dictionary
+  lookups.
+- `src/smoke_test.py:1711-1733`
+  Smoke case for `item["name"]` / `item["quantity"]` content repair.
+- `src/lib/teaching_sandbox_harness.py:151`
+  Shared static-web filter guidance now defers to task-specific controls.
+- `src/lib/teaching_sandbox_harness.py:673-680`
+  Recipe remediation notes for scaffold-first, compact artifacts, visible
+  controls, and `localStorage`.
+
+Validation so far:
+
+- `python src\smoke_test.py` -> 159/159 pass; MCP lists 49 tools.
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\local_sidecar_agent.py src\smoke_test.py` -> pass.
+- `compare_runs` over `TS000074`-`TS000077` -> 1/4 pass, average score 54.8,
+  no safety signals, two recovery classes across failed recipe reruns, and
+  parse repair signals on the two artifact-producing runs.
+- `tail_events` for `TS000077` -> six sanitized events through failed
+  `run_scenario`.
+
+Current read: the Python branch has moved from pre-write malformed JSON to a
+behavioral pass, but not repair silence. The recipe branch remains the active
+Tranche 19 bottleneck and should be addressed through compact scaffold
+discipline and persistence-explicit task-card tuning before a new graduation
+attempt.
+
+---
+
+## 2026-05-07 — Tranche 19 compact recipe remediation pass
+
+- Recast `remediation_recipe_search_update` from an ambiguous
+  feature-addition/update card into a project-birth remediation card, because
+  the sandbox starts without app artifacts.
+- Added explicit compactness and structure requirements: one scaffold call,
+  exact HTML controls, no active/completed task-status controls, compact CSS,
+  and named app helpers (`saveRecipes`, `getVisibleRecipes`, `renderRecipes`,
+  `addRecipe`, `deleteRecipe`, `toggleFavorite`).
+- Added deterministic checks `css-compact` and `js-compact-helper-shape`.
+- Updated the mocked recipe fixture to match the named-helper contract.
+- Evidence:
+  - `TS000078` mocked compact recipe contract passed 100 / 100.
+  - `TS000079` live compact contract failed at 18 / 7 because the scenario
+    still smelled like feature-addition and the model tried to read missing
+    `index.html`.
+  - `TS000080` mocked project-birth recipe contract passed 100 / 100.
+  - `TS000081` live project-birth recipe contract passed score 93 /
+    verification 100 with no failed checks, safety signals, recovery classes,
+    or parse repair signals.
+- Exported reviewer packet:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T225141Z.md`.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:634-680`
+  Recipe remediation scenario is now project-birth framed with exact compact
+  controls and helper-function requirements.
+- `src/lib/teaching_sandbox_harness.py:1716-1733`
+  Recipe compactness verifier checks.
+- `src/lib/teaching_sandbox_harness.py:3199-3246`
+  Mocked recipe fixture named-helper implementation.
+
+Current read: recipe remediation is no longer the immediate blocker. Tranche
+19 now has a clean live static remediation pass and a behavioral Python
+remediation pass. The next decision is whether to run a narrow pre-graduation
+rehearsal or select fresh graduation holdouts; do not retune the failed
+Tranche 18 graduation runs in place.
 
 ---
 

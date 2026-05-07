@@ -635,7 +635,7 @@ def _looks_like_content_terminator(raw: str, quote_index: int) -> bool:
         j += 1
     if j >= len(raw):
         return True
-    if raw[j] in "}]":
+    if raw[j] == "}":
         return True
     if raw[j] != ",":
         return False
