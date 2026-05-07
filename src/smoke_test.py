@@ -2302,6 +2302,30 @@ def test_teaching_sandbox_harness() -> None:
     else:
         _fail("teaching_sandbox_harness export", str(export))
 
+    review_export = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "export_review",
+        "confirm": True,
+        "run_ids": [
+            static_run["result"]["run_id"],
+            python_run["result"]["run_id"],
+            tamper_run["result"]["run_id"],
+        ],
+        "format": "markdown",
+    })
+    review_path = target_root / review_export["result"]["export_path"]
+    review_text = review_path.read_text(encoding="utf-8") if review_path.exists() else ""
+    if (
+        review_export["status"] == "ok"
+        and review_path.exists()
+        and "Teaching Sandbox Reviewer Packet" in review_text
+        and "control_file_tamper" in review_text
+        and str(target_root) not in review_text
+    ):
+        _ok("teaching_sandbox_harness exports sanitized reviewer packet")
+    else:
+        _fail("teaching_sandbox_harness reviewer export", str(review_export))
+
     rendered = json.dumps(static_run)
     if str(target_root) not in rendered:
         _ok("teaching_sandbox_harness returns repo-relative/sanitized paths")

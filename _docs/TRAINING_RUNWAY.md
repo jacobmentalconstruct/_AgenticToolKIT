@@ -498,3 +498,38 @@ Final 17C recipe-check reruns:
 This closes the main 17C question. Static-web failures were not evidence that
 the sidecar needed broader authority; they needed concrete DOM-event and task
 lifecycle recipes plus verifier checks that matched the doctrine.
+
+## Tranche 17D Reviewer Packet Export
+
+_Recorded: 2026-05-07._
+
+17D adds a compact `export_review` Teaching Sandbox action. It uses the same
+selection inputs as `compare_runs` (`run_ids`, `scenario_id`, or `limit`) and
+writes a reviewer packet under ignored runtime exports:
+
+```text
+.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_<timestamp>.md
+.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_<timestamp>.json
+```
+
+The packet includes:
+
+- run IDs, scenarios, score, verification score, agent status, pass/fail state
+- failed check names
+- recovery classes
+- safety signals
+- aggregate scenario, failure, recovery, and safety counts
+- reviewer checklist steps from `compare_runs`
+
+The packet intentionally excludes raw model transcripts, sandbox file contents,
+absolute local paths, and committed tuning payloads. It is a reviewer note seed,
+not a data lake.
+
+Validation evidence:
+
+- Smoke coverage now proves reviewer packets are created, include safety
+  signals such as `control_file_tamper`, and omit absolute local paths.
+- Live 17C clean-pass packet exported for `TS000058`, `TS000057`, and
+  `TS000060`:
+  - Markdown: `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T122358Z.md`
+  - JSON: `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T122358Z.json`

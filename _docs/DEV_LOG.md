@@ -2131,6 +2131,43 @@ passes without broadening sidecar authority.
 
 ---
 
+## 2026-05-07 — Tranche 17D sanitized reviewer packet export
+
+- Added `teaching_sandbox_harness export_review`.
+- The action accepts the same comparison selectors as `compare_runs`
+  (`run_ids`, `scenario_id`, or `limit`) and writes Markdown or JSON reviewer
+  packets under ignored Teaching Sandbox exports.
+- Reviewer packets include sanitized run summaries, aggregate counts, failed
+  checks, recovery classes, safety signals, and reviewer checklist steps.
+- Reviewer packets intentionally exclude raw model transcripts, sandbox file
+  contents, absolute local paths, and committed tuning payloads.
+- Added smoke coverage proving reviewer packet export works, includes a safety
+  signal such as `control_file_tamper`, and does not leak the temporary project
+  root path.
+- Exercised the action against the final 17C live pass set:
+  - Markdown:
+    `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T122358Z.md`
+  - JSON:
+    `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260507T122358Z.json`
+- Wrote App Journal entry `journal_3819749b2ad2`.
+
+Validation so far:
+
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\teaching_sandbox_harness.py src\smoke_test.py` -> pass.
+- `python src\smoke_test.py` -> 153/153 pass; MCP lists 49 tools.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Current read: 17D gives the operator a durable, privacy-bounded review packet
+for a selected run set. The remaining Tranche 17 work should be final
+comparison/park and deciding whether any richer trace export belongs before
+graduation.
+
+---
+
 ## Template for future entries
 
 - Files changed:

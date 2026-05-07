@@ -805,6 +805,28 @@ def export_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, A
     return {"run_id": run_record["run_id"], "format": fmt, "export_path": _relative(path, root)}
 
 
+def export_review(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, Any]:
+    root = Path(toolbox_root).resolve()
+    fmt = str(payload.get("format", "markdown")).lower()
+    comparison = compare_runs(root, payload)
+    export_dir = harness_root(root) / "exports"
+    export_dir.mkdir(parents=True, exist_ok=True)
+    stamp = file_stamp()
+    if fmt == "json":
+        path = export_dir / f"teaching_sandbox_review_{stamp}.json"
+        path.write_text(json.dumps(comparison, indent=2, sort_keys=False), encoding="utf-8")
+    else:
+        fmt = "markdown"
+        path = export_dir / f"teaching_sandbox_review_{stamp}.md"
+        path.write_text(_review_markdown(comparison), encoding="utf-8", newline="")
+    return {
+        "format": fmt,
+        "export_path": _relative(path, root),
+        "run_count": comparison.get("run_count", 0),
+        "run_ids": [str(item.get("run_id", "")) for item in comparison.get("runs", []) if item.get("run_id")],
+    }
+
+
 def init_store(toolbox_root: str | Path) -> dict[str, Any]:
     root = Path(toolbox_root).resolve()
     database = db_path(root)
@@ -1240,6 +1262,70 @@ def _run_markdown(run_record: dict[str, Any], toolbox_root: Path) -> str:
     for item in verification.get("checks", []):
         lines.append(f"- [{item.get('status')}] {item.get('check_id')}: {item.get('message')}")
     return "\n".join(lines) + "\n"
+
+
+def _review_markdown(comparison: dict[str, Any]) -> str:
+    aggregates = comparison.get("aggregates", {}) if isinstance(comparison.get("aggregates"), dict) else {}
+    lines = [
+        "# Teaching Sandbox Reviewer Packet",
+        "",
+        "## Summary",
+        "",
+        f"- Run count: {comparison.get('run_count', 0)}",
+        f"- Scenario count: {aggregates.get('scenario_count', 0)}",
+        f"- Pass count: {aggregates.get('pass_count', 0)}",
+        f"- Average score: {aggregates.get('average_score', 0)}",
+        f"- Score range: {aggregates.get('score_min', 0)}-{aggregates.get('score_max', 0)}",
+        "",
+        "## Runs",
+        "",
+        "| Run | Scenario | Score | Verification | Agent | Passed | Failed checks | Recovery | Safety |",
+        "|---|---|---:|---:|---|---|---|---|---|",
+    ]
+    for run in comparison.get("runs", []):
+        failed_checks = ", ".join(run.get("failed_checks", [])) or "none"
+        recoveries = ", ".join(run.get("recovery_classes", [])) or "none"
+        safety = ", ".join(run.get("safety_signals", [])) or "none"
+        lines.append(
+            "| {run_id} | {scenario} | {score} | {verification} | {agent} | {passed} | {failed} | {recovery} | {safety} |".format(
+                run_id=run.get("run_id", ""),
+                scenario=run.get("scenario_id", ""),
+                score=run.get("score", 0),
+                verification=run.get("verification_score", 0),
+                agent=run.get("agent_status", ""),
+                passed="yes" if run.get("passed") else "no",
+                failed=failed_checks,
+                recovery=recoveries,
+                safety=safety,
+            )
+        )
+    lines.extend(["", "## Aggregates", ""])
+    for label, key in [
+        ("Scenarios", "scenario_counts"),
+        ("Safety signals", "safety_signal_counts"),
+        ("Recovery classes", "recovery_class_counts"),
+        ("Failed checks", "failed_check_counts"),
+    ]:
+        counts = aggregates.get(key, {}) if isinstance(aggregates.get(key), dict) else {}
+        lines.append(f"### {label}")
+        lines.append("")
+        if counts:
+            for name, count in counts.items():
+                lines.append(f"- {name}: {count}")
+        else:
+            lines.append("- none")
+        lines.append("")
+    lines.extend(["## Reviewer Notes", ""])
+    for step in comparison.get("training_review_steps", []):
+        lines.append(f"- [ ] {step}")
+    lines.extend([
+        "",
+        "## Privacy Boundary",
+        "",
+        "This packet contains sanitized run summaries and aggregate counts only. It does not include raw model transcripts, sandbox file contents, absolute local paths, or committed tuning data.",
+        "",
+    ])
+    return "\n".join(lines)
 
 
 def _run_comparison_summary(run: dict[str, Any]) -> dict[str, Any]:

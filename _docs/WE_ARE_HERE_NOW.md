@@ -218,6 +218,11 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   checks are clean: `TS000058` (`static_calculator`), `TS000057`
   (`static_task_tracker`), and `TS000060` (`task_tracker_filter_update`) each
   scored 93 with verification 100 and agent status `ok`.
+- Tranche 17D added `teaching_sandbox_harness export_review`, a privacy-bounded
+  Markdown/JSON reviewer packet for selected comparison runs. It records
+  sanitized scorecard summaries, failed checks, recovery classes, safety
+  signals, aggregate counts, and reviewer checklist steps without raw model
+  transcripts, sandbox file contents, or absolute local paths.
 
 ## Current bottleneck
 
@@ -235,8 +240,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Next best move
 
-- Park Tranche 17C after final local gates, then move to the remaining Tranche
-  17 closeout slices: sanitized reviewer export and final compare/park.
+- Finish Tranche 17D validation and commit, then move to the final Tranche 17
+  compare/park slice and decide whether a richer trace-level export is needed
+  before graduation runs.
 
 ## Current warnings
 

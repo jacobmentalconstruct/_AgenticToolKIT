@@ -204,10 +204,16 @@ fine-tuning.
       behavior.
 - [x] Confirm final 17C live static-web passes: `TS000058`,
       `TS000057`, and `TS000060` all scored 93 with verification 100.
+- [x] Add a sanitized reviewer packet export for selected run comparisons
+      through `teaching_sandbox_harness export_review`.
 - [ ] Promote any remaining recurring lessons into prompt snippets,
       task-card constraints, recovery decisions, or tool schema improvements.
-- [ ] Maintain a sanitized tuning-data export format that includes task card,
-      prompt, tool calls, tool results, evidence IDs, score, and reviewer notes.
+- [x] Maintain a sanitized scorecard/reviewer export format that includes run
+      IDs, scenarios, scores, failed checks, recovery classes, safety signals,
+      aggregate counts, and reviewer checklist steps.
+- [ ] Decide whether a richer trace-level tuning export is needed before
+      graduation, without committing raw transcripts, sandbox file contents, or
+      absolute local paths.
 - [ ] Keep private paths and verbatim local session data out of committed
       artifacts.
 

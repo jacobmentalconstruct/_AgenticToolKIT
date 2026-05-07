@@ -15,6 +15,7 @@ from common import standard_main, tool_error, tool_result
 from lib.teaching_sandbox_harness import (
     compare_runs,
     create_project,
+    export_review,
     export_run,
     init_store,
     list_scenarios,
@@ -50,6 +51,7 @@ FILE_METADATA = {
                     "verify_project",
                     "score",
                     "compare_runs",
+                    "export_review",
                     "run_scenario",
                     "export",
                 ],
@@ -84,7 +86,7 @@ FILE_METADATA = {
 }
 
 
-MUTATING_ACTIONS = {"init", "create_project", "run_agent", "run_scenario", "export"}
+MUTATING_ACTIONS = {"init", "create_project", "run_agent", "run_scenario", "export", "export_review"}
 
 
 def _approval(action: str, arguments: dict[str, Any]) -> dict[str, Any] | None:
@@ -132,6 +134,8 @@ def run(arguments: dict[str, Any]) -> dict[str, Any]:
             result = score_run(project_root, arguments)
         elif action == "compare_runs":
             result = compare_runs(project_root, arguments)
+        elif action == "export_review":
+            result = export_review(project_root, arguments)
         elif action == "run_scenario":
             result = run_scenario(project_root, arguments)
         else:
