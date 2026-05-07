@@ -2011,6 +2011,73 @@ whether scores move.
 
 ---
 
+## 2026-05-07 — Tranche 17B full live-sweep escape and web-behavior tuning
+
+- Ran the broader live Teaching Sandbox sweep after the previous pushed
+  refinement:
+  - `TS000043` `static_task_tracker`: score 79, verification 80; missed
+    event-listener/task-lifecycle requirements.
+  - `TS000044` `static_calculator`: score 20, verification 10; failed as
+    `malformed_tool_call` from invalid JavaScript `\'` escapes inside JSON.
+  - `TS000045` `markdown_previewer`: score 83, verification 100; artifacts
+    passed, but the agent errored on a post-success readback size limit.
+  - `TS000046` `task_tracker_filter_update`: score 80, verification 82; missed
+    visible filter controls and filter lifecycle.
+  - `TS000047` `csv_cleaner_cli`: score 93, verification 100, agent status
+    `ok`.
+  - `TS000048` `python_notes_cli`: score 40, verification 38; failed as
+    `malformed_tool_call` after escaped JSON object keys appeared mid-entry.
+  - `TS000049` `config_validator_cli`: score 93, verification 100, agent status
+    `ok`.
+- Added narrow `local_sidecar_agent` JSON repair for invalid single-quote
+  escapes inside strings and backslash-escaped structural quotes outside
+  strings.
+- Added smoke coverage for the invalid-escape repair using model-style
+  JavaScript content.
+- Updated Teaching Sandbox task cards and doctrine docs:
+  - single quotes do not need JSON escaping;
+  - JSON object keys must not be backslash-escaped;
+  - static web behavior belongs in `app.js` via `addEventListener`, not inline
+    event attributes;
+  - filter tasks need visible all/active/completed controls and filter state;
+  - after a successful scaffold/write, the agent should summarize and let the
+    harness verify instead of reading files back.
+- Affected-scenario reruns:
+  - `TS000050` `static_calculator`: recovered to agent status `ok`; after
+    symbol-operation verifier tuning, score is 86 with verification 90 and the
+    remaining gap is event wiring.
+  - `TS000051` `task_tracker_filter_update`: score 80, verification 82; filter
+    controls appeared, but `.onclick` and missing delete lifecycle remain.
+  - `TS000052` `python_notes_cli`: score 93, verification 100, agent status
+    `ok`.
+  - `TS000053` `markdown_previewer`: score 93, verification 100, agent status
+    `ok`.
+- Tightened static-web wording to require literal `addEventListener` calls and
+  forbid both inline `onclick` attributes and `.onclick` property assignments.
+- Adjusted the calculator verifier so symbol-based operation implementations
+  can satisfy operation support when the code genuinely includes `+`, `-`, `*`,
+  `/`, and clear behavior.
+- Wrote App Journal entry `journal_7c1c0d57a3a0`.
+
+Validation so far:
+
+- `python -m py_compile src\tools\local_sidecar_agent.py src\smoke_test.py
+  src\lib\teaching_sandbox_harness.py src\tools\teaching_sandbox_harness.py`
+  -> pass.
+- First `python src\smoke_test.py` caught the new invalid-escape smoke edge;
+  repaired and reran.
+- `python src\smoke_test.py` -> 152/152 pass; MCP lists 49 tools.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Current read: the repair slice produced two clean recoveries and exposed a
+narrow remaining static-web behavior lesson. Rerun smoke after the verifier/card
+micro-adjustment, then park if the local gates remain green.
+
+---
+
 ## Template for future entries
 
 - Files changed:

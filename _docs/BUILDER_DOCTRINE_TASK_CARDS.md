@@ -37,12 +37,19 @@ argument rule:
 - Quote-heavy `content` must still be valid JSON: escape backslashes as `\\`
   and double quotes inside content as `\"`; for generated Python and README
   content, prefer single quotes inside the file when possible.
+- Single quotes do not need JSON escaping. A model should write `'` as-is
+  inside string content rather than producing invalid `\'` escapes.
+- JSON object keys such as `type`, `path`, `content`, and `overwrite` must not
+  be backslash-escaped. They are structure, not file content.
 - Avoid f-strings or README examples that need unescaped double quotes inside
   `content`; use single-quoted delimiters such as `', '.join(items)`.
 - Tool calls should be a single ```tool_call fenced JSON object without
   extra closing tags such as `[/tool_call]`.
 - If a later `text_file_writer` call rewrites an existing file, it must set
   `action:"overwrite"` and `overwrite:true`.
+- After a scaffold or write succeeds, the agent should not read generated files
+  back unless the tool result reports an error. The harness owns deterministic
+  verification, trace capture, evidence, and App Journal capture.
 
 Every Teaching Sandbox task card must say:
 
@@ -184,3 +191,27 @@ file-work surface: `directory_scaffold`, `text_file_reader`, and
 capture are still required, but the harness records them; the model should not
 call `text_file_validator`, `session_evidence_store`, `agent_run_trace`, or
 `journal_write` directly inside sandbox practice runs.
+
+## Invalid Escape And Post-Success Readback Lessons
+
+The 2026-05-07 Tranche 17 live sweep added two more task-card lessons:
+
+- JavaScript content can tempt models to emit `\'` inside JSON strings. That is
+  not valid JSON, so cards now explicitly say single quotes should be left
+  unescaped.
+- Models sometimes backslash-escape JSON structure after a long `content`
+  value, for example `\"type\"` outside a string. The runtime now has a narrow
+  repair rail for this drift, but cards still teach the correct shape.
+- A passing artifact can become an agent error if the model reads large files
+  back after success and hits a read-size guard. Cards now tell the model to
+  finish with cited touched paths after successful scaffold/write and let the
+  harness verify.
+
+Static web cards also make behavior concrete:
+
+- Use `addEventListener` in `app.js`; do not rely on inline `onclick` or other
+  HTML event attributes, and do not use `.onclick` property assignments as a
+  substitute.
+- For filter scenarios, `index.html` must visibly include all, active, and
+  completed controls, and `app.js` must store and apply the selected filter
+  state.

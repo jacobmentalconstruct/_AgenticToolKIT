@@ -131,12 +131,17 @@ def _project_birth_card(
         "JSON content escaping rule:\n"
         "- Each `content` value must be one valid JSON string.\n"
         "- Escape newlines as `\\n`, backslashes as `\\\\`, and any double quote inside content as `\\\"`.\n"
+        "- Do not escape single quotes; write `'` as-is inside JSON strings.\n"
+        "- Do not backslash-escape JSON object keys such as `type`, `path`, `content`, or `overwrite`.\n"
         "- For generated Python and README content, prefer single quotes inside the file content when possible so the tool-call JSON stays valid.\n\n"
         "- Avoid f-strings or README examples that need unescaped double quotes inside `content`; use single-quoted delimiters such as `', '.join(items)`.\n\n"
         "Tool-call format rule:\n"
         "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
         "Rewrite rule:\n"
         "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
+        "Implementation guidance:\n"
+        "- For static web apps, wire all interactions in app.js with literal addEventListener calls; do not use inline HTML event attributes or .onclick property assignments.\n"
+        "- For filter tasks, index.html must include visible all, active, and completed controls, and app.js must store and apply the selected filter state.\n\n"
         f"{build_instruction}\n\n"
         "Success criteria:\n"
         + "".join(f"- {item}\n" for item in success_criteria)
@@ -145,6 +150,7 @@ def _project_birth_card(
         + "\nJournal and evidence expectations:\n"
         "- Let the harness record trace, evidence, and journal metadata.\n"
         "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
+        "- After scaffold/write succeeds, do not read files back unless a tool result reports an error; give the final summary and let the harness verify artifacts.\n"
         f"- Final summary must cite touched paths: {', '.join(final_paths)}.\n\n"
         "Forbidden:\n"
         "- Do not install packages.\n"
@@ -194,12 +200,16 @@ SCENARIOS: dict[str, Scenario] = {
             "JSON content escaping rule:\n"
             "- Each `content` value must be one valid JSON string.\n"
             "- Escape newlines as `\\n`, backslashes as `\\\\`, and any double quote inside content as `\\\"`.\n"
+            "- Do not escape single quotes; write `'` as-is inside JSON strings.\n"
+            "- Do not backslash-escape JSON object keys such as `type`, `path`, `content`, or `overwrite`.\n"
             "- For generated HTML, CSS, JavaScript, and README content, prefer single quotes inside the file content when possible so the tool-call JSON stays valid.\n\n"
             "- Avoid examples that need unescaped double quotes inside `content`; if quotes are needed, escape them as `\\\"`.\n\n"
             "Tool-call format rule:\n"
             "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
             "Rewrite rule:\n"
             "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
+            "Implementation guidance:\n"
+            "- Wire all interactions in app.js with literal addEventListener calls; do not use inline HTML event attributes or .onclick property assignments.\n\n"
             "Build a tiny static app using only index.html, styles.css, and app.js.\n\n"
             "Success criteria:\n"
             "- A user can add a task.\n"
@@ -216,6 +226,7 @@ SCENARIOS: dict[str, Scenario] = {
             "Journal and evidence expectations:\n"
             "- Let the harness record trace, evidence, and journal metadata.\n"
             "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
+            "- After scaffold/write succeeds, do not read files back unless a tool result reports an error; give the final summary and let the harness verify artifacts.\n"
             "- Final summary must cite touched paths: index.html, styles.css, and app.js.\n\n"
             "Forbidden:\n"
             "- Do not install packages.\n"
@@ -262,6 +273,8 @@ SCENARIOS: dict[str, Scenario] = {
             "JSON content escaping rule:\n"
             "- Each `content` value must be one valid JSON string.\n"
             "- Escape newlines as `\\n`, backslashes as `\\\\`, and any double quote inside content as `\\\"`.\n"
+            "- Do not escape single quotes; write `'` as-is inside JSON strings.\n"
+            "- Do not backslash-escape JSON object keys such as `type`, `path`, `content`, or `overwrite`.\n"
             "- For generated Python and README content, prefer single quotes inside the file content when possible so the tool-call JSON stays valid.\n\n"
             "- Avoid f-strings or README examples that need unescaped double quotes inside `content`; use single-quoted delimiters such as `', '.join(items)`.\n\n"
             "Tool-call format rule:\n"
@@ -283,6 +296,7 @@ SCENARIOS: dict[str, Scenario] = {
             "Journal and evidence expectations:\n"
             "- Let the harness record trace, evidence, and journal metadata.\n"
             "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
+            "- After scaffold/write succeeds, do not read files back unless a tool result reports an error; give the final summary and let the harness verify artifacts.\n"
             "- Final summary must cite touched paths: notes.py and README.md.\n\n"
             "Forbidden:\n"
             "- Do not install packages.\n"
@@ -986,11 +1000,15 @@ def _verify_static_calculator(project_root: Path) -> list[dict[str, Any]]:
     script = _read(project_root / "app.js")
     styles = _read(project_root / "styles.css")
     lowered = script.lower()
+    has_operations = (
+        all(term in lowered for term in ["add", "subtract", "multiply", "divide"])
+        or all(symbol in script for symbol in ["+", "-", "*", "/"])
+    )
     checks.extend([
         _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
         _check("html-links-js", "app.js" in index, "index.html links app.js"),
         _check("js-adds-event-listeners", "addEventListener" in script, "app.js registers event listeners"),
-        _check("js-has-operations", all(term in lowered for term in ["add", "subtract", "multiply", "divide", "clear"]), "app.js supports calculator operations"),
+        _check("js-has-operations", has_operations and "clear" in lowered, "app.js supports calculator operations"),
         _check("js-computes-result", any(term in script for term in ["eval", "parseFloat", "Number("]) and "=" in script, "app.js computes a result"),
         _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
     ])

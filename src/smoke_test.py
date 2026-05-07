@@ -1730,6 +1730,29 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent fenced content tool-call parsing", str(fenced_content_call))
 
+    invalid_escape_call = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "scaffold JavaScript content with model-style invalid single-quote escapes",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"directory_scaffold\",\"arguments\":{\"entries\":[{\\\"type\\\":\\\"file\\\",\\\"path\\\":\\\"invalid_escape.js\\\",\\\"content\\\":\\\"if (value === \\'7\\') { press(value); }\\\",\\\"overwrite\\\":true}],\"dry_run\":false}}\n"
+            "```",
+            "Created invalid_escape.js",
+        ],
+        "confirm_mutations": True,
+        "checkpoint": False,
+    })
+    invalid_escape_path = target_root / "invalid_escape.js"
+    if (
+        invalid_escape_call["status"] == "ok"
+        and invalid_escape_path.exists()
+        and "value === '7'" in invalid_escape_path.read_text(encoding="utf-8")
+    ):
+        _ok("local_sidecar_agent repairs invalid JSON escapes in model tool calls")
+    else:
+        _fail("local_sidecar_agent invalid JSON escape repair", str(invalid_escape_call))
+
     null_default_reader_call = _tool("local_sidecar_agent", {
         "project_root": str(target_root),
         "action": "run",

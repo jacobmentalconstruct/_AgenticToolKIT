@@ -1,6 +1,6 @@
 # Project Backlog
 
-_Last updated: 2026-05-06._
+_Last updated: 2026-05-07._
 
 ---
 
@@ -187,10 +187,20 @@ fine-tuning.
       JSON content and mandatory static-web verification APIs.
 - [x] Narrow Teaching Sandbox model-facing allowed tools so trace, evidence,
       and journal capture remain harness responsibilities.
-- [ ] Add tooling or workflow docs to compare scorecards across runs and model
+- [x] Add tooling or workflow docs to compare scorecards across runs and model
       choices.
-- [ ] Promote recurring lessons into prompt snippets, task-card constraints,
-      recovery decisions, or tool schema improvements.
+- [x] Run the first full seven-scenario live sweep and record sanitized
+      scorecard results in `_docs/TRAINING_RUNWAY.md`.
+- [x] Promote the invalid JSON escape lesson into narrow parser repair and
+      task-card constraints.
+- [x] Promote the post-success readback lesson into task-card workflow
+      guidance so passing artifacts do not become avoidable agent errors.
+- [x] Rerun affected live scenarios after the invalid-escape/static-web
+      guidance refinement and compare score movement.
+- [x] Promote the literal-`addEventListener` lesson and tune the calculator
+      verifier so symbol-based operation implementations are scored fairly.
+- [ ] Promote any remaining recurring lessons into prompt snippets,
+      task-card constraints, recovery decisions, or tool schema improvements.
 - [ ] Maintain a sanitized tuning-data export format that includes task card,
       prompt, tool calls, tool results, evidence IDs, score, and reviewer notes.
 - [ ] Keep private paths and verbatim local session data out of committed

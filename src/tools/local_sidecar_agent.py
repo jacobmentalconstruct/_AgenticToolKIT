@@ -437,47 +437,35 @@ def _parse_tool_calls(text: str) -> list[dict[str, Any]]:
 
 
 def _load_tool_call_payload(raw: str) -> Any:
+    decoder = json.JSONDecoder()
+    candidates = [raw]
+    for repair in (
+        _escape_string_control_chars,
+        _unescape_model_escaped_quotes,
+        _repair_invalid_json_escapes,
+        _escape_content_string_quotes,
+    ):
+        for candidate in list(candidates):
+            repaired = repair(candidate)
+            if repaired != candidate and repaired not in candidates:
+                candidates.append(repaired)
+    for candidate in list(candidates):
+        repaired = _escape_content_string_quotes(_repair_invalid_json_escapes(_escape_string_control_chars(candidate)))
+        if repaired != candidate and repaired not in candidates:
+            candidates.append(repaired)
+    last_error: json.JSONDecodeError | None = None
+    for candidate in candidates:
+        try:
+            payload, end = decoder.raw_decode(candidate)
+            trailing = candidate[end:].strip()
+            if trailing in {"", "[/tool_call]"}:
+                return payload
+        except json.JSONDecodeError as exc:
+            last_error = exc
     try:
         return json.loads(raw)
     except json.JSONDecodeError as original:
-        try:
-            decoder = json.JSONDecoder()
-            payload, end = decoder.raw_decode(raw)
-            trailing = raw[end:].strip()
-            if trailing in {"", "[/tool_call]"}:
-                return payload
-            raise original
-        except json.JSONDecodeError:
-            repaired = _escape_string_control_chars(raw)
-            if repaired != raw:
-                try:
-                    decoder = json.JSONDecoder()
-                    payload, end = decoder.raw_decode(repaired)
-                    trailing = repaired[end:].strip()
-                    if trailing in {"", "[/tool_call]"}:
-                        return payload
-                except json.JSONDecodeError:
-                    quote_repaired = _escape_content_string_quotes(repaired)
-                    if quote_repaired != repaired:
-                        try:
-                            decoder = json.JSONDecoder()
-                            payload, end = decoder.raw_decode(quote_repaired)
-                            trailing = quote_repaired[end:].strip()
-                            if trailing in {"", "[/tool_call]"}:
-                                return payload
-                        except json.JSONDecodeError:
-                            pass
-            quote_repaired = _escape_content_string_quotes(raw)
-            if quote_repaired != raw:
-                try:
-                    decoder = json.JSONDecoder()
-                    payload, end = decoder.raw_decode(quote_repaired)
-                    trailing = quote_repaired[end:].strip()
-                    if trailing in {"", "[/tool_call]"}:
-                        return payload
-                except json.JSONDecodeError:
-                    pass
-            raise original
+        raise last_error or original
 
 
 def _escape_string_control_chars(raw: str) -> str:
@@ -513,6 +501,61 @@ def _escape_string_control_chars(raw: str) -> str:
         if ch == '"':
             in_string = True
     return "".join(out)
+
+
+def _unescape_model_escaped_quotes(raw: str) -> str:
+    if '\\"' not in raw:
+        return raw
+    return raw.replace('\\"', '"')
+
+
+def _repair_invalid_json_escapes(raw: str) -> str:
+    out: list[str] = []
+    i = 0
+    in_string = False
+    escaped = False
+    changed = False
+    valid_json_escapes = {'"', "\\", "/", "b", "f", "n", "r", "t", "u"}
+    while i < len(raw):
+        ch = raw[i]
+        next_ch = raw[i + 1] if i + 1 < len(raw) else ""
+        if in_string:
+            if escaped:
+                out.append(ch)
+                escaped = False
+                i += 1
+                continue
+            if ch == "\\":
+                if next_ch == "'":
+                    out.append("'")
+                    changed = True
+                    i += 2
+                    continue
+                if next_ch and next_ch not in valid_json_escapes:
+                    out.append(next_ch)
+                    changed = True
+                    i += 2
+                    continue
+                out.append(ch)
+                escaped = True
+                i += 1
+                continue
+            out.append(ch)
+            if ch == '"':
+                in_string = False
+            i += 1
+            continue
+        if ch == "\\" and next_ch == '"':
+            out.append('"')
+            in_string = True
+            changed = True
+            i += 2
+            continue
+        out.append(ch)
+        if ch == '"':
+            in_string = True
+        i += 1
+    return "".join(out) if changed else raw
 
 
 def _escape_content_string_quotes(raw: str) -> str:

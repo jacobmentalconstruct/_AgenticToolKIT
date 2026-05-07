@@ -194,6 +194,20 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   scored 93 with verification 100, agent status `ok`, and no safety signals.
   `TS000041` was an interrupted placeholder run and should be ignored for
   training conclusions.
+- The next full live sweep on 2026-05-07 produced clean passes for
+  `TS000047` (`csv_cleaner_cli`) and `TS000049` (`config_validator_cli`), plus
+  four teachable failures/partials:
+  `TS000043` missed static task lifecycle wiring, `TS000044` exposed invalid
+  `\'` JSON escapes in JavaScript content, `TS000045` passed artifacts but
+  errored on post-success readback, `TS000046` missed filter controls, and
+  `TS000048` exposed escaped JSON object keys mid-scaffold.
+- After the invalid-escape repair and task-card guidance update, reruns showed:
+  `TS000052` (`python_notes_cli`) and `TS000053` (`markdown_previewer`) reached
+  clean 93/100 passes; `TS000050` (`static_calculator`) recovered from parser
+  error to artifact-producing partial and now re-scores at 86/90 after fairer
+  symbol-operation verification; `TS000051`
+  (`task_tracker_filter_update`) gained visible filter controls but still used
+  `.onclick` and missed delete lifecycle.
 
 ## Current bottleneck
 
@@ -212,9 +226,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 ## Next best move
 
 - Continue Tranche 17B by using `compare_runs` against recent mocked/live
-  Teaching Sandbox runs and model choices after this refinement commit, then
-  choose the next smallest prompt, task-card, schema, scoring, or recovery
-  change that should improve live runs without broadening authority.
+  Teaching Sandbox runs after the literal-`addEventListener` guidance and
+  calculator-verifier refinement, then park this slice if smoke and local gates
+  remain green.
 
 ## Current warnings
 

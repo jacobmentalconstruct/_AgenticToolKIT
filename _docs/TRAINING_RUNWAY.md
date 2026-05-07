@@ -413,3 +413,47 @@ checks. Scorecards remain under ignored Teaching Sandbox runtime state. Tranche
 17 should compare the Tranche 15 live partial passes against this expanded
 baseline set and promote recurring lessons into prompt, task-card, schema, or
 recovery tuning before any graduation run.
+
+## Tranche 17 Live Sweep Results
+
+_Recorded: 2026-05-07._
+
+After the first Tranche 17 hardening and parser repairs, the broader live sweep
+covered all current scenarios with the same guarded model-facing tool surface:
+`directory_scaffold`, `text_file_reader`, and `text_file_writer`.
+
+| Run | Scenario | Mode | Score | Verification | Status | Lesson |
+|---|---|---:|---:|---:|---|---|
+| `TS000043` | `static_task_tracker` | live | 79 | 80 | partial | Static web cards must require real `addEventListener` task lifecycle wiring, not summary claims. |
+| `TS000044` | `static_calculator` | live | 20 | 10 | error | Model escaped single quotes inside JavaScript content as `\'`, which is invalid JSON. |
+| `TS000045` | `markdown_previewer` | live | 83 | 100 | artifact pass / agent error | The build passed verification, then a post-success readback hit a reader size limit. |
+| `TS000046` | `task_tracker_filter_update` | live | 80 | 82 | partial | Filter cards must require visible all/active/completed controls and filter state in app.js. |
+| `TS000047` | `csv_cleaner_cli` | live | 93 | 100 | pass | Preserve as clean stdlib-CLI live evidence. |
+| `TS000048` | `python_notes_cli` | live | 40 | 38 | error | Model backslash-escaped JSON object keys mid-entry, producing malformed scaffold JSON. |
+| `TS000049` | `config_validator_cli` | live | 93 | 100 | pass | Preserve as clean stdlib-CLI live evidence. |
+
+Promoted lessons:
+
+- Inside-root is not the same as safe-to-write; sandbox control files are
+  protected in code and attempted writes score as `control_file_tamper`.
+- JSON repair can tolerate narrow model drift such as invalid `\'` escapes and
+  escaped structural quotes, while guarded tools and schemas remain authoritative.
+- Static web task cards should say `addEventListener` and visible filter
+  controls are implementation requirements, not optional polish.
+- Once scaffold/write succeeds, the model should summarize touched files and let
+  the harness verify instead of reading files back for reassurance.
+
+Affected-scenario reruns after the repair/guidance slice:
+
+| Run | Scenario | Mode | Score | Verification | Status | Movement |
+|---|---|---:|---:|---:|---|---|
+| `TS000050` | `static_calculator` | live | 86 | 90 | partial | Recovered from malformed JSON to artifact creation; after fairer symbol-operation verification, remaining gap is event wiring. |
+| `TS000051` | `task_tracker_filter_update` | live | 80 | 82 | partial | Filter controls appeared; remaining gaps are literal `addEventListener` and delete/filter lifecycle. |
+| `TS000052` | `python_notes_cli` | live | 93 | 100 | pass | Recovered from malformed scaffold JSON to clean pass. |
+| `TS000053` | `markdown_previewer` | live | 93 | 100 | pass | Recovered from post-success readback error to clean pass. |
+
+The next small lesson is now narrower: models may satisfy "event listener" with
+`onclick` attributes or `.onclick` assignments unless the card names the literal
+`addEventListener` call. The calculator verifier also learned to accept
+symbol-based operation implementations rather than requiring English operation
+names when the code genuinely supports `+`, `-`, `*`, and `/`.
