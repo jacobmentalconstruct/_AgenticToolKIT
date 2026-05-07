@@ -457,3 +457,44 @@ The next small lesson is now narrower: models may satisfy "event listener" with
 `addEventListener` call. The calculator verifier also learned to accept
 symbol-based operation implementations rather than requiring English operation
 names when the code genuinely supports `+`, `-`, `*`, and `/`.
+
+## Tranche 17C Static-Web Behavior Results
+
+_Recorded: 2026-05-07._
+
+17C reran the static-web scenarios under the literal-`addEventListener`
+guidance from 17B.
+
+| Run | Scenario | Mode | Score | Verification | Status | Lesson |
+|---|---|---:|---:|---:|---|---|
+| `TS000054` | `static_calculator` | live | 86 | 90 | partial | Calculator still used inline `onclick`; event wiring needs an explicit data-attribute/listener recipe and verifier enforcement. |
+| `TS000055` | `static_task_tracker` | live | 86 | 90 | partial | Literal `addEventListener` improved, but edit/delete lifecycle was omitted. |
+| `TS000056` | `task_tracker_filter_update` | live | 77 | 91 | partial/error | Filter and event wiring improved, but delete lifecycle was omitted and the model attempted to write a report with `text_file_writer`. |
+
+Promoted 17C lessons:
+
+- Event-listener verification now means literal `addEventListener` in `app.js`
+  with no inline `onclick` attributes and no `.onclick` property assignments.
+- Static-web cards now include a concrete recipe: put data attributes on
+  controls and connect them in `app.js` with
+  `querySelectorAll(...).forEach(button => button.addEventListener('click', handler))`.
+- Static-web cards now explicitly warn not to treat `app.js` as a JavaScript
+  object; startup handlers should attach to `document`, and interaction
+  handlers should attach to selected DOM elements.
+- Task tracker cards now spell out that rendered task controls must cover
+  complete, edit, and delete, and each control must be listener-wired.
+- Sandbox final summaries are not artifacts. Agents should not use
+  `text_file_writer` to write reports, notes, or summaries after scaffold/write
+  succeeds.
+
+Final 17C recipe-check reruns:
+
+| Run | Scenario | Mode | Score | Verification | Status | Outcome |
+|---|---|---:|---:|---:|---|---|
+| `TS000058` | `static_calculator` | live | 93 | 100 | pass | Data-attribute/listener recipe produced clean event wiring. |
+| `TS000057` | `static_task_tracker` | live | 93 | 100 | pass | Task lifecycle recipe produced add/complete/edit/delete coverage. |
+| `TS000060` | `task_tracker_filter_update` | live | 93 | 100 | pass | Runtime-object warning plus lifecycle recipe produced clean filter/update behavior. |
+
+This closes the main 17C question. Static-web failures were not evidence that
+the sidecar needed broader authority; they needed concrete DOM-event and task
+lifecycle recipes plus verifier checks that matched the doctrine.

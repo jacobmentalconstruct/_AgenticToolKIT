@@ -199,6 +199,11 @@ fine-tuning.
       guidance refinement and compare score movement.
 - [x] Promote the literal-`addEventListener` lesson and tune the calculator
       verifier so symbol-based operation implementations are scored fairly.
+- [x] Rerun 17C static-web scenarios and promote concrete event-binding,
+      task-lifecycle, and no-summary-file recipes into task cards and verifier
+      behavior.
+- [x] Confirm final 17C live static-web passes: `TS000058`,
+      `TS000057`, and `TS000060` all scored 93 with verification 100.
 - [ ] Promote any remaining recurring lessons into prompt snippets,
       task-card constraints, recovery decisions, or tool schema improvements.
 - [ ] Maintain a sanitized tuning-data export format that includes task card,

@@ -2078,6 +2078,59 @@ micro-adjustment, then park if the local gates remain green.
 
 ---
 
+## 2026-05-07 — Tranche 17C static-web behavior tuning
+
+- Reran the three static-web scenarios after the literal-`addEventListener`
+  guidance:
+  - `TS000054` `static_calculator`: score 86, verification 90; still used inline
+    `onclick`, so event wiring remained the only verifier miss.
+  - `TS000055` `static_task_tracker`: score 86, verification 90; literal
+    `addEventListener` appeared, but edit/delete lifecycle was omitted.
+  - `TS000056` `task_tracker_filter_update`: score 77, verification 91; filter
+    controls and event listeners improved, but delete lifecycle was omitted and
+    the model attempted to write a report through `text_file_writer`.
+- Tightened static-web verification so `js-adds-event-listeners` requires
+  literal `addEventListener` in `app.js` and rejects inline `onclick` attributes
+  or `.onclick` property assignments. After `TS000059`, this check also rejects
+  the obvious runtime error pattern `app.js.addEventListener(...)`.
+- Added concrete task-card recipes:
+  - use data attributes on controls and connect them with
+    `querySelectorAll(...).forEach(button => button.addEventListener('click', handler))`;
+  - task tracker rendered rows must include complete, edit, and delete controls;
+  - final summaries are plain responses, not files to write with
+    `text_file_writer`.
+- Final recipe-check reruns after the first 17C patch:
+  - `TS000058` `static_calculator`: score 93, verification 100, agent status
+    `ok`.
+  - `TS000057` `static_task_tracker`: score 93, verification 100, agent status
+    `ok`.
+  - `TS000059` `task_tracker_filter_update`: score 87, verification 91; still
+    missed filter lifecycle and used `app.js` as a bogus runtime object.
+- Final retry after the runtime-object warning:
+  - `TS000060` `task_tracker_filter_update`: score 93, verification 100, agent
+    status `ok`.
+- Wrote App Journal entry `journal_a8048524e059`.
+
+Validation:
+
+- `python -m py_compile src\lib\teaching_sandbox_harness.py
+  src\tools\teaching_sandbox_harness.py src\smoke_test.py` -> pass.
+- `python src\smoke_test.py` -> 152/152 pass; MCP lists 49 tools.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `python src\tools\teaching_sandbox_harness.py run --input-json
+  '{"project_root":".","action":"compare_runs","limit":8}'` -> latest static
+  recipe-check runs include `TS000058`, `TS000057`, and `TS000060` as clean
+  passes.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Current read: 17C is ready to park after final local gates. Concrete DOM-event
+and lifecycle recipes moved the three target static-web live scenarios to clean
+passes without broadening sidecar authority.
+
+---
+
 ## Template for future entries
 
 - Files changed:

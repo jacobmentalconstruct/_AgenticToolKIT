@@ -208,6 +208,16 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   symbol-operation verification; `TS000051`
   (`task_tracker_filter_update`) gained visible filter controls but still used
   `.onclick` and missed delete lifecycle.
+- 17C reruns showed the literal event guidance helped the task trackers but was
+  still too abstract for calculator output:
+  `TS000054` remained partial because of inline `onclick`; `TS000055` used
+  `addEventListener` but omitted edit/delete lifecycle; `TS000056` improved
+  filter/event behavior but omitted delete lifecycle and tried to write a final
+  report through `text_file_writer`.
+- After concrete DOM-event and task-lifecycle recipes, the final 17C live
+  checks are clean: `TS000058` (`static_calculator`), `TS000057`
+  (`static_task_tracker`), and `TS000060` (`task_tracker_filter_update`) each
+  scored 93 with verification 100 and agent status `ok`.
 
 ## Current bottleneck
 
@@ -225,10 +235,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Next best move
 
-- Continue Tranche 17B by using `compare_runs` against recent mocked/live
-  Teaching Sandbox runs after the literal-`addEventListener` guidance and
-  calculator-verifier refinement, then park this slice if smoke and local gates
-  remain green.
+- Park Tranche 17C after final local gates, then move to the remaining Tranche
+  17 closeout slices: sanitized reviewer export and final compare/park.
 
 ## Current warnings
 

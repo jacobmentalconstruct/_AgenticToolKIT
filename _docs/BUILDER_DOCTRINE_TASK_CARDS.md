@@ -212,6 +212,14 @@ Static web cards also make behavior concrete:
 - Use `addEventListener` in `app.js`; do not rely on inline `onclick` or other
   HTML event attributes, and do not use `.onclick` property assignments as a
   substitute.
+- Prefer data attributes on controls and bind them in `app.js` with
+  `querySelectorAll(...).forEach(button => button.addEventListener('click', handler))`.
+- Do not refer to `app.js` as a runtime object. Startup handlers attach to
+  `document`; interaction handlers attach to selected DOM elements.
 - For filter scenarios, `index.html` must visibly include all, active, and
   completed controls, and `app.js` must store and apply the selected filter
   state.
+- For task trackers, rendered task rows must include complete, edit, and delete
+  controls, and each control must be wired with `addEventListener`.
+- A final summary is not a project artifact. Do not use `text_file_writer` to
+  write reports, notes, or summaries after app files are created.

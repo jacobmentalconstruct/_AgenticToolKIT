@@ -141,6 +141,8 @@ def _project_birth_card(
         "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
         "Implementation guidance:\n"
         "- For static web apps, wire all interactions in app.js with literal addEventListener calls; do not use inline HTML event attributes or .onclick property assignments.\n"
+        "- Prefer data attributes on buttons, then connect them in app.js with querySelectorAll(...).forEach(button => button.addEventListener('click', handler)).\n"
+        "- Do not refer to app.js as a JavaScript object; attach startup handlers to document and interaction handlers to selected DOM elements.\n"
         "- For filter tasks, index.html must include visible all, active, and completed controls, and app.js must store and apply the selected filter state.\n\n"
         f"{build_instruction}\n\n"
         "Success criteria:\n"
@@ -151,6 +153,7 @@ def _project_birth_card(
         "- Let the harness record trace, evidence, and journal metadata.\n"
         "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
         "- After scaffold/write succeeds, do not read files back unless a tool result reports an error; give the final summary and let the harness verify artifacts.\n"
+        "- Do not write reports, notes, or summaries with text_file_writer; the final response is plain text, not a project artifact.\n"
         f"- Final summary must cite touched paths: {', '.join(final_paths)}.\n\n"
         "Forbidden:\n"
         "- Do not install packages.\n"
@@ -210,6 +213,12 @@ SCENARIOS: dict[str, Scenario] = {
             "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
             "Implementation guidance:\n"
             "- Wire all interactions in app.js with literal addEventListener calls; do not use inline HTML event attributes or .onclick property assignments.\n\n"
+            "- Prefer data attributes on buttons, then connect them in app.js with querySelectorAll(...).forEach(button => button.addEventListener('click', handler)).\n\n"
+            "- Do not refer to app.js as a JavaScript object; attach startup handlers to document and interaction handlers to selected DOM elements.\n\n"
+            "Task lifecycle recipe:\n"
+            "- renderTask/renderTasks must create or update controls for complete, edit, and delete.\n"
+            "- Each complete, edit, and delete control must be connected with addEventListener in app.js.\n"
+            "- The app.js source must include the words complete, edit, and delete in the implemented functions.\n\n"
             "Build a tiny static app using only index.html, styles.css, and app.js.\n\n"
             "Success criteria:\n"
             "- A user can add a task.\n"
@@ -227,6 +236,7 @@ SCENARIOS: dict[str, Scenario] = {
             "- Let the harness record trace, evidence, and journal metadata.\n"
             "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
             "- After scaffold/write succeeds, do not read files back unless a tool result reports an error; give the final summary and let the harness verify artifacts.\n"
+            "- Do not write reports, notes, or summaries with text_file_writer; the final response is plain text, not a project artifact.\n"
             "- Final summary must cite touched paths: index.html, styles.css, and app.js.\n\n"
             "Forbidden:\n"
             "- Do not install packages.\n"
@@ -297,6 +307,7 @@ SCENARIOS: dict[str, Scenario] = {
             "- Let the harness record trace, evidence, and journal metadata.\n"
             "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
             "- After scaffold/write succeeds, do not read files back unless a tool result reports an error; give the final summary and let the harness verify artifacts.\n"
+            "- Do not write reports, notes, or summaries with text_file_writer; the final response is plain text, not a project artifact.\n"
             "- Final summary must cite touched paths: notes.py and README.md.\n\n"
             "Forbidden:\n"
             "- Do not install packages.\n"
@@ -326,7 +337,7 @@ SCENARIOS: dict[str, Scenario] = {
             ),
             verification_checks=(
                 "index.html links styles.css and app.js.",
-                "app.js registers event listeners.",
+                "app.js registers event listeners and index.html has no onclick attributes.",
                 "app.js supports add, subtract, multiply, divide, equals, and clear behavior.",
                 "styles.css is non-empty.",
             ),
@@ -396,10 +407,11 @@ SCENARIOS: dict[str, Scenario] = {
                 "A user can switch between all, active, and completed filters.",
                 "Tasks persist with localStorage.",
                 "app.js must call localStorage and addEventListener in the initial implementation; do not defer either requirement to next steps.",
+                "Each rendered task must expose delete and complete controls wired with addEventListener.",
             ),
             verification_checks=(
                 "index.html links styles.css and app.js.",
-                "app.js uses localStorage and event listeners.",
+                "app.js uses localStorage and literal event listeners, with no inline onclick or .onclick handlers.",
                 "app.js covers delete, complete, active, completed, and filter behavior.",
                 "styles.css is non-empty.",
             ),
@@ -967,7 +979,7 @@ def _verify_static_task_tracker(project_root: Path) -> list[dict[str, Any]]:
         _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
         _check("html-links-js", "app.js" in index, "index.html links app.js"),
         _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
-        _check("js-adds-event-listeners", "addEventListener" in script, "app.js registers event listeners"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
         _check("js-has-task-lifecycle", all(term in script.lower() for term in ["delete", "edit", "complete"]), "app.js covers delete/edit/complete"),
         _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
     ])
@@ -1007,7 +1019,7 @@ def _verify_static_calculator(project_root: Path) -> list[dict[str, Any]]:
     checks.extend([
         _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
         _check("html-links-js", "app.js" in index, "index.html links app.js"),
-        _check("js-adds-event-listeners", "addEventListener" in script, "app.js registers event listeners"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
         _check("js-has-operations", has_operations and "clear" in lowered, "app.js supports calculator operations"),
         _check("js-computes-result", any(term in script for term in ["eval", "parseFloat", "Number("]) and "=" in script, "app.js computes a result"),
         _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
@@ -1043,7 +1055,7 @@ def _verify_task_tracker_filter_update(project_root: Path) -> list[dict[str, Any
         _check("html-links-js", "app.js" in index, "index.html links app.js"),
         _check("html-has-filter-controls", all(term in index.lower() for term in ["all", "active", "completed"]), "index.html has filter controls"),
         _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
-        _check("js-adds-event-listeners", "addEventListener" in script, "app.js registers event listeners"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
         _check("js-has-filter-lifecycle", all(term in lowered for term in ["filter", "active", "completed", "delete", "complete"]), "app.js covers filter and task lifecycle"),
         _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
     ])
@@ -1090,6 +1102,15 @@ def _python_parses(source: str) -> bool:
         return True
     except SyntaxError:
         return False
+
+
+def _uses_literal_event_listeners(index: str, script: str) -> bool:
+    return (
+        "addEventListener" in script
+        and "onclick" not in index.lower()
+        and ".onclick" not in script.lower()
+        and "app.js." not in script.lower()
+    )
 
 
 def _file_checks(project_root: Path, expected_files: tuple[str, ...]) -> list[dict[str, Any]]:
