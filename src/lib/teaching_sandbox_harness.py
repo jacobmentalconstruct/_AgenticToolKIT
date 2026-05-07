@@ -19,10 +19,6 @@ DEFAULT_ALLOWED_TOOLS = [
     "directory_scaffold",
     "text_file_reader",
     "text_file_writer",
-    "text_file_validator",
-    "session_evidence_store",
-    "agent_run_trace",
-    "journal_write",
 ]
 TEACHING_SANDBOX_PROTECTED_PATHS = [
     "_docs/TASK_CARD.md",
@@ -124,10 +120,7 @@ def _project_birth_card(
         "- directory_scaffold\n"
         "- text_file_reader\n"
         "- text_file_writer\n"
-        "- text_file_validator\n"
-        "- session_evidence_store\n"
-        "- agent_run_trace\n"
-        "- journal_write\n\n"
+        "\n"
         "Expected artifacts:\n"
         + "".join(f"- {path}\n" for path in expected_files)
         + "- `_docs/TASK_CARD.md` already exists; do not overwrite it.\n\n"
@@ -135,6 +128,11 @@ def _project_birth_card(
         "- When using directory_scaffold, `entries` must be a list of objects, not a list of strings.\n"
         f"- Each file entry must look like: {{\"type\":\"file\",\"path\":\"{scaffold_example_path}\",\"content\":\"...\",\"overwrite\":true}}.\n"
         "- Provide real content for each expected file in the first scaffold call.\n\n"
+        "JSON content escaping rule:\n"
+        "- Each `content` value must be one valid JSON string.\n"
+        "- Escape newlines as `\\n`, backslashes as `\\\\`, and any double quote inside content as `\\\"`.\n"
+        "- For generated Python and README content, prefer single quotes inside the file content when possible so the tool-call JSON stays valid.\n\n"
+        "- Avoid f-strings or README examples that need unescaped double quotes inside `content`; use single-quoted delimiters such as `', '.join(items)`.\n\n"
         "Tool-call format rule:\n"
         "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
         "Rewrite rule:\n"
@@ -146,6 +144,7 @@ def _project_birth_card(
         + "".join(f"- {item}\n" for item in verification_checks)
         + "\nJournal and evidence expectations:\n"
         "- Let the harness record trace, evidence, and journal metadata.\n"
+        "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
         f"- Final summary must cite touched paths: {', '.join(final_paths)}.\n\n"
         "Forbidden:\n"
         "- Do not install packages.\n"
@@ -182,10 +181,7 @@ SCENARIOS: dict[str, Scenario] = {
             "- directory_scaffold\n"
             "- text_file_reader\n"
             "- text_file_writer\n"
-            "- text_file_validator\n"
-            "- session_evidence_store\n"
-            "- agent_run_trace\n"
-            "- journal_write\n\n"
+            "\n"
             "Expected artifacts:\n"
             "- index.html\n"
             "- styles.css\n"
@@ -195,6 +191,11 @@ SCENARIOS: dict[str, Scenario] = {
             "- When using directory_scaffold, `entries` must be a list of objects, not a list of strings.\n"
             "- Each file entry must look like: {\"type\":\"file\",\"path\":\"index.html\",\"content\":\"...\",\"overwrite\":true}.\n"
             "- Provide real content for each expected file in the first scaffold call.\n\n"
+            "JSON content escaping rule:\n"
+            "- Each `content` value must be one valid JSON string.\n"
+            "- Escape newlines as `\\n`, backslashes as `\\\\`, and any double quote inside content as `\\\"`.\n"
+            "- For generated HTML, CSS, JavaScript, and README content, prefer single quotes inside the file content when possible so the tool-call JSON stays valid.\n\n"
+            "- Avoid examples that need unescaped double quotes inside `content`; if quotes are needed, escape them as `\\\"`.\n\n"
             "Tool-call format rule:\n"
             "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
             "Rewrite rule:\n"
@@ -205,6 +206,7 @@ SCENARIOS: dict[str, Scenario] = {
             "- A user can mark a task complete.\n"
             "- A user can edit or delete a task.\n"
             "- Tasks persist with localStorage.\n"
+            "- app.js must call localStorage and addEventListener in the initial implementation; do not defer either requirement to next steps.\n"
             "- The UI is usable by opening index.html directly.\n\n"
             "Verification checks:\n"
             "- index.html links styles.css and app.js.\n"
@@ -213,6 +215,7 @@ SCENARIOS: dict[str, Scenario] = {
             "- styles.css is non-empty.\n\n"
             "Journal and evidence expectations:\n"
             "- Let the harness record trace, evidence, and journal metadata.\n"
+            "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
             "- Final summary must cite touched paths: index.html, styles.css, and app.js.\n\n"
             "Forbidden:\n"
             "- Do not install packages.\n"
@@ -247,10 +250,7 @@ SCENARIOS: dict[str, Scenario] = {
             "- directory_scaffold\n"
             "- text_file_reader\n"
             "- text_file_writer\n"
-            "- text_file_validator\n"
-            "- session_evidence_store\n"
-            "- agent_run_trace\n"
-            "- journal_write\n\n"
+            "\n"
             "Expected artifacts:\n"
             "- notes.py\n"
             "- README.md\n"
@@ -259,6 +259,11 @@ SCENARIOS: dict[str, Scenario] = {
             "- When using directory_scaffold, `entries` must be a list of objects, not a list of strings.\n"
             "- Each file entry must look like: {\"type\":\"file\",\"path\":\"notes.py\",\"content\":\"...\",\"overwrite\":true}.\n"
             "- Provide real content for each expected file in the first scaffold call.\n\n"
+            "JSON content escaping rule:\n"
+            "- Each `content` value must be one valid JSON string.\n"
+            "- Escape newlines as `\\n`, backslashes as `\\\\`, and any double quote inside content as `\\\"`.\n"
+            "- For generated Python and README content, prefer single quotes inside the file content when possible so the tool-call JSON stays valid.\n\n"
+            "- Avoid f-strings or README examples that need unescaped double quotes inside `content`; use single-quoted delimiters such as `', '.join(items)`.\n\n"
             "Tool-call format rule:\n"
             "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
             "Rewrite rule:\n"
@@ -277,6 +282,7 @@ SCENARIOS: dict[str, Scenario] = {
             "- README.md documents add, list, and search.\n\n"
             "Journal and evidence expectations:\n"
             "- Let the harness record trace, evidence, and journal metadata.\n"
+            "- Do not call text_file_validator, session_evidence_store, agent_run_trace, or journal_write directly; the harness validates and records those after the run.\n"
             "- Final summary must cite touched paths: notes.py and README.md.\n\n"
             "Forbidden:\n"
             "- Do not install packages.\n"
@@ -375,6 +381,7 @@ SCENARIOS: dict[str, Scenario] = {
                 "A user can delete a task.",
                 "A user can switch between all, active, and completed filters.",
                 "Tasks persist with localStorage.",
+                "app.js must call localStorage and addEventListener in the initial implementation; do not defer either requirement to next steps.",
             ),
             verification_checks=(
                 "index.html links styles.css and app.js.",

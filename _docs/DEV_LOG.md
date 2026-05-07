@@ -1949,6 +1949,68 @@ task-card, schema, or recovery change.
 
 ---
 
+## 2026-05-06 — Tranche 17B quote-heavy content task-card guidance
+
+- Ran fresh live Teaching Sandbox iterations after the multiline control-character repair:
+  `TS000026` (`static_task_tracker`), `TS000027` (`config_validator_cli`), and
+  `TS000028` (`csv_cleaner_cli`).
+- Result: static task tracker reached artifact creation but missed
+  `localStorage` and `addEventListener`; both Python CLI scenarios still failed
+  as `malformed_tool_call` because quote-heavy Python/README content included
+  unescaped double quotes inside JSON strings.
+- Updated generated Teaching Sandbox task cards with an explicit JSON content
+  escaping rule: one valid JSON string per `content` value; escape newlines,
+  backslashes, and double quotes; prefer single quotes in generated Python and
+  README content where practical; avoid f-strings or examples that need
+  unescaped double quotes inside `content`.
+- Updated static task cards so required verification APIs such as
+  `localStorage` and `addEventListener` are mandatory in the initial
+  implementation, not future-summary suggestions.
+- Added a narrow parser/extraction repair for tool calls whose generated README
+  content contains Markdown fences, and for quote-heavy file `content` values.
+- Narrowed Teaching Sandbox model-facing allowed tools to the file-work surface
+  so deterministic validation, trace, evidence, and journal capture stay
+  harness-owned rather than model-called.
+- Added read-only null-default normalization in `local_sidecar_agent` so
+  `text_file_reader` and `text_file_validator` treat optional `null` bounds as
+  omitted defaults; mutating tools keep strict validation.
+- Final closeout evidence:
+  - `TS000029` `static_task_tracker` live: score 93, verification 100, agent
+    status `ok`.
+  - `TS000038` `config_validator_cli` live: score 93, verification 100, agent
+    status `ok`.
+  - `TS000042` `csv_cleaner_cli` live: score 93, verification 100, agent
+    status `ok`.
+  - `TS000041` was interrupted before agent execution and is not used as
+    training evidence.
+- Extended smoke assertions so the task-card plan exposes the new escaping and
+  required-API guidance.
+- Wrote App Journal entry `journal_06cdb67c80f4`.
+
+Validation:
+
+- `python -m py_compile src\tools\local_sidecar_agent.py src\smoke_test.py
+  src\lib\teaching_sandbox_harness.py` -> pass.
+- `python src\smoke_test.py` -> 151/151 pass; MCP lists 49 tools.
+- `python agent_ui.py --self-test` -> pass.
+- `python src\tools\onboarding_site_check.py run --input-json
+  '{"project_root":"."}'` -> pass.
+- `git diff --check` -> pass, with existing Windows LF-to-CRLF warnings only.
+
+Classification: spiral.
+
+- Capability increased: the live-model assignment surface now teaches the next
+  observed failure instead of relying on hidden operator interpretation.
+- Uncertainty decreased: the change was selected from fresh live run evidence.
+- Boundary clarified: this slice changes task-card wording and smoke coverage;
+  it does not broaden parser repair, tools, filesystem authority, or shell
+  access.
+
+Current read: rerun affected live scenarios after validation and compare
+whether scores move.
+
+---
+
 ## Template for future entries
 
 - Files changed:

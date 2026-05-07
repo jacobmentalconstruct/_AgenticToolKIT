@@ -1684,6 +1684,70 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent multiline JSON string repair", str(multiline_content_call))
 
+    quote_heavy_content_call = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "scaffold content with unescaped quotes inside a JSON content string",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"directory_scaffold\",\"arguments\":{\"entries\":[{\"type\":\"file\",\"path\":\"quote_heavy.py\",\"content\":\"missing = ['a', 'b']\\nprint(f'Missing keys: {\", \".join(missing)}')\",\"overwrite\":true}],\"dry_run\":false}}\n"
+            "```",
+            "Created quote_heavy.py",
+        ],
+        "confirm_mutations": True,
+        "checkpoint": False,
+    })
+    quote_heavy_path = target_root / "quote_heavy.py"
+    if (
+        quote_heavy_content_call["status"] == "ok"
+        and quote_heavy_path.exists()
+        and "Missing keys" in quote_heavy_path.read_text(encoding="utf-8")
+    ):
+        _ok("local_sidecar_agent repairs quote-heavy content string JSON")
+    else:
+        _fail("local_sidecar_agent quote-heavy content string repair", str(quote_heavy_content_call))
+
+    fenced_content_call = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "scaffold markdown content that contains fenced code blocks",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"directory_scaffold\",\"arguments\":{\"entries\":[{\"type\":\"file\",\"path\":\"README.md\",\"content\":\"# Usage\\n\\n```sh\\npython app.py\\n```\\n\",\"overwrite\":true}],\"dry_run\":false}}\n"
+            "```",
+            "Created README.md",
+        ],
+        "confirm_mutations": True,
+        "checkpoint": False,
+    })
+    readme_path = target_root / "README.md"
+    if (
+        fenced_content_call["status"] == "ok"
+        and readme_path.exists()
+        and "```sh" in readme_path.read_text(encoding="utf-8")
+    ):
+        _ok("local_sidecar_agent parses tool calls with fenced code inside content")
+    else:
+        _fail("local_sidecar_agent fenced content tool-call parsing", str(fenced_content_call))
+
+    null_default_reader_call = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "read a file with null optional reader defaults",
+        "mock_ollama_responses": [
+            "```tool_call\n"
+            "{\"tool\":\"text_file_reader\",\"arguments\":{\"path\":\"README.md\",\"max_bytes\":null,\"excerpt_lines\":null,\"include_content\":true}}\n"
+            "```",
+            "Read README.md",
+        ],
+        "confirm_mutations": True,
+        "checkpoint": False,
+    })
+    if null_default_reader_call["status"] == "ok":
+        _ok("local_sidecar_agent treats read-only null bounds as defaults")
+    else:
+        _fail("local_sidecar_agent read-only null default normalization", str(null_default_reader_call))
+
     schema_error = _tool("local_sidecar_agent", {
         "project_root": str(target_root),
         "action": "run",
@@ -1966,6 +2030,8 @@ def test_teaching_sandbox_harness() -> None:
         and "read_sandbox_local_contract" in plan["result"]["required_steps"]
         and "read_parent_contract" in plan["result"]["forbidden_steps"]
         and "entries` must be a list of objects" in plan["result"]["task_card"]
+        and "Escape newlines as" in plan["result"]["task_card"]
+        and "addEventListener in the initial implementation" in plan["result"]["task_card"]
     ):
         _ok("teaching_sandbox_harness returns task card and allowed tool floor")
     else:
@@ -1981,6 +2047,7 @@ def test_teaching_sandbox_harness() -> None:
         and feature_plan["result"]["task_card_template"] == "feature_addition"
         and "preserve_existing_task_lifecycle" in feature_plan["result"]["required_steps"]
         and "all/active/completed filters" in feature_plan["result"]["task_card"]
+        and "addEventListener in the initial implementation" in feature_plan["result"]["task_card"]
     ):
         _ok("teaching_sandbox_harness exposes feature-addition scenario metadata")
     else:

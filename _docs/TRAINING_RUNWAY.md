@@ -221,6 +221,47 @@ useful when they keep valid intent inside the guarded tool contract. The next
 review pass should still label repeated malformed multiline content as a
 task-card/prompt teaching issue, not as a reason to broaden authority.
 
+## Tranche 17B Quote-Heavy Content And Explicit API Lesson
+
+_Recorded: 2026-05-06._
+
+Fresh live runs after the raw-control-character repair showed the next
+teaching gap. `TS000027` and `TS000028` still failed as `malformed_tool_call`,
+but the shape changed: generated Python and README content included unescaped
+double quotes inside JSON string values, such as string joins and JSON examples.
+This is different from literal newlines; the model needs clearer task-card
+formatting discipline before the tool parser should attempt broader repair.
+
+Teaching Sandbox task cards now include a JSON content escaping rule:
+`content` must be one valid JSON string, newlines must be escaped as `\n`,
+backslashes as `\\`, and double quotes inside content as `\"`. For generated
+Python and README content, the card tells the model to prefer single quotes
+inside the file content when possible and to avoid f-strings or README examples
+that need unescaped double quotes inside `content`.
+
+The same run batch also showed `TS000026` reach artifact creation but miss
+`localStorage` and `addEventListener`, despite those being verification checks.
+The static task cards now state that those APIs must be present in the initial
+implementation and must not be deferred to final-summary next steps.
+
+The next rerun showed a different post-success failure: artifacts passed, but
+the model tried to call evidence or validation tools with invalid arguments
+after the harness already had enough to score the run. The Teaching Sandbox
+model-facing allowed tool set is now only `directory_scaffold`,
+`text_file_reader`, and `text_file_writer`. Deterministic validation, trace,
+evidence, and App Journal capture remain harness responsibilities.
+
+One final small tolerance came from the same loop: read-only tool calls may use
+`null` for optional bounds such as `max_bytes` or `excerpt_lines`. The sidecar
+now treats those read-only nulls as omitted defaults for `text_file_reader` and
+`text_file_validator`; mutating tools do not get that relaxation.
+
+The closeout evidence for this slice is now two clean live Python CLI passes:
+`TS000038` for `config_validator_cli` and `TS000042` for `csv_cleaner_cli`.
+Both scored 93 with verification score 100, agent status `ok`, and no safety
+signals. The interrupted `TS000041` is only a created placeholder run and is
+not used as training evidence.
+
 ---
 
 ## Trace-Review Checklist

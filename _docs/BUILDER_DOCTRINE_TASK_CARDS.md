@@ -34,6 +34,11 @@ argument rule:
 - The first scaffold call should provide real content for each expected file.
 - Multiline file `content` must stay inside one valid JSON string; prefer
   escaped `\n` sequences rather than literal line breaks inside tool-call JSON.
+- Quote-heavy `content` must still be valid JSON: escape backslashes as `\\`
+  and double quotes inside content as `\"`; for generated Python and README
+  content, prefer single quotes inside the file when possible.
+- Avoid f-strings or README examples that need unescaped double quotes inside
+  `content`; use single-quoted delimiters such as `', '.join(items)`.
 - Tool calls should be a single ```tool_call fenced JSON object without
   extra closing tags such as `[/tool_call]`.
 - If a later `text_file_writer` call rewrites an existing file, it must set
@@ -159,3 +164,23 @@ content. `local_sidecar_agent` now has a narrow tolerance for raw newline,
 carriage-return, and tab characters inside JSON strings, but that is a recovery
 rail, not the desired style. The desired behavior is still a single fenced JSON
 object whose `content` values are valid JSON strings.
+
+## Quote-Heavy Content And Required APIs
+
+Fresh Tranche 17B live runs after the raw-control-character repair exposed the
+next task-card gap: Python and README examples can contain quote-heavy content
+that breaks tool-call JSON when double quotes are not escaped. Teaching Sandbox
+cards now explicitly require escaping double quotes inside `content` values and
+recommend single quotes inside generated Python/README content where practical.
+
+Static web task cards also now call out required APIs as implementation
+requirements, not summary suggestions. When verification names `localStorage`
+or `addEventListener`, `app.js` must call those APIs before the run is claimed
+complete.
+
+Teaching Sandbox task cards now keep the model-facing allowed tools to the
+file-work surface: `directory_scaffold`, `text_file_reader`, and
+`text_file_writer`. Deterministic validation, trace, evidence, and App Journal
+capture are still required, but the harness records them; the model should not
+call `text_file_validator`, `session_evidence_store`, `agent_run_trace`, or
+`journal_write` directly inside sandbox practice runs.

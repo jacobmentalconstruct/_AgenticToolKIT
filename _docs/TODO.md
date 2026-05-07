@@ -183,6 +183,10 @@ fine-tuning.
       failed-check, evidence, journal, and safety-signal comparison.
 - [x] Promote the recurring malformed multiline content lesson into narrow
       parser tolerance and task-card guidance.
+- [x] Promote fresh live-run lessons into task-card guidance for quote-heavy
+      JSON content and mandatory static-web verification APIs.
+- [x] Narrow Teaching Sandbox model-facing allowed tools so trace, evidence,
+      and journal capture remain harness responsibilities.
 - [ ] Add tooling or workflow docs to compare scorecards across runs and model
       choices.
 - [ ] Promote recurring lessons into prompt snippets, task-card constraints,

@@ -390,12 +390,39 @@ def _system_prompt(config: AgentConfig, bootstrap_summary: str, evidence_summary
 
 def _parse_tool_calls(text: str) -> list[dict[str, Any]]:
     calls: list[dict[str, Any]] = []
-    for match in TOOL_CALL_RE.finditer(text):
-        raw = match.group(1).strip()
-        try:
-            payload = _load_tool_call_payload(raw)
-        except json.JSONDecodeError as exc:
-            calls.append({"tool": "__malformed__", "arguments": {}, "raw": raw, "error": str(exc)})
+    position = 0
+    opener = re.compile(r"```tool_call\s*", re.IGNORECASE)
+    while True:
+        match = opener.search(text, position)
+        if not match:
+            break
+        content_start = match.end()
+        search_at = content_start
+        raw = ""
+        payload: Any = None
+        error = ""
+        close_at = -1
+        while True:
+            close_at = text.find("```", search_at)
+            if close_at == -1:
+                raw = text[content_start:].strip()
+                try:
+                    payload = _load_tool_call_payload(raw)
+                except json.JSONDecodeError as exc:
+                    error = str(exc)
+                position = len(text)
+                break
+            raw = text[content_start:close_at].strip()
+            try:
+                payload = _load_tool_call_payload(raw)
+                position = close_at + 3
+                break
+            except json.JSONDecodeError as exc:
+                error = str(exc)
+                search_at = close_at + 3
+                continue
+        if payload is None:
+            calls.append({"tool": "__malformed__", "arguments": {}, "raw": raw, "error": error})
             continue
         if not isinstance(payload, dict):
             calls.append({"tool": "__malformed__", "arguments": {}, "raw": raw, "error": "tool_call must be a JSON object"})
@@ -427,6 +454,25 @@ def _load_tool_call_payload(raw: str) -> Any:
                     decoder = json.JSONDecoder()
                     payload, end = decoder.raw_decode(repaired)
                     trailing = repaired[end:].strip()
+                    if trailing in {"", "[/tool_call]"}:
+                        return payload
+                except json.JSONDecodeError:
+                    quote_repaired = _escape_content_string_quotes(repaired)
+                    if quote_repaired != repaired:
+                        try:
+                            decoder = json.JSONDecoder()
+                            payload, end = decoder.raw_decode(quote_repaired)
+                            trailing = quote_repaired[end:].strip()
+                            if trailing in {"", "[/tool_call]"}:
+                                return payload
+                        except json.JSONDecodeError:
+                            pass
+            quote_repaired = _escape_content_string_quotes(raw)
+            if quote_repaired != raw:
+                try:
+                    decoder = json.JSONDecoder()
+                    payload, end = decoder.raw_decode(quote_repaired)
+                    trailing = quote_repaired[end:].strip()
                     if trailing in {"", "[/tool_call]"}:
                         return payload
                 except json.JSONDecodeError:
@@ -467,6 +513,83 @@ def _escape_string_control_chars(raw: str) -> str:
         if ch == '"':
             in_string = True
     return "".join(out)
+
+
+def _escape_content_string_quotes(raw: str) -> str:
+    out: list[str] = []
+    i = 0
+    changed = False
+    content_key = '"content"'
+    while i < len(raw):
+        if raw.startswith(content_key, i):
+            start = i
+            j = i + len(content_key)
+            while j < len(raw) and raw[j].isspace():
+                j += 1
+            if j >= len(raw) or raw[j] != ":":
+                out.append(raw[i])
+                i += 1
+                continue
+            j += 1
+            while j < len(raw) and raw[j].isspace():
+                j += 1
+            if j >= len(raw) or raw[j] != '"':
+                out.append(raw[i])
+                i += 1
+                continue
+            out.append(raw[start : j + 1])
+            i = j + 1
+            escaped = False
+            while i < len(raw):
+                ch = raw[i]
+                if escaped:
+                    out.append(ch)
+                    escaped = False
+                    i += 1
+                    continue
+                if ch == "\\":
+                    out.append(ch)
+                    escaped = True
+                    i += 1
+                    continue
+                if ch == '"':
+                    if _looks_like_content_terminator(raw, i):
+                        out.append(ch)
+                        i += 1
+                        break
+                    out.append('\\"')
+                    changed = True
+                    i += 1
+                    continue
+                out.append(ch)
+                i += 1
+            continue
+        out.append(raw[i])
+        i += 1
+    return "".join(out) if changed else raw
+
+
+def _looks_like_content_terminator(raw: str, quote_index: int) -> bool:
+    j = quote_index + 1
+    while j < len(raw) and raw[j].isspace():
+        j += 1
+    if j >= len(raw):
+        return True
+    if raw[j] in "}]":
+        return True
+    if raw[j] != ",":
+        return False
+    j += 1
+    while j < len(raw) and raw[j].isspace():
+        j += 1
+    if j >= len(raw):
+        return True
+    if raw[j] in "}]":
+        return True
+    for key in ('"overwrite"', '"type"', '"path"', '"file_type"', '"kind"'):
+        if raw.startswith(key, j):
+            return True
+    return False
 
 
 def _validate_schema(metadata: dict[str, Any], args: dict[str, Any]) -> list[str]:
@@ -524,6 +647,12 @@ def _inject_confirm(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
     return updated
 
 
+def _drop_read_only_null_defaults(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
+    if tool_name not in {"text_file_reader", "text_file_validator"}:
+        return args
+    return {key: value for key, value in args.items() if value is not None}
+
+
 def _execute_tool_call(
     call: dict[str, Any],
     *,
@@ -554,6 +683,7 @@ def _execute_tool_call(
     args["project_root"] = str(project_root)
     if config.protected_paths and tool_name in {"text_file_writer", "directory_scaffold"}:
         args["protected_paths"] = list(config.protected_paths)
+    args = _drop_read_only_null_defaults(tool_name, args)
     schema_errors = _validate_schema(metadata, args)
     if schema_errors:
         return tool_result(

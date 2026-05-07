@@ -312,7 +312,14 @@ IDs, Evidence IDs, App Journal UID, and suggested training review steps. Its
 first promoted lesson is narrow parser tolerance for raw newline,
 carriage-return, and tab characters inside JSON string content, preserving
 valid multiline scaffold intent while task cards continue teaching escaped
-`\n` strings as the desired form.
+`\n` strings as the desired form. Fresh live reruns then promoted a task-card
+lesson rather than broader parser repair: quote-heavy generated content must
+escape double quotes inside JSON strings, and static-web verification APIs such
+as `localStorage` and `addEventListener` must be implemented in the first
+artifact pass. A follow-up narrowing keeps Teaching Sandbox model-facing tool
+calls to scaffold/read/write file operations while the harness remains
+responsible for deterministic validation, trace, evidence, and App Journal
+capture.
 
 ## Local Agent Operator UI
 

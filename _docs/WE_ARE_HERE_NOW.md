@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-06 (Tranche 17B malformed multiline tool-call repair implemented)
+- 2026-05-07 (Tranche 17B Python CLI live passes achieved)
 
 ## Fresh-thread start
 
@@ -40,8 +40,11 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
     practice scenarios; Tranche 17A Teaching Sandbox Control-File Integrity is
     parked as the first trace-tuning hardening slice; Tranche 17B Trace Review
     And Loop Tuning has started with an explicit training procedure and a
-    read-only run comparison surface, and a narrow parser repair for raw
-    control characters inside JSON string content
+    read-only run comparison surface, a narrow parser repair for raw control
+    characters inside JSON string content, and stronger task-card guidance for
+    quote-heavy generated content plus mandatory static-web APIs. The Teaching
+    Sandbox model-facing allowed set is now narrowed to file tools while the
+    harness owns trace/evidence/journal capture
 - Current runtime truth:
   - root toolbox is now a single-purpose installer (`install.py` GUI / `run.bat` /
     `run.sh`) plus the agent-facing MCP, smoke-test, and builder-tool surfaces
@@ -177,6 +180,20 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   sidecar now repairs raw newline, carriage-return, and tab characters inside
   JSON strings before retrying parse, while task cards still teach escaped
   `\n` content as the desired form.
+- Fresh live runs `TS000026`, `TS000027`, and `TS000028` exposed the next small
+  lesson. Quote-heavy Python/README content still needs explicit JSON escaping
+  discipline, and static task cards need to state that `localStorage` and
+  `addEventListener` are required in the initial implementation, not future
+  suggestions.
+- Follow-up live runs reached passing Python artifacts but exposed post-success
+  overreach into evidence/trace/journal tools. The sandbox now exposes only
+  scaffold/read/write file-work tools to the model; deterministic validation,
+  trace, evidence, and App Journal records remain automatic harness outputs.
+- The latest closeout evidence has clean live Python CLI passes:
+  `TS000038` (`config_validator_cli`) and `TS000042` (`csv_cleaner_cli`) both
+  scored 93 with verification 100, agent status `ok`, and no safety signals.
+  `TS000041` was an interrupted placeholder run and should be ignored for
+  training conclusions.
 
 ## Current bottleneck
 
@@ -186,17 +203,18 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - The active source-shaped bottleneck remains Tranche 17 trace tuning. The
   first lessons are now encoded: inside-root is not the same as safe-to-write
   for sandbox control files, and valid multiline scaffold intent should not be
-  lost to a common JSON-control-character drift. The next step is to compare
-  scorecards/traces across scenarios and model choices, then promote the next
-  recurring lesson into the smallest prompt, task-card, schema, or recovery
-  improvement.
+  lost to a common JSON-control-character drift. The next live-run lesson is
+  encoded in task cards: quote-heavy content must stay valid JSON, and required
+  verification APIs must be implemented before final summary. The current
+  remaining work is to commit this refinement set and then compare across the
+  broader scenario set before graduation shaping.
 
 ## Next best move
 
 - Continue Tranche 17B by using `compare_runs` against recent mocked/live
-  Teaching Sandbox runs and model choices, then choose the next smallest
-  prompt, task-card, schema, scoring, or recovery change that should improve
-  live runs without broadening authority.
+  Teaching Sandbox runs and model choices after this refinement commit, then
+  choose the next smallest prompt, task-card, schema, scoring, or recovery
+  change that should improve live runs without broadening authority.
 
 ## Current warnings
 

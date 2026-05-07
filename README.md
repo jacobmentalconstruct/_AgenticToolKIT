@@ -202,6 +202,12 @@ The first comparison lesson after that rail repairs a narrow live-model drift:
 raw newline, carriage-return, and tab characters inside JSON string content are
 escaped before a retry parse, while task cards still teach valid escaped `\n`
 content as the expected tool-call form.
+The next live-run lesson strengthens Teaching Sandbox task cards for
+quote-heavy Python/README content and makes required static-web APIs such as
+`localStorage` and `addEventListener` explicit implementation requirements.
+Teaching Sandbox model-facing tool calls are now narrowed to file-work tools;
+the harness, not the model, validates artifacts and records trace, evidence,
+and App Journal metadata.
 
 The queued local-agent implementation runway is now:
 
