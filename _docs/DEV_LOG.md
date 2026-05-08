@@ -2660,6 +2660,62 @@ trace and journal entries but empty `evidence_ids`, which keeps their score at
 
 ---
 
+## 2026-05-08 — Tranche 19 evaluation evidence contract closed
+
+- Split local-agent evidence capture into two explicit modes:
+  - `overflow`: the original Bag of Evidence sliding-window behavior.
+  - `evaluation`: one compact run-level evidence item for evaluated runs,
+    regardless of whether any turns overflow the active window.
+- Teaching Sandbox now passes `evidence_mode: "evaluation"` with run metadata
+  so short clean runs still leave a durable evidence object.
+- Preserved overflow semantics for normal sidecar sessions; a short
+  overflow-mode run with `window_turns: 8` still archives zero items.
+- Evidence:
+  - Focused smoke coverage passed with `164 passed, 0 failed`, including
+    `local_sidecar_agent preserves overflow-only evidence semantics` and
+    `teaching_sandbox_harness runs quiet mocked pregraduation rehearsal with
+    evaluation evidence`.
+  - `TS000099` live pre-graduation rehearsal passed score 100 / verification
+    100 with agent status `ok`, trace `R000001`, evidence `E000001`, journal
+    `journal_55f5cd2813d8`, and no safety, recovery, parse-repair, or training
+    signals.
+- Compare/export evidence:
+  - `compare_runs` over `TS000098` and `TS000099` shows the intended delta:
+    same clean deterministic behavior, but `TS000099` adds evidence IDs and
+    reaches score 100.
+  - Reviewer packet:
+    `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T221120Z.md`.
+  - `tail_events` for `TS000099` shows `evidence_count: 1` at agent-finish.
+
+Code reference manifest:
+
+- `src/tools/local_sidecar_agent.py:71-79`
+  Input schema adds `evidence_mode` and `evidence_metadata`.
+- `src/tools/local_sidecar_agent.py:143-144`
+  Agent config stores the evidence mode and run metadata.
+- `src/tools/local_sidecar_agent.py:257-262`
+  Runtime config parsing preserves `overflow` as default and accepts
+  `evaluation`.
+- `src/tools/local_sidecar_agent.py:1007-1055`
+  Evaluation mode creates one compact `evaluation_run_summary` evidence item
+  and archives it with `archive_all`.
+- `src/lib/teaching_sandbox_harness.py:1039-1047`
+  Teaching Sandbox passes evaluation evidence mode and run metadata into the
+  local sidecar agent.
+- `src/smoke_test.py:1595-1606`
+  Regression coverage proves normal overflow mode can still archive zero items.
+- `src/smoke_test.py:2484-2496`
+  Regression coverage proves short Teaching Sandbox runs get evaluation
+  evidence and can score 100.
+
+Current read: Tranche 19 is closed. The remediation loop produced a clean,
+fully witnessed live pre-graduation rehearsal. The next tranche should select a
+fresh unseen graduation set and hold it to the now-restored graduation
+threshold: deterministic checks clean, score 100, trace/evidence/journal
+present, and no safety, recovery, parse-repair, or training signals.
+
+---
+
 ## Template for future entries
 
 - Files changed:

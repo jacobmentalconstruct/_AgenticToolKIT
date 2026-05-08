@@ -254,12 +254,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   to a compact project-birth card: mocked `TS000080` passed at 100 and live
   `TS000081` passed at score 93 / verification 100 with zero safety signals,
   recovery classes, failed checks, or parse repair signals.
-- A narrow pre-graduation rehearsal is active. Mocked runs `TS000082`,
+- A narrow pre-graduation rehearsal completed. Mocked runs `TS000082`,
   `TS000085`, `TS000089`, and `TS000091` passed quietly. Live runs moved from
   invalid Python (`TS000083`, `TS000084`, `TS000086`) to parseable artifacts
   with post-success overread (`TS000090`) to a recovery-silent partial
-  (`TS000092`), but `TS000092` still failed `python-safe-output-pattern`.
-  This blocks fresh graduation selection for now.
+  (`TS000092`) to helper-shaped clean behavior (`TS000098`) and finally to a
+  fully witnessed clean pass (`TS000099`).
 - The repair-bot lane is now real but explicitly separate from graduation.
   `repair_python_newline_drift_cli` seeds a drifty Python artifact, names
   `python_newline_output_drift`, and mocked repair run `TS000093` passes with
@@ -274,27 +274,28 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   - `TS000098` live main-agent pre-graduation rehearsal passed with
     verification 100 and no safety, recovery, parse-repair, or training
     signals.
-  - Both live passes still have empty `evidence_ids`, so graduation should wait
-    until this visibility gap is understood or fixed.
+  - `TS000099` live main-agent pre-graduation rehearsal passed score 100 /
+    verification 100 with trace `R000001`, evidence `E000001`, journal
+    `journal_55f5cd2813d8`, and no safety, recovery, parse-repair, or training
+    signals.
 
 ## Current bottleneck
 
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck is now the post-Tranche-18 graduation
-  gap. The harness, UI visibility, reviewer packets, and quiet-signal checks
-  are working, but live unseen and remediation apps still miss deterministic
-  feature checks or fail before writes on quote-heavy Python tool-call JSON.
+- The active source-shaped bottleneck has moved from Tranche 19 remediation to
+  the next fresh graduation selection. The harness, UI visibility, reviewer
+  packets, quiet-signal checks, and evaluation evidence IDs are now working for
+  the pre-graduation rehearsal.
 
 ## Next best move
 
-- Continue Tranche 19 visibility hardening before graduation. The main-agent
-  newline rehearsal now passes cleanly in live mode (`TS000098`), so the next
-  technical move is to inspect why live runs have trace and journal entries but
-  empty `evidence_ids`. Preserve failed rehearsals and Tranche 18 holdouts as
-  evidence; do not declare readiness or select fresh graduation holdouts until
-  the evidence trail is graduation-complete.
+- Start the next graduation slice from a fresh unseen holdout set, not tuned
+  reruns of failed Tranche 18 runs. Use `TS000099` as the threshold proof that a
+  clean live run can now be fully witnessed: deterministic checks clean, trace
+  present, evidence present, journal present, and no safety/recovery/repair or
+  training signals.
 
 ## Current warnings
 

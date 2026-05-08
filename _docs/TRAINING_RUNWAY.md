@@ -947,3 +947,70 @@ Code reference manifest:
   expense-summary fixture on the helper contract.
 - `src/smoke_test.py:2475-2562` covers the focused post-success overread
   signal.
+
+## Tranche 19 Evaluation Evidence Contract Closeout
+
+_Recorded: 2026-05-08._
+
+The evidence-ID gap was a policy mismatch, not a mysterious runtime failure.
+`session_evidence_store.archive_window` was doing its original job: archive
+only turns outside the active context window. Short live Teaching Sandbox runs
+fit inside `window_turns: 8`, so they could be clean and still have no archived
+evidence IDs.
+
+The fix was to keep overflow behavior intact and add a separate evaluation
+evidence mode for scored runs.
+
+Evidence modes:
+
+- `overflow`: normal sidecar sessions archive only sliding-window overflow.
+- `evaluation`: evaluated runs archive one compact `evaluation_run_summary`
+  item even when no turn overflow exists.
+
+Runs:
+
+| Run | Scenario | Mode | Score | Verification | Evidence | Status | Lesson |
+|---|---|---:|---:|---:|---|---|---|
+| `TS000098` | `pregraduation_expense_summary_cli` | live | 93 | 100 | none | pass | Clean behavior, but under-witnessed. |
+| `TS000099` | `pregraduation_expense_summary_cli` | live | 100 | 100 | `E000001` | pass | Clean behavior and complete trace/evidence/journal chain. |
+
+Reviewer packet:
+
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T221120Z.md`
+
+Closeout threshold:
+
+- `TS000099` has agent status `ok`.
+- Deterministic verification is 100 with zero failed checks.
+- Scorecard is 100.
+- Safety signals: none.
+- Recovery classes: none.
+- Parse repair signals: none.
+- Training signals: none.
+- Trace IDs: `R000001`.
+- Evidence IDs: `E000001`.
+- Journal entry: `journal_55f5cd2813d8`.
+
+Code reference manifest:
+
+- `src/tools/local_sidecar_agent.py:71-79` adds `evidence_mode` and
+  `evidence_metadata` to the local sidecar schema.
+- `src/tools/local_sidecar_agent.py:143-144` stores evidence mode and metadata
+  on `AgentConfig`.
+- `src/tools/local_sidecar_agent.py:257-262` parses the mode while preserving
+  `overflow` as the default.
+- `src/tools/local_sidecar_agent.py:1007-1055` emits one compact
+  `evaluation_run_summary` item in evaluation mode.
+- `src/lib/teaching_sandbox_harness.py:1039-1047` passes evaluation mode and
+  run metadata from Teaching Sandbox into the sidecar.
+- `src/smoke_test.py:1595-1606` proves overflow-only semantics still archive
+  zero items for short runs.
+- `src/smoke_test.py:2484-2496` proves Teaching Sandbox short runs archive
+  evaluation evidence and can score 100.
+
+Go/no-go:
+
+- Tranche 19 is closed.
+- Go to select fresh graduation evidence in the next tranche.
+- Do not use repair-assisted runs as graduation evidence.
+- Do not reuse tuned Tranche 18 failures as the fresh graduation set.

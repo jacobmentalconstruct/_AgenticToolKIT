@@ -68,6 +68,16 @@ FILE_METADATA = {
             },
             "session_id": {"type": "string"},
             "window_turns": {"type": "integer", "default": 8},
+            "evidence_mode": {
+                "type": "string",
+                "enum": ["overflow", "evaluation"],
+                "default": "overflow",
+                "description": "overflow archives sliding-window overflow; evaluation archives one durable run-level evidence item.",
+            },
+            "evidence_metadata": {
+                "type": "object",
+                "description": "Optional run-level metadata to include when evidence_mode=evaluation.",
+            },
             "use_evidence_shelf": {"type": "boolean", "default": True},
             "write_trace": {"type": "boolean", "default": True},
             "preflight": {"type": "boolean", "default": True},
@@ -130,6 +140,8 @@ class AgentConfig:
     planning_workspace: bool = False
     session_id: str = ""
     window_turns: int = 8
+    evidence_mode: str = "overflow"
+    evidence_metadata: dict[str, Any] = field(default_factory=dict)
     use_evidence_shelf: bool = True
     write_trace: bool = True
     preflight: bool = True
@@ -242,6 +254,12 @@ def _config(arguments: dict[str, Any], project_root: Path) -> AgentConfig:
         planning_workspace=arguments.get("planning_workspace") is True,
         session_id=str(arguments.get("session_id", "")).strip(),
         window_turns=max(0, min(window_turns, 50)),
+        evidence_mode=(
+            str(arguments.get("evidence_mode", "overflow")).strip()
+            if str(arguments.get("evidence_mode", "overflow")).strip() in {"overflow", "evaluation"}
+            else "overflow"
+        ),
+        evidence_metadata=arguments.get("evidence_metadata") if isinstance(arguments.get("evidence_metadata"), dict) else {},
         use_evidence_shelf=arguments.get("use_evidence_shelf", True) is not False,
         write_trace=arguments.get("write_trace", True) is not False,
         preflight=arguments.get("preflight", True) is not False,
@@ -974,12 +992,67 @@ def _archive_evidence(
     rounds: list[dict[str, Any]],
     config: AgentConfig,
     approval_required: bool,
+    touched_paths: list[str] | None = None,
+    validation: dict[str, Any] | None = None,
+    final_text: str = "",
+    halted_reason: str = "",
+    recovery: dict[str, Any] | None = None,
+    parse_repair_signals: list[str] | None = None,
 ) -> dict[str, Any]:
     if not config.use_evidence_shelf:
         return {"skipped": True, "reason": "use_evidence_shelf=false"}
     if not config.confirm_evidence:
         return {"skipped": True, "approval_required": True, "reason": "evidence archive requires confirm_evidence=true"}
     turns = _evidence_turns(prompt, rounds)
+    if config.evidence_mode == "evaluation":
+        metadata = dict(config.evidence_metadata)
+        scenario_id = str(metadata.get("scenario_id", "")).strip()
+        run_id = str(metadata.get("run_id", "")).strip()
+        verification = validation or {}
+        recovery_class = str((recovery or {}).get("class", "")).strip()
+        signal_summary = {
+            "parse_repair_signals": parse_repair_signals or [],
+            "recovery_class": recovery_class,
+        }
+        evaluation_item = {
+            "sequence": len(turns) + 1,
+            "role": "system",
+            "kind": "evaluation_run_summary",
+            "source": "local_sidecar_agent",
+            "summary": (
+                "Evaluation evidence"
+                + (f" for {run_id}" if run_id else "")
+                + (f" / {scenario_id}" if scenario_id else "")
+            ),
+            "content": json.dumps({
+                "evidence_mode": "evaluation",
+                "metadata": metadata,
+                "session_id": session_id,
+                "prompt_summary": prompt[:500],
+                "round_count": len(rounds),
+                "touched_paths": sorted(set(touched_paths or [])),
+                "validation": verification,
+                "halted_reason": halted_reason,
+                "recovery": recovery or {},
+                "signals": signal_summary,
+                "final_text_summary": final_text[:1000],
+            }, indent=2, sort_keys=False),
+            "tags": ["local-agent", "evaluation-evidence", "bag-of-evidence"],
+            "paths": sorted(set(touched_paths or [])),
+            "importance": 1,
+        }
+        return run_session_evidence_store({
+            "project_root": str(project_root),
+            "action": "archive_window",
+            "confirm": True,
+            "session_id": session_id,
+            "turns": [evaluation_item],
+            "window_turns": 0,
+            "archive_all": True,
+            "rolling_summary": f"Evaluation evidence for latest prompt: {prompt[:160]}",
+            "open_loops": ["Approval required before continuing."] if approval_required else [],
+            "tags": ["local-agent", "evaluation-evidence", "bag-of-evidence"],
+        })
     return run_session_evidence_store({
         "project_root": str(project_root),
         "action": "archive_window",
@@ -1505,6 +1578,13 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         recovery = _recovery_from_class("max_rounds_exhausted", "maximum tool rounds exhausted", config)
 
     validation = _validate_touched(project_root, touched_paths)
+    parse_repair_signals = sorted({
+        signal
+        for event in parse_repair_events
+        for signal in event.get("signals", [])
+        if isinstance(signal, str) and signal
+    })
+    validation["parse_repair_signals"] = parse_repair_signals
     evidence_archive = _archive_evidence(
         project_root,
         session_id=session_id,
@@ -1512,6 +1592,12 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         rounds=rounds,
         config=config,
         approval_required=approval_required,
+        touched_paths=touched_paths,
+        validation=validation,
+        final_text=final_text,
+        halted_reason=halted_reason,
+        recovery=recovery,
+        parse_repair_signals=parse_repair_signals,
     )
     _heartbeat(runtime_paths, config, session_id, "evidence", f"Evidence archive status: {evidence_archive.get('status', 'skipped')}")
     checkpoint = _checkpoint(project_root, touched_paths, config, prompt) if not approval_required else {
@@ -1529,13 +1615,6 @@ def _run_agent(arguments: dict[str, Any], project_root: Path) -> dict[str, Any]:
         enforcement=config.claim_enforcement,
     )
     validation["claim_guardrails"] = claim_guardrails
-    parse_repair_signals = sorted({
-        signal
-        for event in parse_repair_events
-        for signal in event.get("signals", [])
-        if isinstance(signal, str) and signal
-    })
-    validation["parse_repair_signals"] = parse_repair_signals
     if not recovery and halted_reason:
         recovery = _recovery_from_class(halted_reason, halted_reason, config)
     if not recovery and not claim_guardrails["passed"]:

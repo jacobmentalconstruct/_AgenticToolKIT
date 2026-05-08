@@ -1582,6 +1582,29 @@ def test_local_sidecar_agent() -> None:
     else:
         _fail("local_sidecar_agent mock run", str(run_result))
 
+    overflow_only = _tool("local_sidecar_agent", {
+        "project_root": str(target_root),
+        "action": "run",
+        "prompt": "read the note",
+        "mock_ollama_responses": [
+            "```tool_call\n{\"tool\":\"text_file_reader\",\"arguments\":{\"path\":\"src/agent_note.py\",\"excerpt_lines\":5}}\n```",
+            "Done.",
+        ],
+        "confirm_evidence": True,
+        "checkpoint": False,
+        "max_tool_rounds": 2,
+        "session_id": "overflow-only-session",
+        "window_turns": 8,
+    })
+    if (
+        overflow_only["status"] == "ok"
+        and overflow_only["result"]["evidence_archive"]["archived_count"] == 0
+        and not overflow_only["result"]["validation"]["claim_guardrails"]["has_evidence_ids"]
+    ):
+        _ok("local_sidecar_agent preserves overflow-only evidence semantics")
+    else:
+        _fail("local_sidecar_agent overflow-only evidence semantics", str(overflow_only))
+
     failure = _tool("local_sidecar_agent", {
         "project_root": str(target_root),
         "action": "run",
@@ -2456,19 +2479,21 @@ def test_teaching_sandbox_harness() -> None:
         "confirm": True,
         "scenario_id": "pregraduation_expense_summary_cli",
         "project_id": "pregraduation_expense_summary_cli-fixture",
-        "window_turns": 0,
+        "window_turns": 8,
         "max_tool_rounds": 3,
     })
     if (
         rehearsal_run["status"] == "ok"
         and rehearsal_run["result"]["verification"]["failed"] == 0
         and rehearsal_run["result"]["scorecard"]["passed"]
+        and rehearsal_run["result"]["scorecard"]["score"] == 100
         and rehearsal_run["result"]["scorecard"]["stage"] == "rehearsal"
+        and rehearsal_run["result"]["scorecard"]["evidence_ids"]
         and not rehearsal_run["result"]["scorecard"]["safety_signals"]
         and not rehearsal_run["result"]["scorecard"]["recovery_classes"]
         and not rehearsal_run["result"]["scorecard"]["parse_repair_signals"]
     ):
-        _ok("teaching_sandbox_harness runs quiet mocked pregraduation rehearsal")
+        _ok("teaching_sandbox_harness runs quiet mocked pregraduation rehearsal with evaluation evidence")
     else:
         _fail("teaching_sandbox_harness pregraduation rehearsal baseline", str(rehearsal_run))
 

@@ -85,7 +85,7 @@ tool failures, approval stops, and exhausted tool rounds.
 
 ### Active tasks
 
-### Active source tranche: Tranche 19 Remediation Training
+### Recently closed source tranche: Tranche 19 Remediation Training
 
 Purpose: train on the deterministic misses from the first graduation attempt
 without modifying the failed graduation holdouts in place and without adding
@@ -107,8 +107,8 @@ new model-facing authority.
 - [x] Prove the pre-graduation rehearsal fixture passes quietly in mocked mode.
 - [x] Produce a live pre-graduation rehearsal pass with zero failed
       deterministic checks, no recovery classes, and no parse repair signals.
-      Latest evidence: `TS000098` passed verification 100 with no safety,
-      recovery, parse-repair, or training signals.
+      Latest fully witnessed evidence: `TS000099` passed score 100 /
+      verification 100 with trace, journal, and evidence IDs present.
 - [x] Promote raw newline output drift into named Teaching Sandbox training
       signals before fresh graduation selection.
 - [x] Add a mocked repair lane for Python newline drift and mark repair-assisted
@@ -117,11 +117,27 @@ new model-facing authority.
       signal in a focused mocked or live evidence run.
 - [x] Optionally run the Python newline repair lane live as training evidence;
       do not count repair-assisted success as graduation evidence.
-- [ ] Resolve or explicitly account for live Teaching Sandbox runs that have
+- [x] Resolve or explicitly account for live Teaching Sandbox runs that have
       trace and journal entries but empty `evidence_ids`; graduation requires a
       complete evidence trail, not only clean deterministic checks.
-- [ ] After the live rehearsal is quiet, select fresh graduation evidence
-      instead of rerunning the failed Tranche 18 holdouts as tuned targets.
+- [x] Close Tranche 19 after a clean, fully witnessed live pre-graduation
+      rehearsal (`TS000099`).
+- [ ] Open the next tranche by selecting fresh graduation evidence instead of
+      rerunning the failed Tranche 18 holdouts as tuned targets.
+
+### Next source tranche: Fresh graduation evidence
+
+Purpose: use the restored graduation evidence contract to run fresh unseen
+Teaching Sandbox graduation holdouts.
+
+- [ ] Select a fresh unseen graduation set.
+- [ ] Run mocked baselines for selected holdouts.
+- [ ] Run live graduation attempts only after mocked baselines and preflight are
+      clean.
+- [ ] Require score 100, verification 100, trace/evidence/journal present, no
+      safety signals, no recovery classes, no parse repair signals, and no
+      training signals.
+- [ ] Export `compare_runs`, `export_review`, and `tail_events` evidence.
 
 ### Recently parked source tranche: Tranche 17A Teaching Sandbox Control-File Integrity
 
@@ -324,12 +340,12 @@ graduation holdouts in place.
       `TS000073`.
 - [x] Promote first rerun lesson: static feature guidance improved recipe
       behavior from 2 failed checks to 1 failed check.
-- [ ] Continue Python CLI tool-call JSON discipline; `TS000070` and `TS000072`
-      both still failed as `malformed_tool_call` from quote-heavy Python
-      content before writes landed.
-- [ ] Continue static feature-surface guidance; `TS000073` still failed
-      `html-has-recipe-controls` despite clean JS behavior.
-- [ ] Do not attempt a fresh graduation set until remediation scenarios produce
+- [x] Continue Python CLI tool-call JSON discipline; later Tranche 19 work
+      narrowed the Python path through helper-shaped output contracts and live
+      pre-graduation evidence.
+- [x] Continue static feature-surface guidance; later Tranche 19 work produced
+      a clean live recipe remediation pass before the Python rehearsal closeout.
+- [x] Do not attempt a fresh graduation set until remediation scenarios produce
       clean live passes without safety, recovery, or parse-repair signals.
 
 Tranche 19 reviewer packet:
