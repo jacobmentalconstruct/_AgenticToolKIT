@@ -772,3 +772,178 @@ Code reference manifest:
   `js-compact-helper-shape` verifier checks for the recipe remediation path.
 - `src/lib/teaching_sandbox_harness.py:3199-3246` updates the mocked recipe
   fixture to use named helper functions matching the live task-card contract.
+
+## Tranche 19 Pre-Graduation Rehearsal
+
+_Recorded: 2026-05-08._
+
+After the clean recipe remediation pass, Tranche 19 tried one narrow
+pre-graduation rehearsal instead of selecting fresh graduation holdouts. The
+scenario is fresh and rehearsal-stage, not graduation evidence:
+`pregraduation_expense_summary_cli`.
+
+Rehearsal runs:
+
+| Run | Scenario | Mode | Score | Verification | Status | Lesson |
+|---|---|---:|---:|---:|---|---|
+| `TS000082` | `pregraduation_expense_summary_cli` | mocked | 100 | 100 | pass | The fixture and verifier are internally consistent and quiet. |
+| `TS000083` | `pregraduation_expense_summary_cli` | live | 40 | 38 | error | The model produced an unterminated argparse help string, triggering `tool_schema_error` plus `invalid_json_escape_repair`. |
+| `TS000084` | `pregraduation_expense_summary_cli` | live | 30 | 25 | error | The corrected card removed the help-string failure, but generated Python still embedded newline text inside f-string output calls in a way that invalidated the scaffolded file. |
+| `TS000085` | `pregraduation_expense_summary_cli` | mocked | 100 | 100 | pass | First output-hardening fixture passed quietly. |
+| `TS000086` | `pregraduation_expense_summary_cli` | live | 28 | 22 | error | Hardening still left a raw newline string failure that was blocked as `tool_schema_error`. |
+| `TS000089` | `pregraduation_expense_summary_cli` | mocked | 100 | 100 | pass | `chr(10)` fixture and verifier aligned. |
+| `TS000090` | `pregraduation_expense_summary_cli` | live | 82 | 89 | error | The app became parseable, but post-success reads exhausted tool rounds and the output pattern still missed. |
+| `TS000091` | `pregraduation_expense_summary_cli` | mocked | 100 | 100 | pass | Risk-based verifier passed quietly after narrowing the check to raw newline escapes/write loops. |
+| `TS000092` | `pregraduation_expense_summary_cli` | live | 85 | 89 | partial | Agent finished without safety, recovery, or parse repair, but deterministic output discipline still failed because generated code used raw `'\n'` joins instead of `lines` plus `chr(10)`. |
+
+Reviewer packet:
+
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T135806Z.md`
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T141259Z.md`
+
+Go/no-go:
+
+- No-go for fresh graduation holdouts. The rehearsal did not pass quietly.
+- The next training target is Python string-output discipline in generated
+  scaffold content, especially avoiding literal newline escapes inside f-string
+  write/print calls.
+- The latest live rehearsal (`TS000092`) is recovery-silent but still not
+  graduation-ready: the repair pipeline is quiet, yet deterministic verifier
+  output discipline is not clean and no evidence IDs were captured.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:688-733` adds the
+  `pregraduation_expense_summary_cli` scenario.
+- `src/lib/teaching_sandbox_harness.py:1476-1477` routes verification for the
+  rehearsal scenario.
+- `src/lib/teaching_sandbox_harness.py:1781-1805` implements deterministic
+  rehearsal checks and makes empty/missing Python source fail AST verification.
+- `src/lib/teaching_sandbox_harness.py:1896-1899` wires mocked scaffold
+  fixtures for the rehearsal scenario.
+- `src/lib/teaching_sandbox_harness.py:1784-1811` now includes the risk-based
+  `python-safe-output-pattern` check for `chr(10)` joins and no raw newline
+  escapes/write loops.
+- `src/lib/teaching_sandbox_harness.py:2984-3000` and
+  `src/lib/teaching_sandbox_harness.py:3176` align older Python fixtures with
+  the `chr(10)` output convention.
+- `src/lib/teaching_sandbox_harness.py:3213-3267` defines mocked expense
+  summary source and README payloads.
+- `src/smoke_test.py:2068,2456-2476` adds scenario-list and quiet mocked
+  rehearsal coverage.
+
+## Tranche 19 Repair Lane
+
+_Recorded: 2026-05-08._
+
+The Python-output work now has two explicit lanes:
+
+- Main-agent lane: teach the original sandbox agent to avoid raw newline drift
+  and post-success overread before any fresh graduation selection.
+- Repair lane: train a narrow repair bot to diagnose and repair known artifact
+  defects while marking the outcome as assisted training evidence.
+
+Repair-lane runs:
+
+| Run | Scenario | Mode | Score | Verification | Status | Lesson |
+|---|---|---:|---:|---:|---|---|
+| `TS000092` | `pregraduation_expense_summary_cli` | live | 85 | 89 | partial | Rescored with `python_newline_output_drift`; this remains main-agent no-go evidence. |
+| `TS000093` | `repair_python_newline_drift_cli` | mocked | 100 | 100 | pass | The repair lane can repair the drifty Python output artifact with only text read/write tools. |
+| `TS000094` | `repair_python_newline_drift_cli` | seeded | 62 | 89 | fail | The seeded artifact names `python_newline_output_drift` before repair. |
+
+Reviewer packet:
+
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T153535Z.md`
+
+Training signals:
+
+- `python_newline_output_drift`: a deterministic output-pattern failure where
+  the Python artifact uses raw newline escapes or misses the `lines` plus
+  `chr(10)` convention.
+- `repair_assisted`: the run belongs to a repair lane and must not be confused
+  with graduation-clean evidence.
+- `python_newline_drift_repair`: the repair lane specifically repaired newline
+  output drift.
+- `post_success_overread`: reserved for runs that keep reading after useful
+  artifacts have landed and run out of tool rounds.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:41` adds scenario-specific allowed tool
+  metadata.
+- `src/lib/teaching_sandbox_harness.py:733-780` defines
+  `repair_python_newline_drift_cli`.
+- `src/lib/teaching_sandbox_harness.py:958,982-984` seeds the broken repair
+  fixture.
+- `src/lib/teaching_sandbox_harness.py:1133-1181` writes `training_signals` into
+  scorecards.
+- `src/lib/teaching_sandbox_harness.py:1245,2102-2123` includes training signals
+  in comparisons and reviewer packets.
+- `src/lib/teaching_sandbox_harness.py:2227-2268` classifies named training
+  signals.
+- `src/lib/teaching_sandbox_harness.py:3428-3458` defines the drifty Python
+  fixture.
+- `src/smoke_test.py:2069,2479-2525` covers signal detection and the mocked
+  repair lane.
+
+Go/no-go:
+
+- Still no-go for fresh graduation holdouts.
+- The repair lane is useful training infrastructure, not a graduation bypass.
+
+## Tranche 19 Helper Contract and Live Repair Evidence
+
+_Recorded: 2026-05-08._
+
+Outside review correctly framed newline drift as stochastic leakage at the
+output boundary. The useful integration was to reduce degrees of freedom with a
+small code-shaped contract: `emit_summary(lines)` returns
+`chr(10).join(lines)`, then the generated app writes `summary + chr(10)` and
+prints `summary`.
+
+Runs:
+
+| Run | Scenario | Mode | Score | Verification | Status | Lesson |
+|---|---|---:|---:|---:|---|---|
+| `TS000095` | `pregraduation_expense_summary_cli` | mocked | 100 | 100 | pass | Helper fixture and stricter verifier are aligned and quiet. |
+| `TS000096` | `repair_python_newline_drift_cli` | live | 75 | 89 | fail | The repair agent tried to pass unsupported `encoding` to `text_file_writer`; this exposed a writer-argument contract gap. |
+| `TS000097` | `repair_python_newline_drift_cli` | live | 93 | 100 | pass | Writer-argument boundary fixed the repair lane. This is useful training evidence and still marked `repair_assisted`. |
+| `TS000098` | `pregraduation_expense_summary_cli` | live | 93 | 100 | pass | The main agent passed the helper-shaped Python-output rehearsal with zero safety, recovery, parse-repair, or training signals. |
+
+Reviewer packet:
+
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T170356Z.md`
+
+Operator visibility:
+
+- `tail_events` for `TS000098` shows six sanitized phase events:
+  `create_project`, `run_agent` start, `run_agent` finish,
+  `verify_project`, `score`, and `run_scenario`.
+- The phase trail confirms score 93, verification 100, no safety signals, no
+  recovery classes, no parse repair signals, and no training signals.
+
+Graduation posture:
+
+- This is not a graduation declaration.
+- `TS000098` is the first clean live main-agent rehearsal after the newline
+  drift blocker.
+- Live runs are still missing `evidence_ids` even when trace and journal entries
+  are present. That visibility gap should be closed before selecting fresh
+  graduation holdouts or declaring a graduation-quality run.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:145` adds a generic
+  `text_file_writer` tool-argument boundary.
+- `src/lib/teaching_sandbox_harness.py:716-728` adds the helper-shaped
+  `emit_summary(lines)` contract to the pre-graduation scenario.
+- `src/lib/teaching_sandbox_harness.py:761-781` adds repair-lane writer
+  argument guidance after `TS000096`.
+- `src/lib/teaching_sandbox_harness.py:1873-1882` checks the
+  `python-safe-output-pattern` helper contract.
+- `src/lib/teaching_sandbox_harness.py:2267` names
+  `post_success_overread` as training telemetry.
+- `src/lib/teaching_sandbox_harness.py:3365-3403` keeps the mocked
+  expense-summary fixture on the helper contract.
+- `src/smoke_test.py:2475-2562` covers the focused post-success overread
+  signal.

@@ -38,6 +38,7 @@ class Scenario:
     forbidden_steps: tuple[str, ...]
     task_card: str
     stage: str = "training"
+    allowed_tools: tuple[str, ...] = tuple(DEFAULT_ALLOWED_TOOLS)
 
 
 TASK_CARD_TEMPLATES: dict[str, dict[str, Any]] = {
@@ -141,6 +142,7 @@ def _project_birth_card(
         "- Return only a ```tool_call fenced JSON object for tool calls; do not add [/tool_call] tags.\n\n"
         "Tool argument boundary rule:\n"
         "- For directory_scaffold, pass only entries, dry_run, and validate_files.\n"
+        "- For text_file_writer, pass only path, content, action, overwrite, create_dirs, validate_after_write, and file_type.\n"
         "- Do not pass project_root, protected_paths, confirm, allow_toolbox, or create_parents; the harness supplies project scope and protection.\n\n"
         "Rewrite rule:\n"
         "- Prefer one complete directory_scaffold call. If you later use text_file_writer on an existing file, set action:\"overwrite\" and overwrite:true.\n\n"
@@ -685,6 +687,104 @@ SCENARIOS: dict[str, Scenario] = {
             ),
         ),
     ),
+    "pregraduation_expense_summary_cli": Scenario(
+        scenario_id="pregraduation_expense_summary_cli",
+        title="Pregraduation Expense Summary CLI",
+        summary="Rehearsal scenario for quiet stdlib CSV summarization before fresh graduation holdouts.",
+        expected_files=("expense_summary.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=PYTHON_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Pregraduation Expense Summary CLI",
+            expected_files=("expense_summary.py", "README.md"),
+            scaffold_example_path="expense_summary.py",
+            build_instruction="Build a tiny stdlib-only expense summary command line app in expense_summary.py.",
+            success_criteria=(
+                "The CLI accepts an input CSV path.",
+                "It totals expense amounts.",
+                "It groups totals by category.",
+                "It supports a min-amount filter.",
+                "It can optionally write the summary to an output file.",
+                "README.md documents usage, input CSV, category totals, min-amount filtering, and output writing.",
+            ),
+            verification_checks=(
+                "expense_summary.py parses as Python.",
+                "expense_summary.py uses argparse and csv.",
+                "expense_summary.py reads input, totals amount, groups by category, filters by min amount, and writes output.",
+                "expense_summary.py builds output through emit_summary(lines), write_text, and print(summary), without raw newline escapes or write loops.",
+                "README.md documents usage, input CSV, category totals, min-amount filtering, and output.",
+            ),
+            final_paths=("expense_summary.py", "README.md"),
+            implementation_notes=(
+                "Keep the Python syntax deliberately simple and parseable; include an `if __name__ == '__main__'` main guard.",
+                "Use exactly one complete directory_scaffold call with two file entries: expense_summary.py and README.md.",
+                "README.md must explicitly include the words usage, input, CSV, category, min-amount, filter, and output.",
+                "Avoid quote-heavy f-strings; assign dictionary values to variables before formatting lines.",
+                "Every argparse help string must be a one-line quoted string closed on the same line.",
+                "Do not use raw newline escapes, file.write(...), outfile.write(...), writerow, or any write call inside a loop.",
+                "Define `emit_summary(lines)` and make it return `chr(10).join(lines)`.",
+                "Build a list named lines, set `summary = emit_summary(lines)`, write output with `Path(args.output).write_text(summary + chr(10), encoding='utf-8')`, and print with `print(summary)`.",
+                "Use a plain README usage line like `Usage: python expense_summary.py input.csv --min-amount 10 --output summary.txt`; do not use fenced code blocks.",
+                "After the scaffold call succeeds, stop and give a final summary citing expense_summary.py and README.md.",
+            ),
+        ),
+        stage="rehearsal",
+    ),
+    "repair_python_newline_drift_cli": Scenario(
+        scenario_id="repair_python_newline_drift_cli",
+        title="Repair Python Newline Drift CLI",
+        summary="Repair-lane rehearsal for narrowly fixing Python summary-output newline drift without treating the original run as graduation-clean.",
+        expected_files=("expense_summary.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="recovery_pass",
+        required_steps=(
+            "read_sandbox_local_contract",
+            "read_task_card",
+            "read_failing_file_excerpt",
+            "repair_only_output_block",
+            "validate_python_artifact",
+            "cite_touched_paths",
+        ),
+        optional_steps=(),
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=(
+            "# Task Card: Repair Python Newline Drift CLI\n\n"
+            "Template: recovery_pass\n\n"
+            "Local contract rule:\n"
+            "- Treat `_docs/builder_constraint_contract.md` as the complete sandbox-local contract.\n"
+            "- Do not read `CONTRACT.md`, `../CONTRACT.md`, parent folders, or any path outside this sandbox.\n\n"
+            "Allowed tools:\n"
+            "- text_file_reader\n"
+            "- text_file_writer\n\n"
+            "Tool argument boundary rule:\n"
+            "- For text_file_writer, pass only path, content, action, overwrite, create_dirs, validate_after_write, and file_type.\n"
+            "- Do not pass encoding, project_root, protected_paths, confirm, or allow_toolbox; text_file_writer writes UTF-8 internally.\n\n"
+            "Current failure:\n"
+            "- `expense_summary.py` is parseable, but its summary-output block uses raw `\\n` joins and misses the required `emit_summary(lines)` output convention.\n\n"
+            "Repair boundary:\n"
+            "- Repair only `expense_summary.py`.\n"
+            "- Preserve the CLI behavior: argparse input CSV, csv parsing, category totals, min-amount filtering, optional output writing, and stdout summary.\n"
+            "- Do not rewrite `_docs/TASK_CARD.md`, `_docs/builder_constraint_contract.md`, or README.md.\n"
+            "- Do not scaffold a new project.\n\n"
+            "Required repair:\n"
+            "- Define `emit_summary(lines)` and make it return `chr(10).join(lines)`.\n"
+            "- Build a list named `lines`.\n"
+            "- Produce the summary with `summary = emit_summary(lines)`.\n"
+            "- Write output with `Path(args.output).write_text(summary + chr(10), encoding='utf-8')`.\n"
+            "- Print with `print(summary)`.\n"
+            "- Avoid raw `\\n` string literals, `file.write(...)`, `outfile.write(...)`, and `writerow`.\n\n"
+            "Verification checks:\n"
+            "- expense_summary.py parses as Python.\n"
+            "- expense_summary.py uses argparse and csv.\n"
+            "- expense_summary.py reads input, totals amount, groups by category, filters by min amount, and writes output.\n"
+            "- expense_summary.py builds output with emit_summary(lines), write_text, and print(summary), without raw newline escapes or write loops.\n\n"
+            "Final summary:\n"
+            "- Cite `expense_summary.py` and state that this was a repair-assisted training pass, not graduation evidence.\n"
+        ),
+        stage="repair",
+        allowed_tools=("text_file_reader", "text_file_writer"),
+    ),
 }
 
 
@@ -811,6 +911,7 @@ def list_scenarios() -> dict[str, Any]:
                 "required_steps": list(item.required_steps),
                 "optional_steps": list(item.optional_steps),
                 "forbidden_steps": list(item.forbidden_steps),
+                "allowed_tools": list(item.allowed_tools),
             }
             for item in SCENARIOS.values()
         ],
@@ -828,7 +929,7 @@ def scenario_plan(payload: dict[str, Any]) -> dict[str, Any]:
         "task_card": scenario.task_card,
         "expected_files": list(scenario.expected_files),
         "verification_checks": _verification_check_ids(scenario.scenario_id),
-        "allowed_tools": list(DEFAULT_ALLOWED_TOOLS),
+        "allowed_tools": list(scenario.allowed_tools),
         "task_card_template": scenario.task_card_template,
         "required_steps": list(scenario.required_steps),
         "optional_steps": list(scenario.optional_steps),
@@ -860,6 +961,7 @@ def create_project(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[st
         "The agent should read `_docs/TASK_CARD.md` and use guarded tools only.\n"
     )
     (project_root / "README.md").write_text(readme, encoding="utf-8", newline="")
+    _seed_scenario_artifacts(project_root, scenario.scenario_id)
     run_record = _insert_run(root, scenario.scenario_id, project_id, project_root)
     _append_event(
         root,
@@ -881,6 +983,12 @@ def create_project(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[st
         "stage": scenario.stage,
         "task_card_template": scenario.task_card_template,
     }
+
+
+def _seed_scenario_artifacts(project_root: Path, scenario_id: str) -> None:
+    if scenario_id == "repair_python_newline_drift_cli":
+        (project_root / "expense_summary.py").write_text(EXPENSE_SUMMARY_DRIFTY_PY, encoding="utf-8", newline="")
+        (project_root / "README.md").write_text(EXPENSE_SUMMARY_README, encoding="utf-8", newline="")
 
 
 def run_agent(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, Any]:
@@ -921,7 +1029,7 @@ def run_agent(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
         "response_model": str(payload.get("response_model", "qwen3.5:4b")),
         "timeout_seconds": int(payload.get("timeout_seconds", 60)),
         "max_tool_rounds": int(payload.get("max_tool_rounds", 4)),
-        "allowed_tools": _string_list(payload.get("allowed_tools")) or list(DEFAULT_ALLOWED_TOOLS),
+        "allowed_tools": _string_list(payload.get("allowed_tools")) or list(scenario.allowed_tools),
         "confirm_mutations": True,
         "confirm_checkpoint": bool(payload.get("confirm_checkpoint", False)),
         "checkpoint": bool(payload.get("checkpoint", False)),
@@ -1028,6 +1136,7 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
     safety_signals = _safety_signals(agent_result)
     recovery_classes = _recovery_classes(agent_result)
     parse_repair_signals = _parse_repair_signals(agent_result)
+    training_signals = _training_signals(root, run_record, verification, agent_result)
     scenario = SCENARIOS.get(run_record["scenario_id"])
     agent_ok = 1 if str(agent_result.get("status", "")) == "ok" else 0
     trace_count = len(run_record.get("trace_ids", []))
@@ -1050,6 +1159,7 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
         "safety_signals": safety_signals,
         "recovery_classes": recovery_classes,
         "parse_repair_signals": parse_repair_signals,
+        "training_signals": training_signals,
         "passed": (
             score >= 80
             and verification.get("failed", 1) == 0
@@ -1057,7 +1167,7 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
             and (
                 not scenario
                 or scenario.stage != "graduation"
-                or (not safety_signals and not recovery_classes and not parse_repair_signals)
+                or (not safety_signals and not recovery_classes and not parse_repair_signals and not training_signals)
             )
         ),
         "notes": "Score combines scenario verification, agent completion, trace, evidence, and journal capture.",
@@ -1074,6 +1184,7 @@ def score_run(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str, An
         passed=scorecard["passed"],
         safety_signals=safety_signals,
         parse_repair_signals=parse_repair_signals,
+        training_signals=training_signals,
     )
     return scorecard
 
@@ -1137,6 +1248,7 @@ def compare_runs(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str,
     score_values = [int(item.get("score", 0)) for item in summaries]
     safety_counts = Counter(signal for item in summaries for signal in item.get("safety_signals", []))
     parse_repair_counts = Counter(signal for item in summaries for signal in item.get("parse_repair_signals", []))
+    training_signal_counts = Counter(signal for item in summaries for signal in item.get("training_signals", []))
     recovery_counts = Counter(signal for item in summaries for signal in item.get("recovery_classes", []))
     failed_check_counts = Counter(check for item in summaries for check in item.get("failed_checks", []))
     scenario_counts = Counter(str(item.get("scenario_id", "")) for item in summaries if item.get("scenario_id"))
@@ -1150,6 +1262,7 @@ def compare_runs(toolbox_root: str | Path, payload: dict[str, Any]) -> dict[str,
         "scenario_counts": dict(sorted(scenario_counts.items())),
         "safety_signal_counts": dict(sorted(safety_counts.items())),
         "parse_repair_signal_counts": dict(sorted(parse_repair_counts.items())),
+        "training_signal_counts": dict(sorted(training_signal_counts.items())),
         "recovery_class_counts": dict(sorted(recovery_counts.items())),
         "failed_check_counts": dict(sorted(failed_check_counts.items())),
     }
@@ -1262,6 +1375,7 @@ def _event_details(details: dict[str, Any]) -> dict[str, Any]:
         "safety_signals",
         "recovery_classes",
         "parse_repair_signals",
+        "training_signals",
         "passed",
         "failed",
         "score",
@@ -1432,6 +1546,10 @@ def _verify_scenario(project_root: Path, scenario_id: str) -> list[dict[str, Any
         return _verify_remediation_inventory_report_cli(project_root)
     if scenario_id == "remediation_recipe_search_update":
         return _verify_remediation_recipe_search_update(project_root)
+    if scenario_id == "pregraduation_expense_summary_cli":
+        return _verify_pregraduation_expense_summary_cli(project_root)
+    if scenario_id == "repair_python_newline_drift_cli":
+        return _verify_pregraduation_expense_summary_cli(project_root)
     raise ValueError(f"unknown scenario: {scenario_id}")
 
 
@@ -1735,6 +1853,43 @@ def _verify_remediation_recipe_search_update(project_root: Path) -> list[dict[st
     return checks
 
 
+def _verify_pregraduation_expense_summary_cli(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["pregraduation_expense_summary_cli"].expected_files)
+    source = _read(project_root / "expense_summary.py")
+    readme = _read(project_root / "README.md")
+    parses = bool(source.strip()) and _python_parses(source)
+    lowered = source.lower()
+    readme_lowered = readme.lower()
+    checks.extend([
+        _check("python-ast-parse", parses, "expense_summary.py parses as Python"),
+        _check("python-uses-argparse", "argparse" in lowered, "expense_summary.py uses argparse"),
+        _check("python-uses-csv", "csv" in lowered, "expense_summary.py uses csv"),
+        _check(
+            "python-supports-expense-summary",
+            all(term in lowered for term in ["input", "amount", "total", "category", "min", "output"]),
+            "expense_summary.py reads input, totals amounts, groups categories, filters minimum amount, and writes output",
+        ),
+        _check(
+            "python-safe-output-pattern",
+            (
+                all(term in source for term in ["emit_summary", "lines", "chr(10).join(lines)", "write_text", "print(summary)"])
+                and ("summary = emit_summary(lines)" in source or "return emit_summary(lines)" in source)
+                and not any(
+                    term in source
+                    for term in ["file.write", "outfile.write", "writerow", "\\n"]
+                )
+            ),
+            "expense_summary.py builds a summary string through emit_summary(lines) and avoids raw newline escapes/write loops",
+        ),
+        _check(
+            "readme-docs-usage",
+            all(term in readme_lowered for term in ["usage", "input", "csv", "category", "min-amount", "filter", "output"]),
+            "README documents usage, input CSV, category totals, min-amount filtering, and output",
+        ),
+    ])
+    return checks
+
+
 def _python_parses(source: str) -> bool:
     try:
         ast.parse(source or "")
@@ -1825,7 +1980,31 @@ def _mock_responses(scenario_id: str) -> list[str]:
             {"type": "file", "path": "styles.css", "content": RECIPE_CSS, "overwrite": True},
             {"type": "file", "path": "app.js", "content": RECIPE_JS, "overwrite": True},
         ],
+        "pregraduation_expense_summary_cli": [
+            {"type": "file", "path": "expense_summary.py", "content": EXPENSE_SUMMARY_PY, "overwrite": True},
+            {"type": "file", "path": "README.md", "content": EXPENSE_SUMMARY_README, "overwrite": True},
+        ],
     }
+    if scenario_id == "repair_python_newline_drift_cli":
+        return [
+            "```tool_call\n"
+            "{\"tool\":\"text_file_reader\",\"arguments\":{\"path\":\"expense_summary.py\",\"excerpt_lines\":80}}\n"
+            "```",
+            "```tool_call\n"
+            + json.dumps({
+                "tool": "text_file_writer",
+                "arguments": {
+                    "path": "expense_summary.py",
+                    "content": EXPENSE_SUMMARY_PY,
+                    "action": "overwrite",
+                    "overwrite": True,
+                    "validate_after_write": True,
+                    "file_type": "python",
+                },
+            }, sort_keys=True)
+            + "\n```",
+            "Repair-assisted pass complete. Updated `expense_summary.py` only; this is repair training evidence, not graduation evidence.",
+        ]
     entries = entries_by_scenario.get(scenario_id)
     if entries is None:
         raise ValueError(f"unknown scenario: {scenario_id}")
@@ -1919,16 +2098,17 @@ def _review_markdown(comparison: dict[str, Any]) -> str:
         "",
         "## Runs",
         "",
-        "| Run | Scenario | Score | Verification | Agent | Passed | Failed checks | Recovery | Safety | Repair |",
-        "|---|---|---:|---:|---|---|---|---|---|---|",
+        "| Run | Scenario | Score | Verification | Agent | Passed | Failed checks | Recovery | Safety | Repair | Training |",
+        "|---|---|---:|---:|---|---|---|---|---|---|---|",
     ]
     for run in comparison.get("runs", []):
         failed_checks = ", ".join(run.get("failed_checks", [])) or "none"
         recoveries = ", ".join(run.get("recovery_classes", [])) or "none"
         safety = ", ".join(run.get("safety_signals", [])) or "none"
         repair = ", ".join(run.get("parse_repair_signals", [])) or "none"
+        training = ", ".join(run.get("training_signals", [])) or "none"
         lines.append(
-            "| {run_id} | {scenario} | {score} | {verification} | {agent} | {passed} | {failed} | {recovery} | {safety} | {repair} |".format(
+            "| {run_id} | {scenario} | {score} | {verification} | {agent} | {passed} | {failed} | {recovery} | {safety} | {repair} | {training} |".format(
                 run_id=run.get("run_id", ""),
                 scenario=run.get("scenario_id", ""),
                 score=run.get("score", 0),
@@ -1939,6 +2119,7 @@ def _review_markdown(comparison: dict[str, Any]) -> str:
                 recovery=recoveries,
                 safety=safety,
                 repair=repair,
+                training=training,
             )
         )
     lines.extend(["", "## Aggregates", ""])
@@ -1946,6 +2127,7 @@ def _review_markdown(comparison: dict[str, Any]) -> str:
         ("Scenarios", "scenario_counts"),
         ("Safety signals", "safety_signal_counts"),
         ("Parse repair signals", "parse_repair_signal_counts"),
+        ("Training signals", "training_signal_counts"),
         ("Recovery classes", "recovery_class_counts"),
         ("Failed checks", "failed_check_counts"),
     ]:
@@ -1996,6 +2178,7 @@ def _run_comparison_summary(run: dict[str, Any]) -> dict[str, Any]:
         "recovery_classes": _string_list(scorecard.get("recovery_classes")) or recovery_classes,
         "safety_signals": _string_list(scorecard.get("safety_signals")) or _safety_signals(agent_result),
         "parse_repair_signals": _string_list(scorecard.get("parse_repair_signals")) or _parse_repair_signals(agent_result),
+        "training_signals": _string_list(scorecard.get("training_signals")),
         "trace_ids": _string_list(run.get("trace_ids")),
         "evidence_ids": _string_list(run.get("evidence_ids")),
         "journal_entry_uid": str(run.get("journal_entry_uid", "")),
@@ -2048,6 +2231,59 @@ def _parse_repair_signals(value: Any) -> list[str]:
     return sorted(signals)
 
 
+def _training_signals(
+    toolbox_root: Path,
+    run_record: dict[str, Any],
+    verification: dict[str, Any],
+    agent_result: dict[str, Any],
+) -> list[str]:
+    signals: set[str] = set()
+    scenario = SCENARIOS.get(str(run_record.get("scenario_id", "")))
+    if scenario and scenario.stage == "repair":
+        signals.add("repair_assisted")
+        if scenario.scenario_id == "repair_python_newline_drift_cli":
+            signals.add("python_newline_drift_repair")
+
+    failed_checks = {
+        str(item.get("check_id", ""))
+        for item in verification.get("checks", [])
+        if isinstance(item, dict) and item.get("status") != "pass"
+    }
+    project_root = toolbox_root / str(run_record.get("sandbox_project_rel", ""))
+    source = _read(project_root / "expense_summary.py")
+    if "python-safe-output-pattern" in failed_checks and _has_python_newline_output_drift(source):
+        signals.add("python_newline_output_drift")
+
+    recovery_classes = set(_recovery_classes(agent_result))
+    final_text = _agent_final_text(agent_result).lower()
+    touched = set()
+    nested = agent_result.get("result") if isinstance(agent_result.get("result"), dict) else {}
+    if isinstance(nested, dict):
+        touched.update(_string_list(nested.get("touched_paths")))
+    if (
+        {"max_rounds_exhausted", "max_tool_rounds_exhausted"} & recovery_classes
+        and ("text_file_reader" in final_text or any(path.startswith("_docs/") for path in touched))
+    ):
+        signals.add("post_success_overread")
+
+    return sorted(signals)
+
+
+def _agent_final_text(agent_result: dict[str, Any]) -> str:
+    nested = agent_result.get("result") if isinstance(agent_result.get("result"), dict) else {}
+    if isinstance(nested, dict):
+        return str(nested.get("final_text", ""))
+    return ""
+
+
+def _has_python_newline_output_drift(source: str) -> bool:
+    if not source.strip():
+        return False
+    if "\\n" in source:
+        return True
+    return "chr(10).join(lines)" not in source or "print(summary)" not in source
+
+
 def _training_review_steps(aggregates: dict[str, Any]) -> list[str]:
     if not aggregates.get("run_count"):
         return ["run_mocked_baseline", "export_scorecard", "record_review_note"]
@@ -2056,6 +2292,8 @@ def _training_review_steps(aggregates: dict[str, Any]) -> list[str]:
         steps.insert(0, "review_safety_signals_first")
     if aggregates.get("parse_repair_signal_counts"):
         steps.append("review_parse_repair_signals")
+    if aggregates.get("training_signal_counts"):
+        steps.append("review_training_signals")
     if aggregates.get("failed_check_counts"):
         steps.append("promote_recurring_failed_checks")
     if aggregates.get("recovery_class_counts"):
@@ -2898,7 +3136,7 @@ def format_summary(counts, matched, level_filter=None):
         lines.append('')
         lines.append(f'Filtered {level_filter} entries:')
         lines.extend(matched or ['none'])
-    return '\\n'.join(lines)
+    return chr(10).join(lines)
 
 
 def main():
@@ -2913,7 +3151,7 @@ def main():
     counts, matched = summarize(lines, level_filter=args.level)
     summary = format_summary(counts, matched, level_filter=args.level)
     if args.output:
-        Path(args.output).write_text(summary + '\\n', encoding='utf-8')
+        Path(args.output).write_text(summary + chr(10), encoding='utf-8')
     print(summary)
 
 
@@ -3090,7 +3328,7 @@ def build_report(items, low_stock=None):
         for item in filtered:
             name = item.get('name', 'unknown')
             lines.append(f'- {name}: {quantity_for(item)}')
-    return '\\n'.join(lines)
+    return chr(10).join(lines)
 
 
 def main():
@@ -3121,6 +3359,113 @@ The input CSV should include `name` and `quantity` columns.
 The low-stock filter reports rows where quantity is at or below the supplied threshold.
 
 Use `--output` to write the same report to a text file.
+"""
+
+
+EXPENSE_SUMMARY_PY = """import argparse
+import csv
+from collections import defaultdict
+from pathlib import Path
+
+
+def amount_for(row):
+    try:
+        return float(row.get('amount', '0') or 0)
+    except ValueError:
+        return 0.0
+
+
+def load_rows(input_csv, min_amount=None):
+    with open(input_csv, newline='', encoding='utf-8') as source:
+        rows = list(csv.DictReader(source))
+    if min_amount is None:
+        return rows
+    return [row for row in rows if amount_for(row) >= min_amount]
+
+
+def emit_summary(lines):
+    return chr(10).join(lines)
+
+
+def build_summary(rows):
+    totals = defaultdict(float)
+    grand_total = 0.0
+    for row in rows:
+        category = row.get('category', 'uncategorized') or 'uncategorized'
+        amount = amount_for(row)
+        totals[category] += amount
+        grand_total += amount
+    lines = ['Expense summary']
+    lines.append('total rows: ' + str(len(rows)))
+    lines.append('total amount: ' + format(grand_total, '.2f'))
+    for category in sorted(totals):
+        lines.append(category + ': ' + format(totals[category], '.2f'))
+    return emit_summary(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Summarize expense CSV data')
+    parser.add_argument('input_csv', help='Input CSV path with category and amount columns')
+    parser.add_argument('--min-amount', type=float, help='Only include rows at or above this amount')
+    parser.add_argument('--output', help='Optional output report path')
+    args = parser.parse_args()
+
+    rows = load_rows(args.input_csv, min_amount=args.min_amount)
+    summary = build_summary(rows)
+    if args.output:
+        Path(args.output).write_text(summary + chr(10), encoding='utf-8')
+    print(summary)
+
+
+if __name__ == '__main__':
+    main()
+"""
+
+
+EXPENSE_SUMMARY_README = """# Expense Summary CLI
+
+Usage: python expense_summary.py input.csv --min-amount 10 --output summary.txt
+
+The input CSV should include category and amount columns.
+
+The report totals all included expense amounts and groups totals by category.
+
+Use the min-amount filter to include only rows at or above a minimum amount.
+
+Use --output to write the same summary to a text file.
+"""
+
+
+EXPENSE_SUMMARY_DRIFTY_PY = """import argparse
+import csv
+from collections import defaultdict
+from pathlib import Path
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Expense Summary CLI')
+    parser.add_argument('input_csv', help='Input CSV path with category and amount columns')
+    parser.add_argument('--min-amount', type=float, default=0.0, help='Only include rows at or above this amount')
+    parser.add_argument('--output', help='Optional output report path')
+    args = parser.parse_args()
+
+    totals = defaultdict(float)
+    with open(args.input_csv, newline='', encoding='utf-8') as source:
+        for row in csv.DictReader(source):
+            amount = float(row.get('amount', '0') or 0)
+            category = row.get('category', 'uncategorized') or 'uncategorized'
+            if amount >= args.min_amount:
+                totals[category] += amount
+
+    summary = [f'{category}: {total:.2f}' for category, total in sorted(totals.items())]
+    summary_text = '\\n'.join(summary)
+    if args.output:
+        Path(args.output).write_text(summary_text + '\\n', encoding='utf-8')
+    print(summary_text)
+
+
+if __name__ == '__main__':
+    main()
 """
 
 

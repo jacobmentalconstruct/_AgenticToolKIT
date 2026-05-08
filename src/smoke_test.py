@@ -2065,6 +2065,8 @@ def test_teaching_sandbox_harness() -> None:
         "graduation_bookmark_search_update",
         "remediation_inventory_report_cli",
         "remediation_recipe_search_update",
+        "pregraduation_expense_summary_cli",
+        "repair_python_newline_drift_cli",
     }
     if scenarios["status"] == "ok" and expected_scenarios.issubset(set(scenario_ids)):
         _ok("teaching_sandbox_harness lists expanded scenario curriculum")
@@ -2447,6 +2449,176 @@ def test_teaching_sandbox_harness() -> None:
         _ok("teaching_sandbox_harness runs mocked remediation training scenarios")
     else:
         _fail("teaching_sandbox_harness remediation training baselines", str(remediation_runs))
+
+    rehearsal_run = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "run_scenario",
+        "confirm": True,
+        "scenario_id": "pregraduation_expense_summary_cli",
+        "project_id": "pregraduation_expense_summary_cli-fixture",
+        "window_turns": 0,
+        "max_tool_rounds": 3,
+    })
+    if (
+        rehearsal_run["status"] == "ok"
+        and rehearsal_run["result"]["verification"]["failed"] == 0
+        and rehearsal_run["result"]["scorecard"]["passed"]
+        and rehearsal_run["result"]["scorecard"]["stage"] == "rehearsal"
+        and not rehearsal_run["result"]["scorecard"]["safety_signals"]
+        and not rehearsal_run["result"]["scorecard"]["recovery_classes"]
+        and not rehearsal_run["result"]["scorecard"]["parse_repair_signals"]
+    ):
+        _ok("teaching_sandbox_harness runs quiet mocked pregraduation rehearsal")
+    else:
+        _fail("teaching_sandbox_harness pregraduation rehearsal baseline", str(rehearsal_run))
+
+    overread_expense_py = """import argparse
+import csv
+from collections import defaultdict
+from pathlib import Path
+
+
+def emit_summary(lines):
+    return chr(10).join(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Summarize expense CSV data')
+    parser.add_argument('input_csv', help='Input CSV path with category and amount columns')
+    parser.add_argument('--min-amount', type=float, default=0.0, help='Only include rows at or above this amount')
+    parser.add_argument('--output', help='Optional output report path')
+    args = parser.parse_args()
+
+    totals = defaultdict(float)
+    rows_seen = 0
+    with open(args.input_csv, newline='', encoding='utf-8') as source:
+        for row in csv.DictReader(source):
+            amount = float(row.get('amount', '0') or 0)
+            category = row.get('category', 'uncategorized') or 'uncategorized'
+            if amount >= args.min_amount:
+                totals[category] += amount
+                rows_seen += 1
+    lines = ['Expense summary']
+    lines.append('total rows: ' + str(rows_seen))
+    lines.append('total amount: ' + format(sum(totals.values()), '.2f'))
+    for category in sorted(totals):
+        lines.append(category + ': ' + format(totals[category], '.2f'))
+    summary = emit_summary(lines)
+    if args.output:
+        Path(args.output).write_text(summary + chr(10), encoding='utf-8')
+    print(summary)
+
+
+if __name__ == '__main__':
+    main()
+"""
+    overread_readme = """# Expense Summary CLI
+
+Usage: python expense_summary.py input.csv --min-amount 10 --output summary.txt
+
+The input CSV includes category and amount columns.
+The report totals expense amount values by category.
+The min-amount filter excludes smaller rows.
+The output option writes the summary to a file.
+"""
+    overread_scaffold = {
+        "tool": "directory_scaffold",
+        "arguments": {
+            "entries": [
+                {"type": "file", "path": "expense_summary.py", "content": overread_expense_py, "overwrite": True},
+                {"type": "file", "path": "README.md", "content": overread_readme, "overwrite": True},
+            ],
+            "dry_run": False,
+            "validate_files": True,
+        },
+    }
+    overread_probe = {"tool": "text_file_reader", "arguments": {"path": "_docs/TASK_CARD.md", "excerpt_lines": 8}}
+    overread_run = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "run_scenario",
+        "confirm": True,
+        "scenario_id": "pregraduation_expense_summary_cli",
+        "project_id": "pregraduation_expense_summary_cli-overread",
+        "window_turns": 0,
+        "max_tool_rounds": 2,
+        "mock_ollama_responses": [
+            "```tool_call\n" + json.dumps(overread_scaffold, sort_keys=True) + "\n```",
+            "```tool_call\n" + json.dumps(overread_probe, sort_keys=True) + "\n```",
+        ],
+    })
+    overread_signals = (
+        overread_run["result"]["scorecard"].get("training_signals", [])
+        if overread_run["status"] == "ok"
+        else []
+    )
+    if (
+        overread_run["status"] == "ok"
+        and overread_run["result"]["verification"]["failed"] == 0
+        and "post_success_overread" in overread_signals
+        and "max_rounds_exhausted" in overread_run["result"]["scorecard"]["recovery_classes"]
+    ):
+        _ok("teaching_sandbox_harness names post-success overread")
+    else:
+        _fail("teaching_sandbox_harness post-success overread signal", str(overread_run))
+
+    repair_seed = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "create_project",
+        "confirm": True,
+        "scenario_id": "repair_python_newline_drift_cli",
+        "project_id": "repair_python_newline_drift_cli-seed",
+    })
+    repair_seed_verify = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "verify_project",
+        "run_id": repair_seed["result"]["run_id"],
+    })
+    repair_seed_score = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "score",
+        "run_id": repair_seed["result"]["run_id"],
+    })
+    if (
+        repair_seed["status"] == "ok"
+        and repair_seed_verify["result"]["failed"] == 1
+        and "python-safe-output-pattern" in [
+            item["check_id"] for item in repair_seed_verify["result"]["checks"] if item["status"] != "pass"
+        ]
+        and "python_newline_output_drift" in repair_seed_score["result"]["training_signals"]
+    ):
+        _ok("teaching_sandbox_harness names Python newline output drift")
+    else:
+        _fail("teaching_sandbox_harness newline drift signal", str(repair_seed_score))
+
+    newline_repair_run = _tool("teaching_sandbox_harness", {
+        "project_root": str(target_root),
+        "action": "run_scenario",
+        "confirm": True,
+        "scenario_id": "repair_python_newline_drift_cli",
+        "project_id": "repair_python_newline_drift_cli-fixture",
+        "allowed_tools": ["text_file_reader", "text_file_writer"],
+        "window_turns": 0,
+        "max_tool_rounds": 3,
+    })
+    repair_signals = (
+        newline_repair_run["result"]["scorecard"].get("training_signals", [])
+        if newline_repair_run["status"] == "ok"
+        else []
+    )
+    if (
+        newline_repair_run["status"] == "ok"
+        and newline_repair_run["result"]["verification"]["failed"] == 0
+        and newline_repair_run["result"]["scorecard"]["passed"]
+        and newline_repair_run["result"]["scorecard"]["stage"] == "repair"
+        and "repair_assisted" in repair_signals
+        and "python_newline_drift_repair" in repair_signals
+        and not newline_repair_run["result"]["scorecard"]["safety_signals"]
+        and not newline_repair_run["result"]["scorecard"]["recovery_classes"]
+        and not newline_repair_run["result"]["scorecard"]["parse_repair_signals"]
+    ):
+        _ok("teaching_sandbox_harness runs mocked Python newline repair lane")
+    else:
+        _fail("teaching_sandbox_harness Python newline repair lane", str(newline_repair_run))
 
     export = _tool("teaching_sandbox_harness", {
         "project_root": str(target_root),

@@ -2436,6 +2436,230 @@ Tranche 18 graduation runs in place.
 
 ---
 
+## 2026-05-08 — Tranche 19 pre-graduation rehearsal no-go
+
+- Added `pregraduation_expense_summary_cli` as a rehearsal-stage Teaching
+  Sandbox scenario, not graduation evidence.
+- The scenario keeps the model-facing tool set unchanged:
+  `directory_scaffold`, `text_file_reader`, and `text_file_writer`.
+- Added deterministic verifier coverage for parseable Python, `argparse`,
+  `csv`, category totals, min-amount filtering, output writing, and README
+  usage coverage.
+- Added mocked fixture coverage and smoke-test coverage for a quiet mocked
+  pre-graduation rehearsal.
+- Evidence:
+  - `TS000082` mocked rehearsal passed score 100 / verification 100 with no
+    safety signals, recovery classes, or parse repair signals.
+  - `TS000083` live rehearsal failed with `tool_schema_error` after an
+    unterminated argparse help string; it also recorded
+    `invalid_json_escape_repair`.
+  - `TS000084` live rerun failed with `tool_schema_error` after generated
+    Python embedded newline text inside f-string output calls in a way that
+    invalidated the scaffolded file.
+- Exported reviewer packet:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T135806Z.md`.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:688-733`
+  Rehearsal scenario metadata and task-card contract.
+- `src/lib/teaching_sandbox_harness.py:1476-1477`
+  Rehearsal verifier dispatch.
+- `src/lib/teaching_sandbox_harness.py:1781-1805`
+  Expense-summary deterministic verifier; empty/missing Python source no
+  longer passes AST verification.
+- `src/lib/teaching_sandbox_harness.py:1896-1899`
+  Mocked rehearsal scaffold entries.
+- `src/lib/teaching_sandbox_harness.py:3199-3264`
+  Mocked expense summary source and README payload.
+- `src/smoke_test.py:2068,2453-2472`
+  Scenario-list and quiet mocked rehearsal coverage.
+
+Current read: no-go for fresh graduation selection. The next training target
+is Python string-output discipline in generated scaffold content, especially
+avoiding literal newline escapes inside f-string write/print calls.
+
+---
+
+## 2026-05-08 — Tranche 19 Python output hardening rehearsal
+
+- Tightened the expense-summary rehearsal around a risk-based output rule:
+  generated Python should build `lines`, join with `chr(10)`, write with
+  `Path(...).write_text(... + chr(10), encoding='utf-8')`, and avoid raw
+  newline escape literals or looped write calls.
+- Updated the mocked expense-summary fixture and aligned the existing Python
+  remediation fixtures to the same `chr(10)` output convention.
+- Evidence:
+  - `TS000085` mocked first hardening pass passed score 100 / verification 100.
+  - `TS000086` live first hardening pass still failed with `tool_schema_error`
+    on an unterminated generated Python string.
+  - `TS000089` mocked `chr(10)` fixture passed score 100 / verification 100.
+  - `TS000090` live `chr(10)` pass produced parseable files, but exhausted tool
+    rounds after post-success reads and still failed `python-safe-output-pattern`.
+  - `TS000091` mocked risk-based verifier passed score 100 / verification 100.
+  - `TS000092` live risk-based verifier finished with no safety signals,
+    recovery classes, or parse repair signals, but still failed
+    `python-safe-output-pattern` because the generated app used raw `'\n'`
+    joins and did not build the required `lines`/`chr(10)` summary.
+- Compare/export evidence:
+  - `compare_runs` over `TS000085`, `TS000086`, `TS000089`, `TS000090`,
+    `TS000091`, and `TS000092` -> 3/6 pass, average score 82.5, no safety
+    signals, no parse repair signals, and recurring failed check
+    `python-safe-output-pattern`.
+  - Reviewer packet:
+    `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T141259Z.md`.
+  - `tail_events` for `TS000092` confirms a clean agent finish followed by
+    deterministic verification failure, not a recovery-path failure.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:688-733`
+  Expense-summary rehearsal scenario and task-card output guidance.
+- `src/lib/teaching_sandbox_harness.py:1784-1811`
+  Deterministic `python-safe-output-pattern` check for `lines`,
+  `chr(10).join(lines)`, `write_text`, `print(summary)`, and no raw newline
+  escapes/write loops.
+- `src/lib/teaching_sandbox_harness.py:1908-1912`
+  Mocked scaffold entry wiring for the rehearsal scenario.
+- `src/lib/teaching_sandbox_harness.py:2984-3000`
+  Log-summarizer Python fixture now uses `chr(10)` joins and output writes.
+- `src/lib/teaching_sandbox_harness.py:3176`
+  Inventory-report Python fixture now uses `chr(10)` joins.
+- `src/lib/teaching_sandbox_harness.py:3213-3267`
+  Expense-summary mocked Python and README fixture.
+- `src/smoke_test.py:2068,2456-2476`
+  Scenario-list and mocked rehearsal smoke coverage.
+
+Current read: still no-go for fresh graduation. The harness now distinguishes
+three Python-output states: invalid JSON/scaffold failure (`TS000086`), valid
+artifacts with post-success overread (`TS000090`), and recovery-silent but
+deterministically insufficient output discipline (`TS000092`). The next slice
+should make post-success overread and raw-newline output drift visible as named
+training signals before selecting fresh graduation holdouts.
+
+---
+
+## 2026-05-08 — Tranche 19 repair-lane signal split
+
+- Added `training_signals` to Teaching Sandbox scorecards, comparisons, and
+  reviewer packets so training telemetry is visible without reclassifying it as
+  safety, recovery, or parse repair.
+- Added the first repair-lane scenario:
+  `repair_python_newline_drift_cli`.
+- The repair-lane scenario seeds a deliberately parseable-but-drifty
+  `expense_summary.py`, then asks a narrow repair agent to read the failing
+  file and overwrite only `expense_summary.py`.
+- Repair-lane authority is scoped to `text_file_reader` and
+  `text_file_writer`; `directory_scaffold` is not part of that scenario's
+  default tool set.
+- Evidence:
+  - `TS000092` was rescored and now surfaces
+    `python_newline_output_drift` as a training signal.
+  - `TS000093` mocked repair lane passed score 100 / verification 100 with
+    no safety signals, recovery classes, or parse repair signals; it is marked
+    `repair_assisted` and `python_newline_drift_repair`.
+  - `TS000094` seeded broken repair artifact failed only
+    `python-safe-output-pattern` and surfaced `python_newline_output_drift`.
+- Compare/export evidence:
+  - `compare_runs` over `TS000092`, `TS000093`, and `TS000094` -> 1/3 pass,
+    average score 82.3, no safety signals, no parse repair signals, no
+    recovery classes, and training signal counts for
+    `python_newline_output_drift`, `repair_assisted`, and
+    `python_newline_drift_repair`.
+  - Reviewer packet:
+    `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T153535Z.md`.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:41`
+  Scenario metadata can now declare per-scenario allowed tools.
+- `src/lib/teaching_sandbox_harness.py:733-780`
+  Repair-lane scenario definition and text-reader/text-writer-only scope.
+- `src/lib/teaching_sandbox_harness.py:908-926`
+  Scenario list/plan now expose the scenario-specific allowed tool set.
+- `src/lib/teaching_sandbox_harness.py:958,982-984`
+  Repair-lane sandbox creation seeds the drifty Python artifact.
+- `src/lib/teaching_sandbox_harness.py:1133-1181`
+  Scorecards now include `training_signals`.
+- `src/lib/teaching_sandbox_harness.py:1245,2102-2123`
+  Comparisons and reviewer packets aggregate/render training signals.
+- `src/lib/teaching_sandbox_harness.py:2227-2268`
+  Training-signal classifier names `python_newline_output_drift`,
+  `repair_assisted`, `python_newline_drift_repair`, and
+  `post_success_overread`.
+- `src/lib/teaching_sandbox_harness.py:3428-3458`
+  Seed fixture for the drifty repair-lane Python file.
+- `src/smoke_test.py:2069,2479-2525`
+  Smoke coverage for newline-drift signal detection and mocked repair-lane
+  success.
+
+Current read: the repair bot lane is now real but explicitly marked as
+training-assisted. This lets us train repair behavior in parallel while
+continuing to require silent, unassisted runs for graduation.
+
+---
+
+## 2026-05-08 — Tranche 19 helper contract and live repair evidence
+
+- Integrated the useful outside-review insight: reduce newline-output freedom by
+  giving the main agent a small helper-shaped contract,
+  `emit_summary(lines)`, instead of relying only on prose.
+- Tightened Teaching Sandbox task cards with a `text_file_writer` argument
+  boundary so agents do not confuse generated Python `encoding='utf-8'` with a
+  tool argument named `encoding`.
+- Added smoke coverage for `post_success_overread` by simulating a successful
+  scaffold followed by an unnecessary control-file read that exhausts tool
+  rounds.
+- Evidence:
+  - `TS000095` mocked helper-shaped pre-graduation rehearsal passed score 100 /
+    verification 100 with no safety, recovery, parse-repair, or training
+    signals.
+  - `TS000096` live repair-lane attempt failed usefully with
+    `tool_schema_error` after the model passed unsupported `encoding` to
+    `text_file_writer`.
+  - `TS000097` live repair lane passed score 93 / verification 100 with no
+    safety, recovery, or parse-repair signals and training signals
+    `repair_assisted` plus `python_newline_drift_repair`.
+  - `TS000098` live main-agent helper rehearsal passed score 93 / verification
+    100 with no safety, recovery, parse-repair, or training signals.
+- Compare/export evidence:
+  - `compare_runs` over `TS000095`, `TS000096`, `TS000097`, and `TS000098`
+    -> 3/4 pass, average score 90.2, one promoted `tool_schema_error`, one
+    failed `python-safe-output-pattern`, and training counts only on the repair
+    lane.
+  - Reviewer packet:
+    `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260508T170356Z.md`.
+  - `tail_events` for `TS000098` confirms clean run phases and no safety,
+    recovery, parse-repair, or training signals.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:145`
+  Generic task-card boundary now names allowed `text_file_writer` arguments.
+- `src/lib/teaching_sandbox_harness.py:716-728`
+  Pre-graduation expense scenario now requires the `emit_summary(lines)` helper
+  contract.
+- `src/lib/teaching_sandbox_harness.py:761-781`
+  Repair-lane task card now separates writer tool arguments from generated
+  Python file-content arguments.
+- `src/lib/teaching_sandbox_harness.py:1873-1882`
+  Deterministic verifier now checks for `emit_summary(lines)`,
+  `chr(10).join(lines)`, `write_text`, and `print(summary)`.
+- `src/lib/teaching_sandbox_harness.py:2267`
+  Training-signal classifier names `post_success_overread`.
+- `src/lib/teaching_sandbox_harness.py:3365-3403`
+  Mocked expense-summary fixture uses the helper contract.
+- `src/smoke_test.py:2475-2562`
+  Smoke coverage for the focused post-success overread signal.
+
+Current read: this is strong Tranche 19 progress, but not yet fresh graduation.
+The main agent can now pass the Python-output rehearsal cleanly in live mode.
+The remaining visibility gap is that live runs `TS000097` and `TS000098` have
+trace and journal entries but empty `evidence_ids`, which keeps their score at
+93 and should be resolved before any graduation declaration.
+
+---
+
 ## Template for future entries
 
 - Files changed:

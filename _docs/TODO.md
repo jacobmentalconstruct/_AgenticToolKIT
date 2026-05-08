@@ -1,6 +1,6 @@
 # Project Backlog
 
-_Last updated: 2026-05-07._
+_Last updated: 2026-05-08._
 
 ---
 
@@ -102,7 +102,25 @@ new model-facing authority.
       artifacts.
 - [x] Produce a live recipe remediation pass with zero failed deterministic
       checks, no recovery classes, and no parse repair signals.
-- [ ] After remediation scenarios are clean, select fresh graduation evidence
+- [x] Add one narrow pre-graduation rehearsal scenario:
+      `pregraduation_expense_summary_cli`.
+- [x] Prove the pre-graduation rehearsal fixture passes quietly in mocked mode.
+- [x] Produce a live pre-graduation rehearsal pass with zero failed
+      deterministic checks, no recovery classes, and no parse repair signals.
+      Latest evidence: `TS000098` passed verification 100 with no safety,
+      recovery, parse-repair, or training signals.
+- [x] Promote raw newline output drift into named Teaching Sandbox training
+      signals before fresh graduation selection.
+- [x] Add a mocked repair lane for Python newline drift and mark repair-assisted
+      success separately from graduation-clean evidence.
+- [x] Exercise post-success overread as a named Teaching Sandbox training
+      signal in a focused mocked or live evidence run.
+- [x] Optionally run the Python newline repair lane live as training evidence;
+      do not count repair-assisted success as graduation evidence.
+- [ ] Resolve or explicitly account for live Teaching Sandbox runs that have
+      trace and journal entries but empty `evidence_ids`; graduation requires a
+      complete evidence trail, not only clean deterministic checks.
+- [ ] After the live rehearsal is quiet, select fresh graduation evidence
       instead of rerunning the failed Tranche 18 holdouts as tuned targets.
 
 ### Recently parked source tranche: Tranche 17A Teaching Sandbox Control-File Integrity

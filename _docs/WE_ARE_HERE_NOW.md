@@ -4,7 +4,7 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Last updated
 
-- 2026-05-07 (Tranche 19 recipe remediation live pass captured)
+- 2026-05-08 (Tranche 19 repair lane added; graduation still no-go)
 
 ## Fresh-thread start
 
@@ -254,6 +254,28 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
   to a compact project-birth card: mocked `TS000080` passed at 100 and live
   `TS000081` passed at score 93 / verification 100 with zero safety signals,
   recovery classes, failed checks, or parse repair signals.
+- A narrow pre-graduation rehearsal is active. Mocked runs `TS000082`,
+  `TS000085`, `TS000089`, and `TS000091` passed quietly. Live runs moved from
+  invalid Python (`TS000083`, `TS000084`, `TS000086`) to parseable artifacts
+  with post-success overread (`TS000090`) to a recovery-silent partial
+  (`TS000092`), but `TS000092` still failed `python-safe-output-pattern`.
+  This blocks fresh graduation selection for now.
+- The repair-bot lane is now real but explicitly separate from graduation.
+  `repair_python_newline_drift_cli` seeds a drifty Python artifact, names
+  `python_newline_output_drift`, and mocked repair run `TS000093` passes with
+  `repair_assisted` and `python_newline_drift_repair` training signals.
+- Outside-review feedback was integrated into Tranche 19 by converting the
+  newline-output rule into an `emit_summary(lines)` helper contract and by
+  naming post-success overread in smoke coverage.
+- Latest evidence:
+  - `TS000097` live repair lane passed with verification 100 and no safety,
+    recovery, or parse-repair signals; it remains repair-assisted training
+    evidence.
+  - `TS000098` live main-agent pre-graduation rehearsal passed with
+    verification 100 and no safety, recovery, parse-repair, or training
+    signals.
+  - Both live passes still have empty `evidence_ids`, so graduation should wait
+    until this visibility gap is understood or fixed.
 
 ## Current bottleneck
 
@@ -267,11 +289,12 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 
 ## Next best move
 
-- Continue Tranche 19 toward graduation-readiness review. The next best
-  technical move is to compare the clean remediation evidence (`TS000074`,
-  `TS000080`, `TS000081`) against the failed graduation holdouts, then choose a
-  fresh graduation set or a narrow pre-graduation rehearsal. Preserve the failed
-  Tranche 18 holdouts as evidence; do not retune them in place.
+- Continue Tranche 19 visibility hardening before graduation. The main-agent
+  newline rehearsal now passes cleanly in live mode (`TS000098`), so the next
+  technical move is to inspect why live runs have trace and journal entries but
+  empty `evidence_ids`. Preserve failed rehearsals and Tranche 18 holdouts as
+  evidence; do not declare readiness or select fresh graduation holdouts until
+  the evidence trail is graduation-complete.
 
 ## Current warnings
 
@@ -304,6 +327,8 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Successful parser repairs are visible as `parse_repair_signals`. They are
   useful teaching telemetry in Tranche 17, but Tranche 18 graduation runs should
   be repair-silent.
+- Training-only telemetry is visible as `training_signals`. A repair-assisted
+  pass is useful training evidence but is not graduation-clean evidence.
 - The first Tranche 18 live graduation attempt was repair-silent but did not
   pass. Quiet signals alone are not graduation; deterministic checks must also
   be clean.
