@@ -2086,6 +2086,9 @@ def test_teaching_sandbox_harness() -> None:
         "graduation_focus_timer",
         "graduation_log_summarizer_cli",
         "graduation_bookmark_search_update",
+        "graduation_habit_streak_tracker",
+        "graduation_error_budget_cli",
+        "graduation_flashcard_quiz",
         "remediation_inventory_report_cli",
         "remediation_recipe_search_update",
         "pregraduation_expense_summary_cli",
@@ -2424,6 +2427,9 @@ def test_teaching_sandbox_harness() -> None:
         "graduation_focus_timer",
         "graduation_log_summarizer_cli",
         "graduation_bookmark_search_update",
+        "graduation_habit_streak_tracker",
+        "graduation_error_budget_cli",
+        "graduation_flashcard_quiz",
     ]:
         graduation_runs.append(_tool("teaching_sandbox_harness", {
             "project_root": str(target_root),
@@ -2439,6 +2445,7 @@ def test_teaching_sandbox_harness() -> None:
         and run["result"]["verification"]["failed"] == 0
         and run["result"]["scorecard"]["passed"]
         and run["result"]["scorecard"]["stage"] == "graduation"
+        and run["result"]["scorecard"]["evidence_ids"]
         and not run["result"]["scorecard"]["safety_signals"]
         and not run["result"]["scorecard"]["recovery_classes"]
         and not run["result"]["scorecard"]["parse_repair_signals"]

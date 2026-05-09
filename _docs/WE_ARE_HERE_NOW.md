@@ -284,18 +284,24 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - No internal root bottleneck for first-use local-agent testing. Remaining
   container work is operational: live-cluster `kubectl apply` / `kubectl
   attach`, plus registry publication.
-- The active source-shaped bottleneck has moved from Tranche 19 remediation to
-  the next fresh graduation selection. The harness, UI visibility, reviewer
-  packets, quiet-signal checks, and evaluation evidence IDs are now working for
-  the pre-graduation rehearsal.
+- The active source-shaped bottleneck has moved from evidence-chain closure to
+  live-agent terminal-state and tool-call discipline. Fresh graduation
+  scenarios now exist, mocked baselines are clean, and live evidence is fully
+  witnessed, but live graduation failed 0/3.
+- Fresh live graduation evidence:
+  - `TS000104` habit tracker: verification 100, score 90, recovery
+    `tool_runtime_error` after a post-success README write attempt.
+  - `TS000105` error budget CLI: verification 22, score 35, recovery
+    `malformed_tool_call` from malformed scaffold JSON.
+  - `TS000107` flashcard quiz: verification 100, score 90, recovery
+    `malformed_tool_call` after a post-success repair attempt.
 
 ## Next best move
 
-- Start the next graduation slice from a fresh unseen holdout set, not tuned
-  reruns of failed Tranche 18 runs. Use `TS000099` as the threshold proof that a
-  clean live run can now be fully witnessed: deterministic checks clean, trace
-  present, evidence present, journal present, and no safety/recovery/repair or
-  training signals.
+- Close the terminal-state/tool-call reliability gap before another graduation
+  declaration attempt. The most direct next slice should add an explicit
+  final-submit or stop-after-valid-artifact boundary, then rerun the same fresh
+  holdouts as new evidence rather than editing their success criteria in place.
 
 ## Current warnings
 
@@ -336,6 +342,9 @@ _Fast pickup note for `.dev-tools`. Update this at meaningful milestones._
 - Tranche 19 remediation is allowed to iterate and fail. Do not confuse a
   remediation pass with graduation; graduation needs a fresh unseen holdout
   set after the training scenarios are clean.
+- Fresh graduation has now been attempted and is still no-go. Do not count
+  `TS000104`, `TS000105`, or `TS000107` as graduation passes, even where
+  deterministic verification reached 100; recovery classes are disqualifying.
 - Teaching Sandbox event logs are sanitized status trails, not raw transcripts.
   Use them for operator visibility, not as a place to preserve generated app
   source or private local paths.

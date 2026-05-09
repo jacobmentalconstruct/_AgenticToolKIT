@@ -737,6 +737,18 @@ Implemented safe floor:
 
 - [x] Run final release-candidate verification after reference material purge.
 - [x] Commit the clean release-candidate state.
+- [x] Add fresh Teaching Sandbox graduation holdouts after Tranche 19 evidence
+      closure.
+- [x] Run mocked baselines for the fresh graduation holdouts.
+- [x] Run live fresh graduation evidence and record the no-go result:
+      `TS000104`, `TS000105`, and `TS000107` all failed graduation because
+      recovery classes remained present.
+- [ ] Implement a terminal-state boundary for Teaching Sandbox live runs so a
+      valid first scaffold can stop cleanly before post-success overreach.
+- [ ] Tighten or surface malformed tool-call recovery around scaffold/write
+      calls without broadening sandbox authority.
+- [ ] Rerun the same fresh graduation holdouts only after the terminal-state
+      and tool-call discipline slice is implemented.
 
 ---
 

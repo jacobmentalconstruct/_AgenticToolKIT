@@ -593,6 +593,130 @@ SCENARIOS: dict[str, Scenario] = {
         ),
         stage="graduation",
     ),
+    "graduation_habit_streak_tracker": Scenario(
+        scenario_id="graduation_habit_streak_tracker",
+        title="Graduation Habit Streak Tracker",
+        summary="Fresh graduation static habit tracker with daily completion, streaks, deletion, and persistence.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=WEB_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Graduation Habit Streak Tracker",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="index.html",
+            build_instruction="Build a tiny static habit streak tracker using only index.html, styles.css, and app.js.",
+            success_criteria=(
+                "A user can add and delete habits.",
+                "A user can mark a habit done for today.",
+                "Each habit shows a visible streak count.",
+                "Habits, completions, and streak state persist with localStorage.",
+                "app.js wires interactions with literal addEventListener calls.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "index.html exposes add, done today, delete, and streak UI.",
+                "app.js uses localStorage and addEventListener.",
+                "app.js includes add, delete, today, done, and streak behavior.",
+                "styles.css is non-empty.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+            implementation_notes=(
+                "Use exactly one complete directory_scaffold call with three file entries: index.html, styles.css, and app.js.",
+                "Use this exact HTML control set: form#habit-form, input#habit-name, button text Add Habit, and ul#habit-list.",
+                "In rendered habit rows, create Done Today and Delete Habit buttons with addEventListener handlers.",
+                "Use this exact app.js function set: saveHabits, todayKey, streakFor, renderHabits, addHabit, deleteHabit, and toggleToday.",
+                "The app.js source must include localStorage and must persist habit completion state across reloads.",
+                "After the scaffold call succeeds, stop and give a final summary citing index.html, styles.css, and app.js.",
+            ),
+        ),
+        stage="graduation",
+    ),
+    "graduation_error_budget_cli": Scenario(
+        scenario_id="graduation_error_budget_cli",
+        title="Graduation Error Budget CLI",
+        summary="Fresh graduation stdlib Python CLI that summarizes service incidents and downtime budget use.",
+        expected_files=("error_budget.py", "README.md", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=PYTHON_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Graduation Error Budget CLI",
+            expected_files=("error_budget.py", "README.md"),
+            scaffold_example_path="error_budget.py",
+            build_instruction="Build a tiny stdlib-only Python error budget command line app in error_budget.py.",
+            success_criteria=(
+                "The CLI accepts an input CSV path.",
+                "It summarizes incidents and downtime minutes by service.",
+                "It supports filtering to one service.",
+                "It accepts a downtime budget minutes threshold and reports remaining or over-budget minutes.",
+                "It can optionally write the summary to an output path.",
+                "README.md documents usage and examples.",
+            ),
+            verification_checks=(
+                "error_budget.py parses as Python.",
+                "error_budget.py uses argparse and csv.",
+                "error_budget.py reads input, groups by service, counts incidents, totals downtime, handles a budget, and writes output.",
+                "error_budget.py builds output through emit_summary(lines), write_text, and print(summary), without raw newline escapes or write loops.",
+                "README.md documents usage, input CSV, service filtering, budget minutes, incidents, downtime, and output.",
+            ),
+            final_paths=("error_budget.py", "README.md"),
+            implementation_notes=(
+                "Keep the Python syntax deliberately simple and parseable; include an `if __name__ == '__main__'` main guard.",
+                "Use exactly one complete directory_scaffold call with two file entries: error_budget.py and README.md.",
+                "README.md must explicitly include the words usage, input, CSV, service, budget, incident, downtime, and output.",
+                "Avoid quote-heavy f-strings; assign dictionary values to variables before formatting lines.",
+                "Every argparse help string must be a one-line quoted string closed on the same line.",
+                "Do not use raw newline escapes, file.write(...), outfile.write(...), writerow, or any write call inside a loop.",
+                "Define `emit_summary(lines)` and make it return `chr(10).join(lines)`.",
+                "Build a list named lines, set `summary = emit_summary(lines)`, write output with `Path(args.output).write_text(summary + chr(10), encoding='utf-8')`, and print with `print(summary)`.",
+                "After the scaffold call succeeds, stop and give a final summary citing error_budget.py and README.md.",
+            ),
+        ),
+        stage="graduation",
+    ),
+    "graduation_flashcard_quiz": Scenario(
+        scenario_id="graduation_flashcard_quiz",
+        title="Graduation Flashcard Quiz",
+        summary="Fresh graduation static flashcard quiz with add, reveal, next, known score, and persistence.",
+        expected_files=("index.html", "styles.css", "app.js", "_docs/TASK_CARD.md"),
+        task_card_template="project_birth",
+        required_steps=WEB_PROJECT_REQUIRED_STEPS,
+        optional_steps=PROJECT_OPTIONAL_STEPS,
+        forbidden_steps=PROJECT_FORBIDDEN_STEPS,
+        task_card=_project_birth_card(
+            title="Graduation Flashcard Quiz",
+            expected_files=("index.html", "styles.css", "app.js"),
+            scaffold_example_path="index.html",
+            build_instruction="Build a tiny static flashcard quiz using only index.html, styles.css, and app.js.",
+            success_criteria=(
+                "A user can add question and answer flashcards.",
+                "A user can reveal the current answer.",
+                "A user can move to the next card.",
+                "A user can mark a card known and see a score or known count.",
+                "Cards and known state persist with localStorage.",
+                "app.js wires interactions with literal addEventListener calls.",
+            ),
+            verification_checks=(
+                "index.html links styles.css and app.js.",
+                "index.html exposes question, answer, show answer, next, known, and score UI.",
+                "app.js uses localStorage and addEventListener.",
+                "app.js includes add, reveal/show answer, next, known, score, and card behavior.",
+                "styles.css is non-empty.",
+            ),
+            final_paths=("index.html", "styles.css", "app.js"),
+            implementation_notes=(
+                "Use exactly one complete directory_scaffold call with three file entries: index.html, styles.css, and app.js.",
+                "Use this exact HTML control set: form#card-form, input#question, input#answer, button text Add Card, button#show-answer, button#next-card, button#known-card, output#score, and section#card-view.",
+                "Use this exact app.js function set: saveCards, currentCard, renderCard, addCard, showAnswer, nextCard, and markKnown.",
+                "The app.js source must include localStorage and must persist cards plus known state across reloads.",
+                "After the scaffold call succeeds, stop and give a final summary citing index.html, styles.css, and app.js.",
+            ),
+        ),
+        stage="graduation",
+    ),
     "remediation_inventory_report_cli": Scenario(
         scenario_id="remediation_inventory_report_cli",
         title="Remediation Inventory Report CLI",
@@ -1550,6 +1674,12 @@ def _verify_scenario(project_root: Path, scenario_id: str) -> list[dict[str, Any
         return _verify_graduation_log_summarizer_cli(project_root)
     if scenario_id == "graduation_bookmark_search_update":
         return _verify_graduation_bookmark_search_update(project_root)
+    if scenario_id == "graduation_habit_streak_tracker":
+        return _verify_graduation_habit_streak_tracker(project_root)
+    if scenario_id == "graduation_error_budget_cli":
+        return _verify_graduation_error_budget_cli(project_root)
+    if scenario_id == "graduation_flashcard_quiz":
+        return _verify_graduation_flashcard_quiz(project_root)
     if scenario_id == "remediation_inventory_report_cli":
         return _verify_remediation_inventory_report_cli(project_root)
     if scenario_id == "remediation_recipe_search_update":
@@ -1785,6 +1915,97 @@ def _verify_graduation_bookmark_search_update(project_root: Path) -> list[dict[s
     return checks
 
 
+def _verify_graduation_habit_streak_tracker(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["graduation_habit_streak_tracker"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    index_lowered = index.lower()
+    script_lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check(
+            "html-has-habit-controls",
+            all(term in index_lowered for term in ["habit", "add", "streak"]),
+            "index.html exposes habit add and streak UI",
+        ),
+        _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
+        _check(
+            "js-has-habit-lifecycle",
+            all(term in script_lowered for term in ["habit", "add", "delete", "today", "done", "streak"]),
+            "app.js supports habit add/delete, today completion, and streaks",
+        ),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+    ])
+    return checks
+
+
+def _verify_graduation_error_budget_cli(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["graduation_error_budget_cli"].expected_files)
+    source = _read(project_root / "error_budget.py")
+    readme = _read(project_root / "README.md")
+    parses = bool(source.strip()) and _python_parses(source)
+    lowered = source.lower()
+    readme_lowered = readme.lower()
+    checks.extend([
+        _check("python-ast-parse", parses, "error_budget.py parses as Python"),
+        _check("python-uses-argparse", "argparse" in lowered, "error_budget.py uses argparse"),
+        _check("python-uses-csv", "csv" in lowered, "error_budget.py uses csv"),
+        _check(
+            "python-supports-error-budget",
+            all(term in lowered for term in ["input", "service", "incident", "downtime", "budget", "output"]),
+            "error_budget.py reads input, groups service incidents, totals downtime, handles budget, and writes output",
+        ),
+        _check(
+            "python-safe-output-pattern",
+            (
+                all(term in source for term in ["emit_summary", "lines", "chr(10).join(lines)", "write_text", "print(summary)"])
+                and ("summary = emit_summary(lines)" in source or "return emit_summary(lines)" in source)
+                and not any(
+                    term in source
+                    for term in ["file.write", "outfile.write", "writerow", "\\n"]
+                )
+            ),
+            "error_budget.py builds a summary string through emit_summary(lines) and avoids raw newline escapes/write loops",
+        ),
+        _check(
+            "readme-docs-usage",
+            all(term in readme_lowered for term in ["usage", "input", "csv", "service", "budget", "incident", "downtime", "output"]),
+            "README documents usage, input CSV, service filtering, budget minutes, incidents, downtime, and output",
+        ),
+    ])
+    return checks
+
+
+def _verify_graduation_flashcard_quiz(project_root: Path) -> list[dict[str, Any]]:
+    checks = _file_checks(project_root, SCENARIOS["graduation_flashcard_quiz"].expected_files)
+    index = _read(project_root / "index.html")
+    script = _read(project_root / "app.js")
+    styles = _read(project_root / "styles.css")
+    index_lowered = index.lower()
+    script_lowered = script.lower()
+    checks.extend([
+        _check("html-links-css", "styles.css" in index, "index.html links styles.css"),
+        _check("html-links-js", "app.js" in index, "index.html links app.js"),
+        _check(
+            "html-has-flashcard-controls",
+            all(term in index_lowered for term in ["question", "answer", "next", "known", "score"]),
+            "index.html exposes question, answer, next, known, and score UI",
+        ),
+        _check("js-uses-localstorage", "localStorage" in script, "app.js uses localStorage"),
+        _check("js-adds-event-listeners", _uses_literal_event_listeners(index, script), "app.js registers event listeners"),
+        _check(
+            "js-has-flashcard-lifecycle",
+            all(term in script_lowered for term in ["card", "add", "answer", "next", "known", "score"]),
+            "app.js supports card add, answer reveal, next, known state, and score",
+        ),
+        _check("css-nonempty", len(styles.strip()) > 20, "styles.css is non-empty"),
+    ])
+    return checks
+
+
 def _verify_remediation_inventory_report_cli(project_root: Path) -> list[dict[str, Any]]:
     checks = _file_checks(project_root, SCENARIOS["remediation_inventory_report_cli"].expected_files)
     source = _read(project_root / "inventory_report.py")
@@ -1978,6 +2199,20 @@ def _mock_responses(scenario_id: str) -> list[str]:
             {"type": "file", "path": "index.html", "content": BOOKMARK_INDEX, "overwrite": True},
             {"type": "file", "path": "styles.css", "content": BOOKMARK_CSS, "overwrite": True},
             {"type": "file", "path": "app.js", "content": BOOKMARK_JS, "overwrite": True},
+        ],
+        "graduation_habit_streak_tracker": [
+            {"type": "file", "path": "index.html", "content": HABIT_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": HABIT_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": HABIT_JS, "overwrite": True},
+        ],
+        "graduation_error_budget_cli": [
+            {"type": "file", "path": "error_budget.py", "content": ERROR_BUDGET_PY, "overwrite": True},
+            {"type": "file", "path": "README.md", "content": ERROR_BUDGET_README, "overwrite": True},
+        ],
+        "graduation_flashcard_quiz": [
+            {"type": "file", "path": "index.html", "content": FLASHCARD_INDEX, "overwrite": True},
+            {"type": "file", "path": "styles.css", "content": FLASHCARD_CSS, "overwrite": True},
+            {"type": "file", "path": "app.js", "content": FLASHCARD_JS, "overwrite": True},
         ],
         "remediation_inventory_report_cli": [
             {"type": "file", "path": "inventory_report.py", "content": INVENTORY_REPORT_PY, "overwrite": True},
@@ -3303,6 +3538,349 @@ form.addEventListener('submit', event => {
 searchInput.addEventListener('input', renderBookmarks);
 favoritesOnly.addEventListener('change', renderBookmarks);
 renderBookmarks();
+"""
+
+
+HABIT_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Habit Streak Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Habit Streak Tracker</h1>
+    <form id="habit-form">
+      <label for="habit-name">Habit</label>
+      <input id="habit-name" placeholder="Drink water">
+      <button type="submit">Add Habit</button>
+    </form>
+    <ul id="habit-list"></ul>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+HABIT_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #f6f8fb;
+  color: #1b2430;
+}
+main {
+  max-width: 42rem;
+}
+form,
+li {
+  display: grid;
+  gap: .5rem;
+  margin: 1rem 0;
+}
+li {
+  border: 1px solid #b8c4d6;
+  padding: .75rem;
+}
+.done {
+  border-color: #2f855a;
+  background: #eefaf2;
+}
+button,
+input {
+  min-height: 2.25rem;
+}
+"""
+
+
+HABIT_JS = """const form = document.querySelector('#habit-form');
+const nameInput = document.querySelector('#habit-name');
+const list = document.querySelector('#habit-list');
+let habits = JSON.parse(localStorage.getItem('habits') || '[]');
+
+function saveHabits() {
+  localStorage.setItem('habits', JSON.stringify(habits));
+}
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function streakFor(habit) {
+  return habit.completions.length;
+}
+
+function renderHabits() {
+  list.innerHTML = '';
+  const today = todayKey();
+  habits.forEach((habit, index) => {
+    const item = document.createElement('li');
+    const doneToday = habit.completions.includes(today);
+    item.className = doneToday ? 'done' : '';
+    const title = document.createElement('strong');
+    title.textContent = habit.name;
+    const streak = document.createElement('span');
+    streak.textContent = 'Streak: ' + streakFor(habit);
+    const doneButton = document.createElement('button');
+    doneButton.textContent = doneToday ? 'Done Today' : 'Mark Done Today';
+    doneButton.addEventListener('click', () => toggleToday(index));
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete Habit';
+    deleteButton.addEventListener('click', () => deleteHabit(index));
+    item.append(title, streak, doneButton, deleteButton);
+    list.appendChild(item);
+  });
+}
+
+function addHabit(event) {
+  event.preventDefault();
+  const name = nameInput.value.trim();
+  if (!name) return;
+  habits.push({ name, completions: [] });
+  nameInput.value = '';
+  saveHabits();
+  renderHabits();
+}
+
+function deleteHabit(index) {
+  habits.splice(index, 1);
+  saveHabits();
+  renderHabits();
+}
+
+function toggleToday(index) {
+  const today = todayKey();
+  const completions = habits[index].completions;
+  if (completions.includes(today)) {
+    habits[index].completions = completions.filter(day => day !== today);
+  } else {
+    completions.push(today);
+  }
+  saveHabits();
+  renderHabits();
+}
+
+form.addEventListener('submit', addHabit);
+renderHabits();
+"""
+
+
+ERROR_BUDGET_PY = """import argparse
+import csv
+from collections import defaultdict
+from pathlib import Path
+
+
+def number_for(row, field):
+    try:
+        return float(row.get(field, '0') or 0)
+    except ValueError:
+        return 0.0
+
+
+def load_rows(input_csv, service_filter=None):
+    with open(input_csv, newline='', encoding='utf-8') as source:
+        rows = list(csv.DictReader(source))
+    if service_filter:
+        requested = service_filter.lower()
+        return [row for row in rows if row.get('service', '').lower() == requested]
+    return rows
+
+
+def emit_summary(lines):
+    return chr(10).join(lines)
+
+
+def build_summary(rows, budget_minutes=None):
+    grouped = defaultdict(lambda: {'incident_count': 0, 'downtime': 0.0})
+    for row in rows:
+        service = row.get('service', 'unknown') or 'unknown'
+        downtime = number_for(row, 'downtime_minutes')
+        if downtime == 0:
+            downtime = number_for(row, 'minutes')
+        grouped[service]['incident_count'] += 1
+        grouped[service]['downtime'] += downtime
+    total_incidents = sum(item['incident_count'] for item in grouped.values())
+    total_downtime = sum(item['downtime'] for item in grouped.values())
+    lines = ['Error budget summary']
+    lines.append('total incidents: ' + str(total_incidents))
+    lines.append('total downtime minutes: ' + format(total_downtime, '.1f'))
+    if budget_minutes is not None:
+        remaining = budget_minutes - total_downtime
+        lines.append('budget minutes: ' + format(budget_minutes, '.1f'))
+        lines.append('remaining budget minutes: ' + format(remaining, '.1f'))
+    for service in sorted(grouped):
+        incident_count = grouped[service]['incident_count']
+        downtime = grouped[service]['downtime']
+        lines.append(service + ': ' + str(incident_count) + ' incidents, ' + format(downtime, '.1f') + ' downtime minutes')
+    return emit_summary(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Summarize service error budget CSV data')
+    parser.add_argument('input_csv', help='Input CSV path with service and downtime columns')
+    parser.add_argument('--service', help='Only include one service')
+    parser.add_argument('--budget-minutes', type=float, help='Downtime budget minutes to compare against')
+    parser.add_argument('--output', help='Optional output report path')
+    args = parser.parse_args()
+
+    rows = load_rows(args.input_csv, service_filter=args.service)
+    summary = build_summary(rows, budget_minutes=args.budget_minutes)
+    if args.output:
+        Path(args.output).write_text(summary + chr(10), encoding='utf-8')
+    print(summary)
+
+
+if __name__ == '__main__':
+    main()
+"""
+
+
+ERROR_BUDGET_README = """# Error Budget CLI
+
+Usage: python error_budget.py input.csv --service api --budget-minutes 120 --output budget.txt
+
+The input CSV should include service plus downtime_minutes or minutes columns.
+
+The report counts incidents, totals downtime by service, and compares total downtime to the budget minutes threshold.
+
+Use --service to filter one service and --output to write the same summary to a file.
+"""
+
+
+FLASHCARD_INDEX = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flashcard Quiz</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Flashcard Quiz</h1>
+    <form id="card-form">
+      <label for="question">Question</label>
+      <input id="question" placeholder="Capital of France">
+      <label for="answer">Answer</label>
+      <input id="answer" placeholder="Paris">
+      <button type="submit">Add Card</button>
+    </form>
+    <section id="card-view" aria-live="polite"></section>
+    <div class="controls">
+      <button id="show-answer">Show Answer</button>
+      <button id="next-card">Next Card</button>
+      <button id="known-card">Mark Known</button>
+    </div>
+    <p>Score: <output id="score">0 / 0</output></p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
+"""
+
+
+FLASHCARD_CSS = """body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #fbf7f2;
+  color: #263238;
+}
+main {
+  max-width: 42rem;
+}
+form,
+.controls {
+  display: grid;
+  gap: .5rem;
+  margin: 1rem 0;
+}
+#card-view {
+  min-height: 7rem;
+  border: 1px solid #b9a58d;
+  padding: 1rem;
+  background: #fffdf8;
+}
+button,
+input {
+  min-height: 2.25rem;
+}
+"""
+
+
+FLASHCARD_JS = """const form = document.querySelector('#card-form');
+const questionInput = document.querySelector('#question');
+const answerInput = document.querySelector('#answer');
+const cardView = document.querySelector('#card-view');
+const showButton = document.querySelector('#show-answer');
+const nextButton = document.querySelector('#next-card');
+const knownButton = document.querySelector('#known-card');
+const scoreOutput = document.querySelector('#score');
+let cards = JSON.parse(localStorage.getItem('cards') || '[]');
+let currentIndex = 0;
+let answerVisible = false;
+
+function saveCards() {
+  localStorage.setItem('cards', JSON.stringify(cards));
+}
+
+function currentCard() {
+  return cards[currentIndex] || null;
+}
+
+function renderCard() {
+  const card = currentCard();
+  const knownCount = cards.filter(item => item.known).length;
+  scoreOutput.textContent = knownCount + ' / ' + cards.length;
+  if (!card) {
+    cardView.textContent = 'Add a flashcard to begin.';
+    return;
+  }
+  const answerText = answerVisible ? card.answer : 'Answer hidden';
+  cardView.innerHTML = '<h2>' + card.question + '</h2><p>' + answerText + '</p>';
+}
+
+function addCard(event) {
+  event.preventDefault();
+  const question = questionInput.value.trim();
+  const answer = answerInput.value.trim();
+  if (!question || !answer) return;
+  cards.push({ question, answer, known: false });
+  questionInput.value = '';
+  answerInput.value = '';
+  currentIndex = cards.length - 1;
+  answerVisible = false;
+  saveCards();
+  renderCard();
+}
+
+function showAnswer() {
+  answerVisible = true;
+  renderCard();
+}
+
+function nextCard() {
+  if (cards.length === 0) return;
+  currentIndex = (currentIndex + 1) % cards.length;
+  answerVisible = false;
+  renderCard();
+}
+
+function markKnown() {
+  const card = currentCard();
+  if (!card) return;
+  card.known = !card.known;
+  saveCards();
+  renderCard();
+}
+
+form.addEventListener('submit', addCard);
+showButton.addEventListener('click', showAnswer);
+nextButton.addEventListener('click', nextCard);
+knownButton.addEventListener('click', markKnown);
+renderCard();
 """
 
 

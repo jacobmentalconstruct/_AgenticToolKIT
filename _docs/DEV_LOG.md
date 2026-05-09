@@ -2716,6 +2716,67 @@ present, and no safety, recovery, parse-repair, or training signals.
 
 ---
 
+## 2026-05-09 — Fresh graduation evidence attempt
+
+- Added three fresh unseen Teaching Sandbox graduation holdouts:
+  - `graduation_habit_streak_tracker`
+  - `graduation_error_budget_cli`
+  - `graduation_flashcard_quiz`
+- Added deterministic verifiers, mocked fixtures, and smoke coverage for the
+  new holdouts.
+- Mocked baselines passed cleanly:
+  - `TS000100` habit tracker: score 100, verification 100, evidence
+    `E000001`, no safety/recovery/parse/training signals.
+  - `TS000101` flashcard quiz: score 100, verification 100, evidence
+    `E000001`, no safety/recovery/parse/training signals.
+  - `TS000102` error budget CLI: score 100, verification 100, evidence
+    `E000001`, no safety/recovery/parse/training signals.
+- Live graduation was attempted with `run_mode: "live"` and is a no-go:
+  - `TS000104` habit tracker: deterministic verification 100, score 90,
+    recovery `tool_runtime_error`. The agent completed app artifacts, then
+    overreached into an extra README write with rejected writer arguments.
+  - `TS000105` error budget CLI: deterministic verification 22, score 35,
+    recovery `malformed_tool_call`. The scaffold JSON was malformed and
+    `error_budget.py` was not created.
+  - `TS000107` flashcard quiz: deterministic verification 100, score 90,
+    recovery `malformed_tool_call`. The agent completed artifacts, then
+    attempted a malformed post-success repair write.
+- `compare_runs` over `TS000104`, `TS000105`, and `TS000107` shows pass count
+  0/3, average score 71.7, recovery counts `malformed_tool_call: 2` and
+  `tool_runtime_error: 1`.
+- `tail_events` for `TS000107` shows the operator visibility path working:
+  create, run_agent, verify_project, score, and run_scenario events are
+  recorded with sanitized details.
+- Reviewer packet:
+  `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260509T003310Z.md`.
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:596-723`
+  registers the three fresh graduation holdouts and their task-card contracts.
+- `src/lib/teaching_sandbox_harness.py:1677-1682`
+  routes the new scenario IDs to deterministic verifier functions.
+- `src/lib/teaching_sandbox_harness.py:1918-2014`
+  verifies habit, error-budget, and flashcard artifacts.
+- `src/lib/teaching_sandbox_harness.py:2203-2215`
+  maps the new holdouts to mocked scaffold fixtures.
+- `src/lib/teaching_sandbox_harness.py:3544-3838`
+  defines mocked fixture source for the fresh holdouts.
+- `src/smoke_test.py:2089-2091`
+  includes the fresh holdouts in scenario-list coverage.
+- `src/smoke_test.py:2430-2448`
+  runs the fresh holdouts in the quiet mocked graduation baseline loop and
+  requires evidence IDs.
+
+Current read: the fresh graduation set is now built and witnessed, but
+graduation is still blocked. The blocker is no longer the evidence chain or the
+deterministic verifier surface; it is live-agent terminal-state and tool-call
+discipline. The next tranche should focus on a final-submit or stop-after-first
+valid-artifact mechanism, plus stricter argument stripping/rejection visibility
+for tool calls that smuggle harness-owned fields.
+
+---
+
 ## Template for future entries
 
 - Files changed:

@@ -1014,3 +1014,52 @@ Go/no-go:
 - Go to select fresh graduation evidence in the next tranche.
 - Do not use repair-assisted runs as graduation evidence.
 - Do not reuse tuned Tranche 18 failures as the fresh graduation set.
+
+## Fresh Graduation Evidence Attempt
+
+_Recorded: 2026-05-09._
+
+Fresh holdouts were added and treated as graduation-only scenarios:
+
+| Scenario | Shape | Mocked baseline | Live result | Lesson |
+|---|---|---|---|---|
+| `graduation_habit_streak_tracker` | Static habit/streak app | `TS000100`, score 100 | `TS000104`, score 90, failed | Completed artifacts, then post-success overreach caused `tool_runtime_error`. |
+| `graduation_error_budget_cli` | Stdlib CSV error-budget CLI | `TS000102`, score 100 | `TS000105`, score 35, failed | Malformed scaffold JSON prevented the expected Python file from landing. |
+| `graduation_flashcard_quiz` | Static flashcard quiz | `TS000101`, score 100 | `TS000107`, score 90, failed | Completed artifacts, then malformed post-success repair write caused `malformed_tool_call`. |
+
+Graduation verdict:
+
+- No graduation declaration.
+- Fresh mocked baselines are quiet and useful.
+- Fresh live runs failed 0/3.
+- Evidence chain is now present for all selected live runs.
+- Current live blockers are terminal-state discipline and valid tool-call
+  formation, not missing evidence capture.
+
+Reviewer packet:
+
+- `.dev-tools/runtime/teaching_sandbox/exports/teaching_sandbox_review_20260509T003310Z.md`
+
+Code reference manifest:
+
+- `src/lib/teaching_sandbox_harness.py:596-723` registers the fresh graduation
+  scenarios and task-card contracts.
+- `src/lib/teaching_sandbox_harness.py:1918-2014` contains the deterministic
+  verifiers for the new holdouts.
+- `src/lib/teaching_sandbox_harness.py:2203-2215` maps the fresh holdouts to
+  mocked scaffold fixtures.
+- `src/lib/teaching_sandbox_harness.py:3544-3838` stores the mocked fixture
+  source for habit, error-budget, and flashcard projects.
+- `src/smoke_test.py:2089-2091` proves the scenarios are exposed by the
+  curriculum list.
+- `src/smoke_test.py:2430-2448` proves the fresh holdouts can pass quiet
+  mocked graduation baselines with evidence IDs.
+
+Next training focus:
+
+- Add or simulate a terminal state boundary so a valid first scaffold can end
+  the run before extra summary-file or repair attempts.
+- Promote repeated malformed scaffold/tool-call failures into a narrower
+  training signal or recovery class if the existing classes remain too broad.
+- Keep repair-assisted passes out of graduation evidence; use them as training
+  data only.
